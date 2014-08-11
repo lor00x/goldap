@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+  <meta charset="US-ASCII">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>ASN.1 JavaScript decoder</title>
+  <link rel="stylesheet" href="ASN.1%20JavaScript%20decoder_files/index.css" type="text/css">
+  <script type="text/javascript" src="ASN.1%20JavaScript%20decoder_files/hex.js"></script>
+  <script type="text/javascript" src="ASN.1%20JavaScript%20decoder_files/base64.js"></script>
+  <script type="text/javascript" src="ASN.1%20JavaScript%20decoder_files/oids.js"></script>
+  <script type="text/javascript" src="ASN.1%20JavaScript%20decoder_files/int10.js"></script>
+  <script type="text/javascript" src="ASN.1%20JavaScript%20decoder_files/asn1.js"></script>
+  <script type="text/javascript" src="ASN.1%20JavaScript%20decoder_files/dom.js"></script>
+  <script type="text/javascript" src="ASN.1%20JavaScript%20decoder_files/index.js"></script>
+</head>
+<body>
+<h1>ASN.1 JavaScript decoder</h1>
+<div style="position: relative; padding-bottom: 1em;">
+  <div id="dump" style="position: absolute; right: 0px;"></div>
+  <div id="tree"></div>
+</div>
+<form>
+  <textarea id="pem" style="width: 100%;" rows="8">MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIAwggHvMIIB
+WKADAgECAhAvoXazbunwSfREtACZZhlFMA0GCSqGSIb3DQEBBQUAMAwxCjAIBgNVBAMMAWEwHhcN
+MDgxMDE1MTUwMzQxWhcNMDkxMDE1MTUwMzQxWjAMMQowCAYDVQQDDAFhMIGfMA0GCSqGSIb3DQEB
+AQUAA4GNADCBiQKBgQCJUwlwhu5hR8X01f+vG0mKPRHsVRjpZNxSEmsmFPdDiD9kylE3ertTDf0g
+RkpIvWfNJ+eymuxoXF0Qgl5gXAVuSrjupGD6J+VapixJiwLXJHokmDihLs3zfGARz08O3qnO5ofB
+y0pRxq5isu/bAAcjoByZ1sI/g0iAuotC1UFObwIDAQABo1IwUDAOBgNVHQ8BAf8EBAMCBPAwHQYD
+VR0OBBYEFEIGXQB4h+04Z3y/n7Nv94+CqPitMB8GA1UdIwQYMBaAFEIGXQB4h+04Z3y/n7Nv94+C
+qPitMA0GCSqGSIb3DQEBBQUAA4GBAE0G7tAiaacJxvP3fhEj+yP9VDxL0omrRRAEaMXwWaBf/Ggk
+1T/u+8/CDAdjuGNCiF6ctooKc8u8KpnZJsGqnpGQ4n6L2KjTtRUDh+hija0eJRBFdirPQe2HAebQ
+GFnmOk6Mn7KiQfBIsOzXim/bFqaBSbf06bLTQNwFouSO+jwOAAAxggElMIIBIQIBATAgMAwxCjAI
+BgNVBAMMAWECEC+hdrNu6fBJ9ES0AJlmGUUwCQYFKw4DAhoFAKBdMBgGCSqGSIb3DQEJAzELBgkq
+hkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA4MTAxNTE1MDM0M1owIwYJKoZIhvcNAQkEMRYEFAAA
+AAAAAAAAAAAAAAAAAAAAAAAAMA0GCSqGSIb3DQEBAQUABIGAdB7ShyMGf5lVdZtvwKlnYLHMUqJW
+uBnFk7aQwHAmg3JnH6OcgId2F+xfg6twXm8hhUBkhHPlHGoWa5kQtN9n8rz3NorzvcM/1Xv9+0Ea
+l7NYSn2Hb0C0DMj2XNIYH2C6CLIHkmy1egzUvzsomZPTkx5nGDWm+8WHCjWb9A6lyrMAAAAAAAA=
+  </textarea>
+  <br>
+  <label title="can be slow with big files"><input id="wantHex" checked="checked" type="checkbox"> with hex dump</label>
+  <input value="decode" onclick="decodeArea();" type="button">
+  <input value="clear" onclick="clearAll();" type="button">
+  <input style="display: block;" id="file" type="file">
+</form>
+<div id="help">
+  <h2>Instructions</h2>
+  <p>This page contains a JavaScript generic ASN.1 parser that can 
+decode any valid ASN.1 DER or BER structure whether Base64-encoded (raw 
+base64, PEM armoring and <span class="tt">begin-base64</span> are recognized) or Hex-encoded. </p>
+  <p>This tool can be used online at the address <a href="http://lapo.it/asn1js/"><span class="tt">http://lapo.it/asn1js/</span></a> or offline, unpacking <a href="http://lapo.it/asn1js/asn1js.zip">the ZIP file</a> in a directory and opening <span class="tt">index.html</span> in a browser</p>
+  <p>On the left of the page will be printed a tree representing the 
+hierarchical structure, on the right side an hex dump will be shown. <br>
+    Hovering on the tree highlights ancestry (the hovered node and all 
+its ancestors get colored) and the position of the hovered node gets 
+highlighted in the hex dump (with header and content in a different 
+colors). <br>
+    Clicking a node in the tree will hide its sub-nodes (collapsed nodes can be noticed because they will become <i>italic</i>).</p>
+  <div class="license">
+    <h3>Copyright</h3>
+    <div class="ref"><p class="hidden">
+      ASN.1 JavaScript decoder<br>
+      Copyright © 2008-2014 Lapo Luchini &lt;lapo@lapo.it&gt;<br>
+      <br>
+      Permission to use, copy, modify, and/or distribute this software for any
+      purpose with or without fee is hereby granted, provided that the above
+      copyright notice and this permission notice appear in all copies.<br>
+      <br>
+      THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+      WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+      MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+      ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+      WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+      ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+      OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    </p></div>
+    <p>ASN.1 JavaScript decoder Copyright © 2008-2014 <a href="http://lapo.it/">Lapo Luchini</a>; released as <a href="http://opensource.org/licenses/isc-license.txt">opensource</a> under the <a href="http://en.wikipedia.org/wiki/ISC_licence">ISC license</a>.</p>
+  </div>
+  <p><span class="tt">OBJECT&nbsp;IDENTIFIER</span> values are recognized using data taken from Peter Gutmann's <a href="http://www.cs.auckland.ac.nz/%7Epgut001/#standards">dumpasn1</a> program.</p>
+  <h3>Links</h3>
+  <ul>
+    <li><a href="http://lapo.it/asn1js/">official website</a></li>
+    <li><a href="http://idf.lapo.it/p/asn1js/">InDefero tracker</a></li>
+    <li><a href="https://github.com/lapo-luchini/asn1js">github mirror</a></li>
+    <li><a href="https://www.ohloh.net/p/asn1js">Ohloh code stats</a></li>
+  </ul>
+</div>
+
+
+</body></html>
