@@ -47,28 +47,35 @@ func (t *TagAndLength) GetLength() int {
 	return t.length
 }
 
-func (t *TagAndLength) Expect(class int, tag int, isCompound bool) {
-	t.ExpectClass(class)
-	t.ExpectTag(tag)
-	t.ExpectCompound(isCompound)
+func (t *TagAndLength) Expect(class int, tag int, isCompound bool) (err error) {
+	err = t.ExpectClass(class)
+	if err != nil {
+		return
+	}
+	err = t.ExpectTag(tag)
+	if err != nil {
+		return
+	}
+	err = t.ExpectCompound(isCompound)
+	return
 }
-func (t *TagAndLength) ExpectClass(class int) {
+func (t *TagAndLength) ExpectClass(class int) (err error) {
 	if class != t.class {
-		errorMsg := fmt.Sprintf("UNEXPECTED TAG CLASS ! WANT class %d. GOT class %d.", class, t.class)
-		panic(errors.New(errorMsg))
+		err = errors.New(fmt.Sprintf("Wrong tag class %d. Expected %d.", t.class, class))
 	}
+	return
 }
-func (t *TagAndLength) ExpectTag(tag int) {
+func (t *TagAndLength) ExpectTag(tag int) (err error) {
 	if tag != t.tag {
-		errorMsg := fmt.Sprintf("UNEXPECTED TAG VALUE! WANT tag %d. GOT tag %d.", tag, t.tag)
-		panic(errors.New(errorMsg))
+		err = errors.New(fmt.Sprintf("Wrong tag value %d. Expected %d.", t.tag, tag))
 	}
+	return
 }
-func (t *TagAndLength) ExpectCompound(isCompound bool) {
+func (t *TagAndLength) ExpectCompound(isCompound bool) (err error) {
 	if isCompound != t.isCompound {
-		errorMsg := fmt.Sprintf("UNEXPECTED TAG COMPOUND ! WANT compound %d. GOT compound %d.", isCompound, t.isCompound)
-		panic(errors.New(errorMsg))
+		err = errors.New(fmt.Sprintf("Wrong tag compound %t. Expected %d.", t.isCompound, isCompound))
 	}
+	return
 }
 
 func ParseTagAndLength(bytes []byte, initOffset int) (ret TagAndLength, offset int) {

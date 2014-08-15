@@ -22,7 +22,10 @@ var ParseInt32TestData = []struct {
 
 func TestParseInt32(t *testing.T) {
 	for i, test := range ParseInt32TestData {
-		value := test.bytes.ParseInt32(test.length)
+		value, err := test.bytes.ParseInt32(test.length)
+		if err != nil {
+			t.Errorf("#%d failed: %s", i, err)
+		}
 		if !reflect.DeepEqual(test.value, value) {
 			t.Errorf("#%d: Wrong int32, expected %#v, got %#v", i, &test.value, &value)
 		}
@@ -45,7 +48,10 @@ var ParseUTF8STRINGTestData = []struct {
 
 func TestParseUTF8STRING(t *testing.T) {
 	for i, test := range ParseUTF8STRINGTestData {
-		value := test.bytes.ParseUTF8STRING(test.length)
+		value, err := test.bytes.ParseUTF8STRING(test.length)
+		if err != nil {
+			t.Errorf("#%d failed: %s", i, err)
+		}
 		if !reflect.DeepEqual(test.value, value) {
 			t.Errorf("#%d: Wrong UTF8 String, expected %#+v, got %#+v", i, test.value, value)
 		}
@@ -68,7 +74,10 @@ var ParseOCTETSTRINGTestData = []struct {
 
 func TestParseOCTETSTRING(t *testing.T) {
 	for i, test := range ParseOCTETSTRINGTestData {
-		value := test.bytes.ParseOCTETSTRING(test.length)
+		value, err := test.bytes.ParseOCTETSTRING(test.length)
+		if err != nil {
+			t.Errorf("#%d failed: %s", i, err)
+		}
 		if !reflect.DeepEqual(test.value, value) {
 			t.Errorf("#%d: Wrong UTF8 String, expected %#+v, got %#+v", i, test.value, value)
 		}

@@ -5,22 +5,44 @@ import (
 	"goldap/asn1"
 )
 
-func NewOCTETSTRING(bytes []byte) *OCTETSTRING {
-	octetstring := OCTETSTRING(bytes)
-	return &octetstring
+func ReadOCTETSTRING(bytes *Bytes) (ret OCTETSTRING, err error) {
+	tagAndLength, err := bytes.ParseTagAndLength()
+	if err != nil {
+		return
+	}
+	err = tagAndLength.Expect(asn1.ClassUniversal, asn1.TagOctetString, asn1.IsNotCompound)
+	if err != nil {
+		return
+	}
+	return bytes.ParseOCTETSTRING(tagAndLength.GetLength())
 }
-func ReadOCTETSTRING(bytes *Bytes) *OCTETSTRING {
-	tagAndLength := bytes.ParseTagAndLength()
-	tagAndLength.Expect(asn1.ClassUniversal, asn1.TagOctetString, asn1.IsNotCompound)
-	octetstring := bytes.ParseOCTETSTRING(tagAndLength.GetLength())
-	return &octetstring
+func ReadINTEGER(bytes *Bytes) (ret INTEGER, err error) {
+	tagAndLength, err := bytes.ParseTagAndLength()
+	if err !=nil {
+		return
+	}
+	err = tagAndLength.Expect(asn1.ClassUniversal, asn1.TagInteger, asn1.IsNotCompound)
+	if err != nil {
+		return
+	}
+	var integer int32
+	integer, err = bytes.ParseInt32(tagAndLength.GetLength())
+	return INTEGER(integer), err
 }
-func ReadINTEGER(bytes *Bytes) INTEGER {
-	tagAndLength := bytes.ParseTagAndLength()
-	tagAndLength.Expect(asn1.ClassUniversal, asn1.TagInteger, asn1.IsNotCompound)
-	integer := bytes.ParseInt32(tagAndLength.GetLength())
-	return INTEGER(integer)
+func ReadBOOLEAN(bytes *Bytes) (ret BOOLEAN, err error) {
+	tagAndLength, err := bytes.ParseTagAndLength()
+	if err !=nil {
+		return
+	}
+	err = tagAndLength.Expect(asn1.ClassUniversal, asn1.TagBoolean, asn1.IsNotCompound)
+	if err != nil {
+		return
+	}
+	var boolean bool
+	boolean, err = bytes.ParseBoolean(tagAndLength.GetLength())
+	return BOOLEAN(boolean), err
 }
+
 
 //   This appendix is normative.
 //
@@ -34,11 +56,6 @@ func ReadINTEGER(bytes *Bytes) INTEGER {
 //
 //        BEGIN
 //
-func (m *LDAPMessage) ReadSequenceTag(bytes *Bytes) {
-	tagAndLength := bytes.ParseTagAndLength()
-	tagAndLength.Expect(asn1.ClassUniversal, asn1.TagSequence, asn1.IsCompound)
-}
-
 //        LDAPMessage ::= SEQUENCE {
 //             messageID       MessageID,
 //             protocolOp      CHOICE {
@@ -68,19 +85,28 @@ func (m *LDAPMessage) ReadSequenceTag(bytes *Bytes) {
 //
 func NewLDAPMessage() *LDAPMessage { return &LDAPMessage{} }
 
-func ReadLDAPMessage(bytes *Bytes) (message *LDAPMessage) {
-	defer func() {
-		if e := recover(); e != nil {
-			message = nil
-			fmt.Printf("ERROR at offset %d: %v\n", bytes.offset, e)
-		}
-		return
-	}()
-	message = NewLDAPMessage()
-	message.ReadSequenceTag(bytes)
-	message.ReadMessageID(bytes)
-	message.ReadProtocolOp(bytes)
-	//	message.ReadControls(bytes)
+func ReadLDAPMessage(bytes *Bytes) (message LDAPMessage, err error) {
+	err = bytes.ParseSequence(asn1.ClassUniversal, asn1.TagSequence,
+		func(subBytes *Bytes) (subErr error) {
+			message.messageID, subErr = ReadMessageID(subBytes)
+			if subErr !=nil {
+				return
+			}
+			message.protocolOp, subErr = ReadProtocolOp(subBytes)
+			if subErr != nil {
+				return
+			}
+			if subBytes.HasMoreData() {
+				var controls Controls
+				controls, subErr = ReadControls(subBytes)
+				if subErr != nil {
+					return
+				}
+				message.controls = &controls
+			}
+			return 
+		},
+	)
 	return
 }
 
@@ -88,37 +114,45 @@ func ReadLDAPMessage(bytes *Bytes) (message *LDAPMessage) {
 //
 //        maxInt INTEGER ::= 2147483647 -- (2^^31 - 1) --
 //
-func (m *LDAPMessage) ReadMessageID(bytes *Bytes) {
-	tagAndLength := bytes.ParseTagAndLength()
-	tagAndLength.Expect(asn1.ClassUniversal, asn1.TagInteger, asn1.IsNotCompound)
-	id := INTEGER(bytes.ParseInt32(tagAndLength.GetLength()))
-	if !(id >= 0 && id <= maxInt) {
-		panic(fmt.Sprintf("Invalid MessageID ! Expected value between 0 and %d. Got %d.", maxInt, id))
+func ReadMessageID(bytes *Bytes) (ret MessageID, err error){
+	integer, err := ReadINTEGER(bytes)
+	if !(integer >= 0 && integer <= maxInt) {
+		err = SyntaxError{fmt.Sprintf("Invalid MessageID ! Expected value between 0 and %d. Got %d.", maxInt, integer)}
 	}
-	m.messageID = MessageID(id)
+	ret = MessageID(integer)
+	return
 }
-func (m *LDAPMessage) ReadProtocolOp(bytes *Bytes) (err error) {
-	tagAndLength := bytes.ParseTagAndLength()
-	// tagAndLength, offset := asn1.ParseTagAndLength(bytes.bytes, bytes.offset)
-	if asn1.ClassApplication != tagAndLength.GetClass() {
-		panic(fmt.Sprintf("Invalid tag class for protocolOp. Expected %d. Got %d.", asn1.ClassApplication, tagAndLength.GetClass()))
+func ReadProtocolOp(bytes *Bytes) (ret interface{}, err error) {
+	tagAndLength, err := bytes.PreviewTagAndLength()
+	if err != nil {
+		return
 	}
-	// bytes.offset = offset
 	switch tagAndLength.GetTag() {
 	case TagBindRequest:
-		m.protocolOp, err = ReadBindRequest(bytes)
+		ret, err = ReadBindRequest(bytes)
 	default:
-		panic(fmt.Sprintf("Invalid tag value for protocolOp. Got %d.", tagAndLength.GetTag()))
+		err = SyntaxError{fmt.Sprintf("Invalid tag value for protocolOp. Got %d.", tagAndLength.GetTag())}
 	}
 	return
 }
 
 //        LDAPString ::= OCTET STRING -- UTF-8 encoded,
 //                                    -- [ISO10646] characters
-func ReadLDAPString(bytes *Bytes) LDAPString {
-	tagAndLength := bytes.ParseTagAndLength()
-	tagAndLength.Expect(asn1.ClassUniversal, asn1.TagOctetString, asn1.IsNotCompound)
-	return LDAPString(bytes.ParseUTF8STRING(tagAndLength.GetLength()))
+func ReadLDAPString(bytes *Bytes) (ret LDAPString, err error) {
+	tagAndLength, err := bytes.ParseTagAndLength()
+	if err != nil {
+		return
+	}
+	err = tagAndLength.Expect(asn1.ClassUniversal, asn1.TagOctetString, asn1.IsNotCompound)
+	if err != nil {
+		return
+	}
+	var utf8string UTF8STRING
+	utf8string, err = bytes.ParseUTF8STRING(tagAndLength.GetLength())
+	if err != nil {
+		return
+	}
+	return LDAPString(utf8string), err
 }
 
 //
@@ -133,29 +167,48 @@ func ReadLDAPString(bytes *Bytes) LDAPString {
 //
 //        LDAPOID ::= OCTET STRING -- Constrained to <numericoid>
 //                                 -- [RFC4512]
+func ReadLDAPOID(bytes *Bytes) (ret LDAPOID, err error) {
+	var octetstring OCTETSTRING
+	octetstring, err = ReadOCTETSTRING(bytes)
+	if err != nil {
+		return
+	}
+	// @TODO: check RFC4512 for <numericoid>
+	ret = LDAPOID(octetstring)
+	return
+}
 //
 //        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
 //                              -- [RFC4514]
-func ReadLDAPDN(bytes *Bytes) LDAPDN {
+func ReadLDAPDN(bytes *Bytes) (ret LDAPDN, err error) {
+	var ldapstring LDAPString
+	ldapstring, err = ReadLDAPString(bytes)
 	// @TODO: check RFC4514
-	return LDAPDN(ReadLDAPString(bytes))
+	ret = LDAPDN(ldapstring)
+	return
 }
 
 //
 //        RelativeLDAPDN ::= LDAPString -- Constrained to <name-component>
 //                                      -- [RFC4514]
-func ReadRelativeLDAPDN(bytes *Bytes) RelativeLDAPDN {
+func ReadRelativeLDAPDN(bytes *Bytes) (ret RelativeLDAPDN, err error) {
+	var ldapstring LDAPString
+	ldapstring, err = ReadLDAPString(bytes)
 	// @TODO: check RFC4514
-	return RelativeLDAPDN(ReadLDAPString(bytes))
+	ret = RelativeLDAPDN(ldapstring)
+	return
 }
 
 //
 //        AttributeDescription ::= LDAPString
 //                                -- Constrained to <attributedescription>
 //                                -- [RFC4512]
-func ReadAttributeDescription(bytes *Bytes) AttributeDescription {
+func ReadAttributeDescription(bytes *Bytes) (ret AttributeDescription, err error) {
+	var ldapstring LDAPString
+	ldapstring, err = ReadLDAPString(bytes)
 	// @TODO: check RFC4512
-	return AttributeDescription(ReadLDAPString(bytes))
+	ret = AttributeDescription(ldapstring)
+	return
 }
 
 //
@@ -245,11 +298,59 @@ func ReadAttributeDescription(bytes *Bytes) AttributeDescription {
 //                               -- URIs
 //
 //        Controls ::= SEQUENCE OF control Control
+func ReadControls(bytes *Bytes) (controls Controls, err error){
+	err = bytes.ParseSequence(asn1.ClassUniversal, asn1.TagSequence,
+		func(subBytes *Bytes) (subErr error) {
+			tagAndLength, subErr := subBytes.ParseTagAndLength()
+			if subErr != nil {
+				return
+			}
+			subErr = tagAndLength.Expect(asn1.ClassUniversal, asn1.TagSequence, asn1.IsCompound)
+			if subErr != nil {
+				return
+			}
+			for subBytes.HasMoreData(){
+				var control Control
+				control, subErr = ReadControl(subBytes)
+				if subErr != nil {
+					return
+				}
+				controls = append(controls, control) 
+			}
+			return
+		},
+	)
+	return
+}
 //
 //        Control ::= SEQUENCE {
 //             controlType             LDAPOID,
 //             criticality             BOOLEAN DEFAULT FALSE,
 //             controlValue            OCTET STRING OPTIONAL }
+func ReadControl(bytes *Bytes) (control Control, err error){
+	err = bytes.ParseSequence(asn1.ClassUniversal, asn1.TagSequence,
+		func(subBytes *Bytes) (subErr error) {
+			control.controlType, subErr = ReadLDAPOID(subBytes)
+			if subErr != nil {
+				return
+			}
+			control.criticality, subErr = ReadBOOLEAN(subBytes)
+			if subErr != nil {
+				return
+			}
+			if subBytes.HasMoreData() {
+				var octetstring OCTETSTRING
+				octetstring, subErr = ReadOCTETSTRING(subBytes)
+				if subErr != nil {
+					return
+				}
+				control.controlValue = &octetstring 
+			}
+			return
+		},
+	)
+	return
+}
 //
 //
 //
@@ -264,17 +365,20 @@ func ReadAttributeDescription(bytes *Bytes) AttributeDescription {
 //             version                 INTEGER (1 ..  127),
 //             name                    LDAPDN,
 //             authentication          AuthenticationChoice }
-func ReadBindRequest(bytes *Bytes) (bindrequest *BindRequest, err error) {
-	bindrequest = &BindRequest{}
+func ReadBindRequest(bytes *Bytes) (bindrequest BindRequest, err error) {
 	err = bytes.ParseSequence(asn1.ClassApplication, TagBindRequest,
-		func(subBytes *Bytes) {
-			bindrequest.version = ReadINTEGER(subBytes)
+		func(subBytes *Bytes) (subErr error){
+			bindrequest.version, subErr = ReadINTEGER(subBytes)
 			if !(bindrequest.version >= BindRequestVersionMin && bindrequest.version <= BindRequestVersionMax){
 				err = SyntaxError{fmt.Sprintf("BindRequest: invalid version %d. Must be between 1 and 127", bindrequest.version)}
 				return
 			} 
-			bindrequest.name = ReadLDAPDN(subBytes)
-			bindrequest.authentication, err = ReadAuthenticationChoice(subBytes)
+			bindrequest.name, subErr = ReadLDAPDN(subBytes)
+			if subErr != nil {
+				return
+			}
+			bindrequest.authentication, subErr = ReadAuthenticationChoice(subBytes)
+			return
 		},
 	)
 	return
@@ -287,19 +391,29 @@ func ReadBindRequest(bytes *Bytes) (bindrequest *BindRequest, err error) {
 //             sasl                    [3] SaslCredentials,
 //             ...  }
 func ReadAuthenticationChoice(bytes *Bytes) (ret interface{}, err error) {
-	tagAndLength := bytes.PreviewTagAndLength()
-	if asn1.ClassContextSpecific != tagAndLength.GetClass() {
-		err = SyntaxError{fmt.Sprintf("Invalid tag class for AuthenticationChoice. Expected %d. Got %d.", asn1.ClassApplication, tagAndLength.GetClass())}
+	tagAndLength, err := bytes.PreviewTagAndLength()
+	if err != nil {
+		return
+	}
+	err = tagAndLength.ExpectClass(asn1.ClassContextSpecific)
+	if err != nil {
+		return
 	}
 	switch tagAndLength.GetTag() {
 	case TagAuthenticationChoiceSimple:
-		ret = ReadOCTETSTRING(bytes)
+		ret, err = ReadAuthenticationChoiceSimple(bytes)
 	case TagAuthenticationChoiceSaslCredentials:
 		ret, err = ReadSaslCredentials(bytes)
 	default:
-		panic(fmt.Sprintf("Invalid tag value for AuthenticationChoice. Got %d.", tagAndLength.GetTag()))
+		err = SyntaxError{fmt.Sprintf("Invalid tag value for AuthenticationChoice. Got %d.", tagAndLength.GetTag())}
 	}
 	return
+}
+
+func ReadAuthenticationChoiceSimple(bytes *Bytes) (ret OCTETSTRING, err error){
+	tagAndLength, err := bytes.ParseTagAndLength()
+	err = tagAndLength.ExpectClass(asn1.ClassContextSpecific)
+	return bytes.ParseOCTETSTRING(tagAndLength.GetLength()) // ReadOCTETSTRING(bytes)
 }
 
 //
@@ -310,11 +424,20 @@ func ReadAuthenticationChoice(bytes *Bytes) (ret interface{}, err error) {
 func ReadSaslCredentials(bytes *Bytes) (authentication SaslCredentials, err error) {
 	authentication = SaslCredentials{}
 	err = bytes.ParseSequence(asn1.ClassContextSpecific, TagAuthenticationChoiceSaslCredentials,
-		func(subBytes *Bytes) {
-			authentication.mechanism = ReadLDAPString(subBytes)
-			if subBytes.HasMoreData() {
-				authentication.credentials = ReadOCTETSTRING(subBytes)
+		func(subBytes *Bytes) (subErr error) {
+			authentication.mechanism, subErr = ReadLDAPString(subBytes)
+			if subErr != nil {
+				return
 			}
+			if subBytes.HasMoreData() {
+				var credentials OCTETSTRING
+				credentials, subErr = ReadOCTETSTRING(subBytes)
+				if subErr != nil {
+					return
+				}
+				authentication.credentials = &credentials
+			}
+			return 
 		},
 	)
 	return

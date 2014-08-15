@@ -6,6 +6,7 @@ import (
 type OCTETSTRING []byte
 type UTF8STRING string
 type INTEGER int32 // In this RFC the max INTEGER value is 2^31 - 1, so int32 is enough
+type BOOLEAN bool
  
 //   This appendix is normative.
 //
@@ -222,7 +223,7 @@ type Controls []Control
 //             controlValue            OCTET STRING OPTIONAL }
 type Control struct {
 	controlType  LDAPOID
-	criticality  bool
+	criticality  BOOLEAN
 	controlValue *OCTETSTRING
 }
 
@@ -307,7 +308,7 @@ type SearchRequest struct {
 	derefAliases int
 	sizeLimit    INTEGER
 	timeLimit    INTEGER
-	typesOnly    bool
+	typesOnly    BOOLEAN
 	filter       Filter
 	attributes   AttributeSelection
 }
@@ -380,7 +381,7 @@ type MatchingRuleAssertion struct {
 	matchingRule *MatchingRuleId
 	type_        *AttributeDescription
 	matchValue   AssertionValue
-	dnAttributes bool
+	dnAttributes BOOLEAN
 }
 
 //
@@ -474,7 +475,7 @@ type DelResponse LDAPResult
 type ModifyDNRequest struct {
 	entry        LDAPDN
 	newrdn       RelativeLDAPDN
-	deleteoldrdn bool
+	deleteoldrdn BOOLEAN
 	newSuperior  *LDAPDN
 }
 
