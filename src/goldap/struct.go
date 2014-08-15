@@ -1,13 +1,12 @@
 package goldap
 
-import (
-)
+import ()
 
 type OCTETSTRING []byte
 type UTF8STRING string
 type INTEGER int32 // In this RFC the max INTEGER value is 2^31 - 1, so int32 is enough
 type BOOLEAN bool
- 
+
 //   This appendix is normative.
 //
 //        Lightweight-Directory-Access-Protocol-V3 {1 3 6 1 1 18}
@@ -63,7 +62,7 @@ const maxInt = INTEGER(2147483647)
 //
 //        LDAPString ::= OCTET STRING -- UTF-8 encoded,
 //                                    -- [ISO10646] characters
-type LDAPString UTF8STRING
+type LDAPString OCTETSTRING
 
 //
 //
@@ -259,6 +258,7 @@ type BindRequest struct {
 //             ...  }
 const TagAuthenticationChoiceSimple = 0
 const TagAuthenticationChoiceSaslCredentials = 3
+
 type AuthenticationChoice interface{}
 
 //

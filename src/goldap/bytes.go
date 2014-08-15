@@ -1,52 +1,21 @@
 package goldap
 
 import (
-	"goldap/asn1"
 	"fmt"
 )
-
-//const (
-//	TagBoolean         = 1
-//	TagInteger         = 2
-//	TagBitString       = 3
-//	TagOctetString     = 4
-//	TagOID             = 6
-//	TagEnum            = 10
-//	TagUTF8String      = 12
-//	TagSequence        = 16
-//	TagSet             = 17
-//	TagPrintableString = 19
-//	TagT61String       = 20
-//	TagIA5String       = 22
-//	TagUTCTime         = 23
-//	TagGeneralizedTime = 24
-//	TagGeneralString   = 27
-//)
-//
-//const (
-//	ClassUniversal       = 0
-//	ClassApplication     = 1
-//	ClassContextSpecific = 2
-//	ClassPrivate         = 3
-//)
-//
-//type TagAndLength struct {
-//	class, tag, length int
-//	isCompound         bool
-//}
-
 
 type Bytes struct {
 	offset int
 	bytes  []byte
 }
+
 func (b *Bytes) ParseSequence(class int, tag int, callback func(bytes *Bytes) error) (err error) {
 	// Check tag
 	tagAndLength, err := b.ParseTagAndLength()
 	if err != nil {
 		return
 	}
-	err = tagAndLength.Expect(class, tag, asn1.IsCompound)
+	err = tagAndLength.Expect(class, tag, isCompound)
 	if err != nil {
 		return
 	}
@@ -77,41 +46,55 @@ func (b *Bytes) HasMoreData() bool {
 	return b.offset < len(b.bytes)
 }
 
-func (b *Bytes) PreviewTagAndLength() (tagAndLength asn1.TagAndLength, err error) {
+func (b *Bytes) PreviewTagAndLength() (tagAndLength tagAndLength, err error) {
 	previousOffset := b.offset // Save offset
-	tagAndLength, err = b.ParseTagAndLength() 
-	b.offset = previousOffset // Restore offset 
+	tagAndLength, err = b.ParseTagAndLength()
+	b.offset = previousOffset // Restore offset
 	return
 }
 
-func (b *Bytes) ParseTagAndLength() (ret asn1.TagAndLength, err error) {
-	ret, offset := asn1.ParseTagAndLength(b.bytes, b.offset)
+func (b *Bytes) ParseTagAndLength() (ret tagAndLength, err error) {
+	ret, offset := ParseTagAndLength(b.bytes, b.offset)
 	b.offset = offset
 	return
 }
 
-func (b *Bytes) ParseInt32(length int) (value int32, err error) {
-	value = asn1.ParseInt32(b.bytes, b.offset, length)
-	b.offset += length
-	return
-}
-
-func (b *Bytes) ParseUTF8STRING(length int) (utf8string UTF8STRING, err error){
-	utf8string = UTF8STRING(asn1.ParseUTF8String(b.bytes, b.offset, length))
-	b.offset += length
-	return
-}
-
-func (b *Bytes) ParseOCTETSTRING(length int) (octetstring OCTETSTRING, err error){
-	if b.offset + length > len(b.bytes) {
-		err = StructuralError{"Data truncated"}
-	} else {
-		octetstring = OCTETSTRING(b.bytes[b.offset : b.offset + length])
-		b.offset += length
+// The parse"Type" functions are use the underlaying asn1 functions
+// They are ony here to increase the offset of the current Bytes object
+func (b *Bytes) ParseBool(length int) (ret bool, err error) {
+	ret, err = parseBool(b.bytes[b.offset : b.offset+length])
+	if err != nil {
+		return
 	}
+	b.offset += length
 	return
 }
 
-func (b *Bytes) ParseBoolean(length int) (ret bool, err error){
+func (b *Bytes) ParseInt32(length int) (ret int32, err error) {
+	ret, err = parseInt32( b.bytes[b.offset : b.offset+length] )
+	if err != nil {
+		return
+	}
+	b.offset += length
 	return
 }
+
+func (b *Bytes) ParseUTF8String(length int) (utf8string string, err error) {
+	utf8string, err = parseUTF8String( b.bytes[b.offset : b.offset+length] )
+	if err != nil {
+		return
+	}
+	b.offset += length
+	return
+}
+
+func (b *Bytes) ParseOCTETSTRING(length int) (ret []byte, err error) {
+	if b.offset+length > len(b.bytes) {
+		err = StructuralError{"Data truncated"}
+		return
+	}
+	ret  = b.bytes[b.offset : b.offset+length]
+	b.offset += length
+	return
+}
+
