@@ -6,6 +6,7 @@ type OCTETSTRING []byte
 type UTF8STRING string
 type INTEGER int32 // In this RFC the max INTEGER value is 2^31 - 1, so int32 is enough
 type BOOLEAN bool
+type ENUMERATED int32
 
 //   This appendix is normative.
 //
@@ -197,10 +198,59 @@ type MatchingRuleId LDAPString
 //             referral           [3] Referral OPTIONAL }
 //
 type LDAPResult struct {
-	resultCode        int
+	resultCode        ENUMERATED
 	matchedDN         LDAPDN
 	diagnosticMessage LDAPString
 	referral          *Referral
+}
+
+var ldapResultCodes = map[ENUMERATED]string{
+	0: "success",
+	1: "operationsError",
+	2: "protocolError",
+	3: "timeLimitExceeded",
+	4: "sizeLimitExceeded",
+	5: "compareFalse",
+	6: "compareTrue",
+	7: "authMethodNotSupported",
+	8: "strongerAuthRequired",
+	//                       -- 9 reserved --
+	10: "referral",
+	11: "adminLimitExceeded",
+	12: "unavailableCriticalExtension",
+	13: "confidentialityRequired",
+	14: "saslBindInProgress",
+	16: "noSuchAttribute",
+	17: "undefinedAttributeType",
+	18: "inappropriateMatching",
+	19: "constraintViolation",
+	20: "attributeOrValueExists",
+	21: "invalidAttributeSyntax",
+	//                       -- 22-31 unused --
+	32: "noSuchObject",
+	33: "aliasProblem",
+	34: "invalidDNSyntax",
+	//                       -- 35 reserved for undefined isLeaf --
+	36: "aliasDereferencingProblem",
+	//                       -- 37-47 unused --
+	48: "inappropriateAuthentication",
+	49: "invalidCredentials",
+	50: "insufficientAccessRights",
+	51: "busy",
+	52: "unavailable",
+	53: "unwillingToPerform",
+	54: "loopDetect",
+	//                       -- 55-63 unused --
+	64: "namingViolation",
+	65: "objectClassViolation",
+	66: "notAllowedOnNonLeaf",
+	67: "notAllowedOnRDN",
+	68: "entryAlreadyExists",
+	69: "objectClassModsProhibited",
+	//                       -- 70 reserved for CLDAP --
+	71: "affectsMultipleDSAs",
+	//                       -- 72-79 unused --
+	80: "other",
 }
 
 //        Referral ::= SEQUENCE SIZE (1..MAX) OF uri URI
@@ -274,6 +324,9 @@ type SaslCredentials struct {
 //        BindResponse ::= [APPLICATION 1] SEQUENCE {
 //             COMPONENTS OF LDAPResult,
 //             serverSaslCreds    [7] OCTET STRING OPTIONAL }
+const TagBindResponse = 1
+const TagBindResponseServerSaslCreds = 7
+
 type BindResponse struct {
 	LDAPResult
 	serverSaslCreds *OCTETSTRING
@@ -281,6 +334,8 @@ type BindResponse struct {
 
 //
 //        UnbindRequest ::= [APPLICATION 2] NULL
+const TagUnbindRequest = 2
+
 type UnbindRequest struct {
 }
 

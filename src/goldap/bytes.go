@@ -60,7 +60,7 @@ func (b *Bytes) ParseTagAndLength() (ret tagAndLength, err error) {
 }
 
 // The parse"Type" functions are use the underlaying asn1 functions
-// They are ony here to increase the offset of the current Bytes object
+// They are ony here to increase the offset of the current Bytes objet
 func (b *Bytes) ParseBool(length int) (ret bool, err error) {
 	ret, err = parseBool(b.bytes[b.offset : b.offset+length])
 	if err != nil {
