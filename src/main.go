@@ -1,59 +1,60 @@
 package main
 
 import (
-	"log"
-	"net"
-	"fmt"
+	"goldap"
 )
 
 func main() {
-	ln, err := net.Listen("tcp", ":2389")
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Listening on port 2389...")
-
-	msgchan := make(chan []byte)
-	go printMessages(msgchan)
-
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		log.Printf("New connection accepted")
-		go handleConnection(conn, msgchan)
-	}
+	goldap.Forward(":2389", "127.0.0.1:10389")
 }
-
-func printMessages(msgchan <-chan []byte) {
-	for msg := range msgchan {
-		result := ""
-		for _, onebyte := range msg {
-			if onebyte < 0x10 {
-				result =fmt.Sprintf("%s, 0x0%x", result, onebyte)
-			} else {
-				result =fmt.Sprintf("%s, 0x%x", result, onebyte)
-			} 
-		}
-		log.Printf("new message: %s", result)
-	}
-}
-
-func handleConnection(c net.Conn, msgchan chan<- []byte) {
-	buf := make([]byte, 4096)
-	for {
-		n, err := c.Read(buf)
-		if err != nil || n == 0 {
-			c.Close()
-			break
-		}
-		msgchan <- buf[0:n]
-		// ...
-	}
-}
-
+//func main() {
+//	ln, err := net.Listen("tcp", ":2389")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	log.Printf("Listening on port 2389...")
+//
+//	msgchan := make(chan []byte)
+//	go printMessages(msgchan)
+//
+//	for {
+//		conn, err := ln.Accept()
+//		if err != nil {
+//			log.Println(err)
+//			continue
+//		}
+//		log.Printf("New connection accepted")
+//		go handleConnection(conn, msgchan)
+//	}
+//}
+//
+//func printMessages(msgchan <-chan []byte) {
+//	for msg := range msgchan {
+//		result := ""
+//		for _, onebyte := range msg {
+//			if onebyte < 0x10 {
+//				result =fmt.Sprintf("%s, 0x0%x", result, onebyte)
+//			} else {
+//				result =fmt.Sprintf("%s, 0x%x", result, onebyte)
+//			} 
+//		}
+//		log.Printf("new message: %s", result)
+//	}
+//}
+//
+//func handleConnection(c net.Conn, msgchan chan<- []byte) {
+//	buf := make([]byte, 4096)
+//	for {
+//		n, err := c.Read(buf)
+//		if err != nil || n == 0 {
+//			c.Close()
+//			break
+//		}
+//		msgchan <- buf[0:n]
+//		// ...
+//	}
+//}
+//
 //import (
 //	"fmt"
 //	"log"

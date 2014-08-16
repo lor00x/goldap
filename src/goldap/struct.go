@@ -241,7 +241,7 @@ type Control struct {
 //             name                    LDAPDN,
 //             authentication          AuthenticationChoice }
 const TagBindRequest = 0
-const BindRequestVersionMin = 0
+const BindRequestVersionMin = 1
 const BindRequestVersionMax = 127
 
 type BindRequest struct {

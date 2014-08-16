@@ -387,7 +387,7 @@ func ReadBindRequest(bytes *Bytes) (bindrequest BindRequest, err error) {
 		func(subBytes *Bytes) (subErr error) {
 			bindrequest.version, subErr = ReadINTEGER(subBytes)
 			if !(bindrequest.version >= BindRequestVersionMin && bindrequest.version <= BindRequestVersionMax) {
-				err = SyntaxError{fmt.Sprintf("BindRequest: invalid version %d. Must be between 1 and 127", bindrequest.version)}
+				subErr = SyntaxError{fmt.Sprintf("BindRequest: invalid version %d. Must be between %d and %d", bindrequest.version, BindRequestVersionMin, BindRequestVersionMax)}
 				return
 			}
 			bindrequest.name, subErr = ReadLDAPDN(subBytes)
