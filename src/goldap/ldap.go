@@ -210,6 +210,8 @@ func ReadProtocolOp(bytes *Bytes) (ret ProtocolOp, err error) {
 		ret, err = ReadUnbindRequest(bytes)
 	case TagSearchRequest:
 		ret, err = ReadSearchRequest(bytes)
+	case TagSearchResultEntry:
+		ret, err = ReadSearchResultEntry(bytes)
 	default:
 		err = LdapError{fmt.Sprintf("Invalid tag value for protocolOp. Got %d.", tagAndLength.GetTag())}
 	}
@@ -309,6 +311,16 @@ func ReadTaggedAttributeDescription(bytes *Bytes, class int, tag int) (ret Attri
 
 //
 //        AttributeValue ::= OCTET STRING
+func ReadAttributeValue(bytes *Bytes) (ret AttributeValue, err error) {
+	var octetstring OCTETSTRING
+	octetstring, err = ReadOCTETSTRING(bytes)
+	if err != nil {
+		return
+	}
+	ret = AttributeValue(octetstring)
+	return
+}
+
 //
 //        AttributeValueAssertion ::= SEQUENCE {
 //             attributeDesc   AttributeDescription,
@@ -349,6 +361,33 @@ func ReadTaggedAssertionValue(bytes *Bytes, class int, tag int) (assertionvalue 
 //        PartialAttribute ::= SEQUENCE {
 //             type       AttributeDescription,
 //             vals       SET OF value AttributeValue }
+func ReadPartialAttribute(bytes *Bytes) (partialattribute PartialAttribute, err error){
+	err = bytes.ParseSubBytes(classUniversal, tagSequence, partialattribute.ReadPartialAttributeComponents)
+	return
+}
+
+func (partialattribute *PartialAttribute) ReadPartialAttributeComponents(bytes *Bytes) (err error){
+	partialattribute.type_, err = ReadAttributeDescription(bytes)
+	if err != nil {
+		return
+	}
+	err = bytes.ParseSubBytes(classUniversal, tagSet, partialattribute.ReadPartialAttributeValsComponents)
+	if err != nil {
+		return
+	}
+	return
+}
+func (partialattribute *PartialAttribute) ReadPartialAttributeValsComponents(bytes *Bytes) (err error){
+	for bytes.HasMoreData(){
+		var attributevalue AttributeValue
+		attributevalue, err = ReadAttributeValue(bytes)
+		if err != nil {
+			return
+		}
+		partialattribute.vals = append(partialattribute.vals, attributevalue)
+	}
+	return
+}
 //
 //        Attribute ::= PartialAttribute(WITH COMPONENTS {
 //             ...,
@@ -604,12 +643,6 @@ func ReadAuthenticationChoice(bytes *Bytes) (ret interface{}, err error) {
 	return
 }
 
-//func ReadAuthenticationChoiceSimple(bytes *Bytes) (ret OCTETSTRING, err error) {
-//	tagAndLength, err := bytes.ParseTagAndLength()
-//	err = tagAndLength.ExpectClass(classContextSpecific)
-//	return bytes.ParseOCTETSTRING(tagAndLength.GetLength()) // ReadOCTETSTRING(bytes)
-//}
-
 //
 //        SaslCredentials ::= SEQUENCE {
 //             mechanism               LDAPString,
@@ -647,18 +680,8 @@ func ReadBindResponse(bytes *Bytes) (bindresponse BindResponse, err error) {
 func (bindresponse *BindResponse) ReadBindResponseComponents(bytes *Bytes) (err error) {
 	bindresponse.ReadLDAPResultComponents(bytes)
 	if bytes.HasMoreData() {
-//		var tagAndLength tagAndLength
-//		tagAndLength, err = bytes.ParseTagAndLength()
-//		if err != nil {
-//			return
-//		}
-//		err = tagAndLength.Expect(classContextSpecific, TagBindResponseServerSaslCreds, isNotCompound)
-//		if err != nil {
-//			return
-//		}
 		var serverSaslCreds OCTETSTRING
 		serverSaslCreds, err = ReadTaggedOCTETSTRING(bytes, classContextSpecific, TagBindResponseServerSaslCreds)
-			//  bytes.ParseOCTETSTRING(tagAndLength.length)
 		bindresponse.serverSaslCreds = &serverSaslCreds
 	}
 	return
@@ -1108,9 +1131,40 @@ func (matchingruleassertion MatchingRuleAssertion) ReadType(bytes *Bytes) (err e
 //        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
 //             objectName      LDAPDN,
 //             attributes      PartialAttributeList }
+func ReadSearchResultEntry(bytes *Bytes) (searchresultentry SearchResultEntry, err error){
+	err = bytes.ParseSubBytes(classApplication, TagSearchResultEntry, searchresultentry.ReadSearchResultEntryComponents)
+	return
+}
+func (searchresultentry *SearchResultEntry) ReadSearchResultEntryComponents(bytes *Bytes) (err error){
+	searchresultentry.objectName, err = ReadLDAPDN(bytes)
+	if err != nil {
+		return
+	}
+	searchresultentry.attributes, err = ReadPartialAttributeList(bytes)
+	if err != nil {
+		return
+	}
+	return
+}
 //
 //        PartialAttributeList ::= SEQUENCE OF
 //                             partialAttribute PartialAttribute
+func ReadPartialAttributeList(bytes *Bytes) (ret PartialAttributeList, err error){
+	err = bytes.ParseSubBytes(classUniversal, tagSequence, ret.ReadPartialAttributeListComponents)
+	return
+}
+func (partialattributelist *PartialAttributeList) ReadPartialAttributeListComponents(bytes *Bytes) (err error){
+	for bytes.HasMoreData() {
+		var partialattribute PartialAttribute
+		partialattribute, err = ReadPartialAttribute(bytes)
+		if err != nil {
+			return
+		}
+		*partialattributelist = append(*partialattributelist, partialattribute)
+	}
+	return
+}
+
 //
 //        SearchResultReference ::= [APPLICATION 19] SEQUENCE
 //                                  SIZE (1..MAX) OF uri URI

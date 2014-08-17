@@ -480,11 +480,12 @@ const TagMatchingRuleAssertionType = 2
 const TagMatchingRuleAssertionMatchValue = 3
 const TagMatchingRuleAssertionDnAttributes = 4
 
-
 //
 //        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
 //             objectName      LDAPDN,
 //             attributes      PartialAttributeList }
+const TagSearchResultEntry = 4
+
 type SearchResultEntry struct {
 	objectName LDAPDN
 	attributes PartialAttributeList

@@ -150,7 +150,7 @@ var ReadLDAPMessageTestData = []struct {
 				0x01, 0x01, 0x00,
 //             filter          Filter,
 				0x87, 0x0b, // present
-				0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x43, 0x6c, 0x61, 0x73, 0x73, // "objectClass"
+				0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x43, 0x6c, 0x61, 0x73, 0x73, // objectClass"
 //             attributes      AttributeSelection }
 				0x30, 0x13,
 				0x04, 0x11, 0x73, 0x75, 0x62, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x53, 0x75, 0x62, 0x65, 0x6e, 0x74, 0x72, 0x79, // "subschemaSubentry"
@@ -166,10 +166,58 @@ var ReadLDAPMessageTestData = []struct {
 				timeLimit: INTEGER(0),
 				typesOnly: BOOLEAN(false),
 				filter: FilterPresent("objectClass"),
-				attributes: AttributeSelection([]LDAPString{LDAPString("subschemaSubentry")}),
+				attributes: AttributeSelection(
+					[]LDAPString{
+						LDAPString("subschemaSubentry"),
+					},
+				),
 			},
 		},
 	},
+	// Search result entry
+	{
+		bytes: &Bytes{
+			offset: 0,
+			bytes: []byte{
+				0x30, 0x2b,
+				0x02, 0x01, 0x02,
+//        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
+				0x64, 0x26,
+//             objectName      LDAPDN,
+				0x04, 0x00,
+//             attributes      PartialAttributeList }
+//        PartialAttributeList ::= SEQUENCE OF
+				0x30, 0x22,
+//                             partialAttribute PartialAttribute
+				0x30, 0x20,
+//        PartialAttribute ::= SEQUENCE {
+//             type       AttributeDescription,
+				0x04, 0x11,
+				0x73, 0x75, 0x62, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x53, 0x75, 0x62, 0x65, 0x6e, 0x74, 0x72, 0x79,
+//             vals       SET OF value AttributeValue }
+				0x31, 0x0b,
+				0x04, 0x09,
+				0x63, 0x6e, 0x3d, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61,
+			},
+		},
+		out: LDAPMessage{
+			messageID: MessageID(int(0x02)),
+			protocolOp: SearchResultEntry{
+				objectName: LDAPDN(""),
+				attributes: PartialAttributeList(
+					[]PartialAttribute{
+						PartialAttribute{
+							type_: AttributeDescription(string("subschemaSubentry")),
+							vals: []AttributeValue{
+								AttributeValue(string("cn=schema")),
+							},
+						},
+					},
+				),
+			},
+		},
+	},
+	
 }
 
 func TestReadLDAPMessage(t *testing.T) {
