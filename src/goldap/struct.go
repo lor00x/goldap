@@ -2,7 +2,7 @@ package goldap
 
 import ()
 
-type OCTETSTRING []byte
+type OCTETSTRING string
 type UTF8STRING string
 type INTEGER int32 // In this RFC the max INTEGER value is 2^31 - 1, so int32 is enough
 type BOOLEAN bool
@@ -49,9 +49,11 @@ type ENUMERATED int32
 //
 type LDAPMessage struct {
 	messageID  MessageID
-	protocolOp interface{}
+	protocolOp ProtocolOp
 	controls   *Controls
 }
+
+type ProtocolOp interface{}
 
 //        MessageID ::= INTEGER (0 ..  maxInt)
 //
@@ -204,7 +206,7 @@ type LDAPResult struct {
 	referral          *Referral
 }
 
-var ldapResultCodes = map[ENUMERATED]string{
+var EnumeratedLDAPResultCode = map[ENUMERATED]string{
 	0: "success",
 	1: "operationsError",
 	2: "protocolError",
@@ -357,15 +359,29 @@ type UnbindRequest struct {
 //             typesOnly       BOOLEAN,
 //             filter          Filter,
 //             attributes      AttributeSelection }
+const TagSearchRequest = 3
+
 type SearchRequest struct {
 	baseObject   LDAPDN
-	scope        int
-	derefAliases int
+	scope        ENUMERATED
+	derefAliases ENUMERATED
 	sizeLimit    INTEGER
 	timeLimit    INTEGER
 	typesOnly    BOOLEAN
 	filter       Filter
 	attributes   AttributeSelection
+}
+
+var EnumeratedSearchRequestScope = map[ENUMERATED]string{
+	0: "baseObject",
+	1: "singleLevel",
+	2: "homeSubtree",
+}
+var EnumeratedSearchRequestDerefAliases = map[ENUMERATED]string{
+	0: "neverDerefAliases",
+	1: "derefInSearching",
+	2: "derefFindingBaseObj",
+	3: "derefAlways",
 }
 
 //
@@ -396,18 +412,30 @@ type AttributeSelection []LDAPString
 //             approxMatch     [8] AttributeValueAssertion,
 //             extensibleMatch [9] MatchingRuleAssertion,
 //             ...  }
-type Filter struct {
-	and             *[]Filter
-	or              *[]Filter
-	not             *Filter
-	equalityMatch   *AttributeValueAssertion
-	substrings      *SubstringFilter
-	greaterOfEqual  *AttributeValueAssertion
-	lessOrEqual     *AttributeValueAssertion
-	present         *AttributeDescription
-	approxMatch     *AttributeValueAssertion
-	extensibleMatch *MatchingRuleAssertion
+const TagFilterAnd = 0
+const TagFilterOr = 1
+const TagFilterNot = 2
+const TagFilterEqualityMatch = 3
+const TagFilterSubstrings = 4
+const TagFilterGreaterOrEqual = 5
+const TagFilterLessOrEqual = 6
+const TagFilterPresent = 7
+const TagFilterApproxMatch = 8
+const TagFilterExtensibleMatch = 9
+
+type Filter interface{}
+type FilterAnd []Filter
+type FilterOr []Filter
+type FilterNot struct {
+	Filter
 }
+type FilterEqualityMatch AttributeValueAssertion
+type FilterSubstrings SubstringFilter
+type FilterGreaterOrEqual AttributeValueAssertion
+type FilterLessOrEqual AttributeValueAssertion
+type FilterPresent AttributeDescription
+type FilterApproxMatch AttributeValueAssertion
+type FilterExtensibleMatch MatchingRuleAssertion
 
 //
 //        SubstringFilter ::= SEQUENCE {
@@ -419,12 +447,20 @@ type Filter struct {
 //             }
 type SubstringFilter struct {
 	type_      AttributeDescription
-	substrings []struct {
-		initial *AssertionValue
-		any     *AssertionValue
-		final   *AssertionValue
-	}
+	substrings SubstringFilterSubstrings
 }
+
+type SubstringFilterSubstrings []Substring
+
+type Substring interface{}
+
+const TagSubstringInitial = 0
+const TagSubstringAny = 1
+const TagSubstringFinal = 2
+
+type SubstringInitial AssertionValue
+type SubstringAny AssertionValue
+type SubstringFinal AssertionValue
 
 //
 //        MatchingRuleAssertion ::= SEQUENCE {
@@ -438,6 +474,12 @@ type MatchingRuleAssertion struct {
 	matchValue   AssertionValue
 	dnAttributes BOOLEAN
 }
+
+const TagMatchingRuleAssertionMatchingRule = 1
+const TagMatchingRuleAssertionType = 2
+const TagMatchingRuleAssertionMatchValue = 3
+const TagMatchingRuleAssertionDnAttributes = 4
+
 
 //
 //        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
