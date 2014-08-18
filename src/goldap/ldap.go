@@ -212,6 +212,8 @@ func ReadProtocolOp(bytes *Bytes) (ret ProtocolOp, err error) {
 		ret, err = ReadSearchRequest(bytes)
 	case TagSearchResultEntry:
 		ret, err = ReadSearchResultEntry(bytes)
+	case TagSearchResultDone:
+		ret, err = ReadSearchResultDone(bytes)
 	default:
 		err = LdapError{fmt.Sprintf("Invalid tag value for protocolOp. Got %d.", tagAndLength.GetTag())}
 	}
@@ -467,9 +469,15 @@ func ReadTaggedMatchingRuleId(bytes *Bytes, class int, tag int) (matchingruleid 
 //             matchedDN          LDAPDN,
 //             diagnosticMessage  LDAPString,
 //             referral           [3] Referral OPTIONAL }
-func ReadLDAPResult(bytes *Bytes) (ldapresult LDAPResult, err error) {
-	err = bytes.ParseSubBytes(classUniversal, tagSequence, ldapresult.ReadLDAPResultComponents)
+func ReadTaggedLDAPResult(bytes *Bytes, class int, tag int) (ret LDAPResult, err error){
+	err = bytes.ParseSubBytes(class, tag, ret.ReadLDAPResultComponents)
+	if err != nil {
+		err = fmt.Errorf("ReadLDAPResult: %s", err.Error())
+	}
 	return
+}
+func ReadLDAPResult(bytes *Bytes) (ldapresult LDAPResult, err error) {
+	return ReadTaggedLDAPResult(bytes, classUniversal, tagSequence)
 }
 func (ldapresult *LDAPResult) ReadLDAPResultComponents(bytes *Bytes) (err error) {
 	ldapresult.resultCode, err = ReadENUMERATED(bytes, EnumeratedLDAPResultCode)
@@ -1071,8 +1079,8 @@ func (substrings *SubstringFilterSubstrings) ReadSubstringFilterSubstringsCompon
 //             type            [2] AttributeDescription OPTIONAL,
 //             matchValue      [3] AssertionValue,
 //             dnAttributes    [4] BOOLEAN DEFAULT FALSE }
-func ReadTaggedMatchingRuleAssertion(bytes *Bytes, class int, tag int) (matchingruleassertion MatchingRuleAssertion, err error) {
-	err = bytes.ParseSubBytes(class, tag, matchingruleassertion.ReadMatchingRuleAssertionComponents)
+func ReadTaggedMatchingRuleAssertion(bytes *Bytes, class int, tag int) (ret MatchingRuleAssertion, err error) {
+	err = bytes.ParseSubBytes(class, tag, ret.ReadMatchingRuleAssertionComponents)
 	return
 }
 func (matchingruleassertion MatchingRuleAssertion) ReadMatchingRuleAssertionComponents(bytes *Bytes) (err error) {
@@ -1170,6 +1178,15 @@ func (partialattributelist *PartialAttributeList) ReadPartialAttributeListCompon
 //                                  SIZE (1..MAX) OF uri URI
 //
 //        SearchResultDone ::= [APPLICATION 5] LDAPResult
+func ReadSearchResultDone(bytes *Bytes) (ret SearchResultDone, err error){
+	var ldapresult LDAPResult
+	ldapresult, err = ReadTaggedLDAPResult(bytes, classApplication, TagSearchResultDone)
+	if err != nil {
+		return
+	}
+	ret = SearchResultDone(ldapresult)
+	return
+}
 //
 //        ModifyRequest ::= [APPLICATION 6] SEQUENCE {
 //             object          LDAPDN,

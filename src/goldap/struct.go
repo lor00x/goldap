@@ -503,6 +503,8 @@ type SearchResultReference []URI
 
 //
 //        SearchResultDone ::= [APPLICATION 5] LDAPResult
+const TagSearchResultDone = 5
+
 type SearchResultDone LDAPResult
 
 //

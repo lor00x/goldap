@@ -217,6 +217,30 @@ var ReadLDAPMessageTestData = []struct {
 			},
 		},
 	},
+	// SearchResultDone
+	{
+		bytes: &Bytes{
+			offset: 0,
+			bytes: []byte{
+				0x30, 0x0c,
+				0x02, 0x01, 0x02,
+				0x65, 0x07,
+				0x0a,
+				0x01, 0x00,
+				0x04, 0x00,
+				0x04, 0x00,
+			},
+		},
+		out: LDAPMessage{
+			messageID: MessageID(int(0x02)),
+			protocolOp: SearchResultDone{
+				resultCode: ENUMERATED(0), // 0: success
+				matchedDN: LDAPDN(""),
+				diagnosticMessage: LDAPString(""),
+			},
+		},
+	},
+	
 	
 }
 
