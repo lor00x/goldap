@@ -127,10 +127,7 @@ type PartialAttribute struct {
 //        Attribute ::= PartialAttribute(WITH COMPONENTS {
 //             ...,
 //             vals (SIZE(1..MAX))})
-type Attribute struct {
-	PartialAttribute
-	components interface{}
-}
+type Attribute PartialAttribute
 
 //
 //        MatchingRuleId ::= LDAPString
@@ -372,16 +369,26 @@ type SearchRequest struct {
 	attributes   AttributeSelection
 }
 
+const SearchRequestScopeBaseObject = 0
+const SearchRequestSingleLevel = 1
+const SearchRequestHomeSubtree = 2
+
 var EnumeratedSearchRequestScope = map[ENUMERATED]string{
-	0: "baseObject",
-	1: "singleLevel",
-	2: "homeSubtree",
+	SearchRequestScopeBaseObject: "baseObject",
+	SearchRequestSingleLevel:     "singleLevel",
+	SearchRequestHomeSubtree:     "homeSubtree",
 }
+
+const SearchRequetDerefAliasesNeverDerefAliases = 0
+const SearchRequetDerefAliasesDerefInSearching = 1
+const SearchRequetDerefAliasesDerefFindingBaseObj = 2
+const SearchRequetDerefAliasesDerefAlways = 3
+
 var EnumeratedSearchRequestDerefAliases = map[ENUMERATED]string{
-	0: "neverDerefAliases",
-	1: "derefInSearching",
-	2: "derefFindingBaseObj",
-	3: "derefAlways",
+	SearchRequetDerefAliasesNeverDerefAliases:   "neverDerefAliases",
+	SearchRequetDerefAliasesDerefInSearching:    "derefInSearching",
+	SearchRequetDerefAliasesDerefFindingBaseObj: "derefFindingBaseObj",
+	SearchRequetDerefAliasesDerefAlways:         "derefAlways",
 }
 
 //
@@ -519,14 +526,26 @@ type SearchResultDone LDAPResult
 //                  modification    PartialAttribute } }
 type ModifyRequest struct {
 	object  LDAPDN
-	changes []struct {
-		operation    int
-		modification PartialAttribute
-	}
+	changes []ModifyRequestChange
+}
+type ModifyRequestChange struct {
+	operation    ENUMERATED
+	modification PartialAttribute
+}
+
+const ModifyRequestChangeOperationAdd = 0
+const ModifyRequestChangeOperationDelete = 1
+const ModifyRequestChangeOperationReplace = 2
+
+var EnumeratedModifyRequestChangeOpration = map[ENUMERATED]string{
+	ModifyRequestChangeOperationAdd:     "add",
+	ModifyRequestChangeOperationDelete:  "delete",
+	ModifyRequestChangeOperationReplace: "replace",
 }
 
 //
 //        ModifyResponse ::= [APPLICATION 7] LDAPResult
+const TagModifyResponse = 7
 type ModifyResponse LDAPResult
 
 //
@@ -544,6 +563,7 @@ type ModifyResponse LDAPResult
 //        AddRequest ::= [APPLICATION 8] SEQUENCE {
 //             entry           LDAPDN,
 //             attributes      AttributeList }
+const TagAddRequest = 8
 type AddRequest struct {
 	entry      LDAPDN
 	attributes AttributeList
@@ -555,14 +575,17 @@ type AttributeList []Attribute
 
 //
 //        AddResponse ::= [APPLICATION 9] LDAPResult
+const TagAddResponse = 9
 type AddResponse LDAPResult
 
 //
 //        DelRequest ::= [APPLICATION 10] LDAPDN
+const TagDelRequest = 10
 type DelRequest LDAPDN
 
 //
 //        DelResponse ::= [APPLICATION 11] LDAPResult
+const TagDelResponse = 11
 type DelResponse LDAPResult
 
 //
@@ -571,21 +594,25 @@ type DelResponse LDAPResult
 //             newrdn          RelativeLDAPDN,
 //             deleteoldrdn    BOOLEAN,
 //             newSuperior     [0] LDAPDN OPTIONAL }
-//
+const TagModifyDNRequest = 12
 type ModifyDNRequest struct {
 	entry        LDAPDN
 	newrdn       RelativeLDAPDN
 	deleteoldrdn BOOLEAN
 	newSuperior  *LDAPDN
 }
+const TagModifyDNRequestNewSuperior = 0
 
+//
 //        ModifyDNResponse ::= [APPLICATION 13] LDAPResult
+const TagModifyDNResponse = 13
 type ModifyDNResponse LDAPResult
 
 //
 //        CompareRequest ::= [APPLICATION 14] SEQUENCE {
 //             entry           LDAPDN,
 //             ava             AttributeValueAssertion }
+const TagCompareRequest = 14
 type CompareRequest struct {
 	entry LDAPDN
 	ava   AttributeValueAssertion
@@ -593,41 +620,51 @@ type CompareRequest struct {
 
 //
 //        CompareResponse ::= [APPLICATION 15] LDAPResult
+const TagCompareResponse = 15
 type CompareResponse LDAPResult
 
 //
 //        AbandonRequest ::= [APPLICATION 16] MessageID
+const TagAbandonRequest = 16
 type AbandonRequest MessageID
 
 //
 //        ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
 //             requestName      [0] LDAPOID,
 //             requestValue     [1] OCTET STRING OPTIONAL }
+const TagExtendedRequest = 23
 type ExtendedRequest struct {
 	requestName  LDAPOID
 	requestValue *OCTETSTRING
 }
+const TagExtendedRequestName = 0
+const TagExtendedRequestValue = 1
 
 //
 //        ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
 //             COMPONENTS OF LDAPResult,
 //             responseName     [10] LDAPOID OPTIONAL,
 //             responseValue    [11] OCTET STRING OPTIONAL }
+const TagExtendedResponse = 24
 type ExtendedResponse struct {
 	LDAPResult
 	responseName  *LDAPOID
 	responseValue *OCTETSTRING
 }
+const TagExtendedResponseName = 0
+const TagExtendedResponseValue = 1
 
 //
 //        IntermediateResponse ::= [APPLICATION 25] SEQUENCE {
 //             responseName     [0] LDAPOID OPTIONAL,
 //             responseValue    [1] OCTET STRING OPTIONAL }
+const TagIntermediateResponse = 25
 type IntermediateResponse struct {
 	responseName  *LDAPOID
 	responseValue *OCTETSTRING
 }
-
+const TagIntermediateResponseName = 0
+const TagIntermediateResponseValue = 1
 //
 //        END
 //
