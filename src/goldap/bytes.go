@@ -10,6 +10,10 @@ type Bytes struct {
 	bytes  []byte
 }
 
+func NewBytes(offset int, bytes []byte) (ret *Bytes){
+	return &Bytes{offset: offset, bytes: bytes}
+}
+
 // Return a string with the hex dump of the bytes around the current offset
 // The current offset byte is put in brackets
 // Example: 0x01, [0x02], 0x03
@@ -63,16 +67,15 @@ func (b *Bytes) HasMoreData() bool {
 	return b.offset < len(b.bytes)
 }
 
-func (b *Bytes) PreviewTagAndLength() (tagAndLength tagAndLength, err error) {
+func (b *Bytes) PreviewTagAndLength() (tagAndLength *tagAndLength, err error) {
 	previousOffset := b.offset // Save offset
 	tagAndLength, err = b.ParseTagAndLength()
 	b.offset = previousOffset // Restore offset
 	return
 }
 
-func (b *Bytes) ParseTagAndLength() (ret tagAndLength, err error) {
-	ret, offset := ParseTagAndLength(b.bytes, b.offset)
-	b.offset = offset
+func (b *Bytes) ParseTagAndLength() (ret *tagAndLength, err error) {
+	ret, b.offset = ParseTagAndLength(b.bytes, b.offset)
 	return
 }
 

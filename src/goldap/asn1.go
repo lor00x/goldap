@@ -97,12 +97,11 @@ func (t *tagAndLength) ExpectCompound(isCompound bool) (err error) {
 	return
 }
 
-func ParseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset int) {
-	tag, offset, err := parseTagAndLength(bytes, initOffset)
+func ParseTagAndLength(bytes []byte, initOffset int) (ret *tagAndLength, offset int) {
+	ret, offset, err := parseTagAndLength(bytes, initOffset)
 	if err != nil {
 		panic(err)
 	}
-	ret = tagAndLength(tag)
 	return
 }
 
@@ -500,7 +499,9 @@ type RawContent []byte
 // into a byte slice. It returns the parsed data and the new offset. SET and
 // SET OF (tag 17) are mapped to SEQUENCE and SEQUENCE OF (tag 16) since we
 // don't distinguish between ordered and unordered objects in this code.
-func parseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset int, err error) {
+func parseTagAndLength(bytes []byte, initOffset int) (Ret *tagAndLength, offset int, err error) {
+	ret := tagAndLength{}
+	Ret = &ret
 	offset = initOffset
 	b := bytes[offset]
 	offset++

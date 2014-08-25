@@ -4,7 +4,7 @@ import (
 	//	"bufio"
 	"errors"
 	"fmt"
-	"github.com/kr/pretty"
+//	"github.com/kr/pretty"
 	"log"
 	"net"
 )
@@ -118,22 +118,23 @@ func (p *Proxy) WriteClient() {
 
 func (p *Proxy) Dump() {
 	for msg := range p.dumpChan {
-		result := ""
-		for _, onebyte := range msg.bytes {
-			if onebyte < 0x10 {
-				result = fmt.Sprintf("%s, 0x0%x", result, onebyte)
-			} else {
-				result = fmt.Sprintf("%s, 0x%x", result, onebyte)
-			}
-		}
-		// Now decode the message
-		message, err := p.DecodeMessage(msg.bytes)
-		if err != nil {
-			result = fmt.Sprintf("%s\n%s", result, err.Error())
-		} else {
-			result = fmt.Sprintf("%s\n%# v", result, pretty.Formatter(message))
-		}
-		log.Printf("%s - %s - msg %d %s", p.name, msg.source, msg.id, result)
+		log.Print(msg.bytes)
+//		result := ""
+//		for _, onebyte := range msg.bytes {
+//			if onebyte < 0x10 {
+//				result = fmt.Sprintf("%s, 0x0%x", result, onebyte)
+//			} else {
+//				result = fmt.Sprintf("%s, 0x%x", result, onebyte)
+//			}
+//		}
+//		// Now decode the message
+//		message, err := p.DecodeMessage(msg.bytes)
+//		if err != nil {
+//			result = fmt.Sprintf("%s\n%s", result, err.Error())
+//		} else {
+//			result = fmt.Sprintf("%s\n%# v", result, pretty.Formatter(message))
+//		}
+//		log.Printf("%s - %s - msg %d %s", p.name, msg.source, msg.id, result)
 	}
 }
 

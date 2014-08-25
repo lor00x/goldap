@@ -418,8 +418,9 @@ func ReadTaggedAssertionValue(bytes *Bytes, class int, tag int) (assertionvalue 
 //        PartialAttribute ::= SEQUENCE {
 //             type       AttributeDescription,
 //             vals       SET OF value AttributeValue }
-func ReadPartialAttribute(bytes *Bytes) (partialattribute PartialAttribute, err error){
-	err = bytes.ParseSubBytes(classUniversal, tagSequence, partialattribute.ReadPartialAttributeComponents)
+func ReadPartialAttribute(bytes *Bytes) (ret PartialAttribute, err error){
+	ret = PartialAttribute{vals: make([]AttributeValue, 0, 10)}
+	err = bytes.ParseSubBytes(classUniversal, tagSequence, ret.ReadPartialAttributeComponents)
 	return
 }
 
@@ -767,7 +768,7 @@ func (bindresponse *BindResponse) ReadBindResponseComponents(bytes *Bytes) (err 
 //
 //        UnbindRequest ::= [APPLICATION 2] NULL
 func ReadUnbindRequest(bytes *Bytes) (unbindrequest UnbindRequest, err error) {
-	var tagAndLength tagAndLength
+	var tagAndLength *tagAndLength
 	tagAndLength, err = bytes.ParseTagAndLength()
 	if err != nil {
 		return
@@ -887,7 +888,7 @@ func (attributeSelection *AttributeSelection) ReadAttributeSelectionComponents(b
 //             extensibleMatch [9] MatchingRuleAssertion,
 //             ...  }
 func ReadFilter(bytes *Bytes) (filter Filter, err error) {
-	var tagAndLength tagAndLength
+	var tagAndLength *tagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()
 	if err != nil {
 		return
@@ -974,7 +975,7 @@ func ReadFilterNot(bytes *Bytes) (filternot FilterNot, err error) {
 }
 
 func (filternot *FilterNot) ReadFilterNotComponents(bytes *Bytes) (err error) {
-	var tagAndLength tagAndLength
+	var tagAndLength *tagAndLength
 	tagAndLength, err = bytes.ParseTagAndLength()
 	if err != nil {
 		return
@@ -1099,8 +1100,8 @@ func ReadSubstringFilterSubstrings(bytes *Bytes) (substrings SubstringFilterSubs
 func (substrings *SubstringFilterSubstrings) ReadSubstringFilterSubstringsComponents(bytes *Bytes) (err error) {
 	var foundInitial = 0
 	var foundFinal = 0
+	var tagAndLength *tagAndLength
 	for bytes.HasMoreData() {
-		var tagAndLength tagAndLength
 		tagAndLength, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
@@ -1173,7 +1174,7 @@ func (matchingruleassertion MatchingRuleAssertion) ReadMatchingRuleAssertionComp
 	return
 }
 func (matchingruleassertion MatchingRuleAssertion) ReadMatchingRule(bytes *Bytes) (err error) {
-	var tagAndLength tagAndLength
+	var tagAndLength *tagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()
 	if err != nil {
 		return LdapError{fmt.Sprintf("ReadMatchingRuleAssertionMatchingRule: %s", err.Error())}
@@ -1189,7 +1190,7 @@ func (matchingruleassertion MatchingRuleAssertion) ReadMatchingRule(bytes *Bytes
 	return
 }
 func (matchingruleassertion MatchingRuleAssertion) ReadType(bytes *Bytes) (err error) {
-	var tagAndLength tagAndLength
+	var tagAndLength *tagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()
 	if err != nil {
 		return LdapError{fmt.Sprintf("ReadMatchingRuleAssertionType: %s", err.Error())}
@@ -1228,8 +1229,9 @@ func (searchresultentry *SearchResultEntry) ReadSearchResultEntryComponents(byte
 //        PartialAttributeList ::= SEQUENCE OF
 //                             partialAttribute PartialAttribute
 func ReadPartialAttributeList(bytes *Bytes) (ret PartialAttributeList, err error){
+	ret = PartialAttributeList(make([]PartialAttribute, 0, 10))
 	err = bytes.ParseSubBytes(classUniversal, tagSequence, ret.ReadPartialAttributeListComponents)
-	return
+	return ret, err
 }
 func (partialattributelist *PartialAttributeList) ReadPartialAttributeListComponents(bytes *Bytes) (err error){
 	for bytes.HasMoreData() {
