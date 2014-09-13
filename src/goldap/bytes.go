@@ -67,14 +67,14 @@ func (b *Bytes) HasMoreData() bool {
 	return b.offset < len(b.bytes)
 }
 
-func (b *Bytes) PreviewTagAndLength() (tagAndLength *tagAndLength, err error) {
+func (b *Bytes) PreviewTagAndLength() (tagAndLength tagAndLength, err error) {
 	previousOffset := b.offset // Save offset
 	tagAndLength, err = b.ParseTagAndLength()
 	b.offset = previousOffset // Restore offset
 	return
 }
 
-func (b *Bytes) ParseTagAndLength() (ret *tagAndLength, err error) {
+func (b *Bytes) ParseTagAndLength() (ret tagAndLength, err error) {
 	ret, b.offset = ParseTagAndLength(b.bytes, b.offset)
 	return
 }
