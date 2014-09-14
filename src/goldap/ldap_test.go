@@ -6,17 +6,17 @@ import (
 )
 
 var ReadLDAPMessageTestData = []struct {
-	bytes *Bytes
+	bytes Bytes
 	out   LDAPMessage
 }{
 	// A bind request with empty login / password
 	{
-		bytes: &Bytes{
-			offset: 0,
+		bytes: Bytes{
+			offset: NewInt(0),
 			bytes: []byte{
 				0x30, 0x0c,
 				0x02, 0x01, 0x01, // messageID
-				0x60, 0x07, // tag application 0 => this is a bind request
+				0x60, 0x07, // tag application (class = 1) value 0 => this is a bind request
 				0x02, 0x01, 0x03, // version 3
 				0x04, 0x00, // empty login
 				0x80, 0x00, // empty credentials
@@ -33,8 +33,8 @@ var ReadLDAPMessageTestData = []struct {
 	},
 	// A bind response for a bind request with empty login / password
 	{
-		bytes: &Bytes{
-			offset: 0,
+		bytes: Bytes{
+			offset: NewInt(0),
 			bytes: []byte{
 				0x30, 0x0c,
 				0x02, 0x01, 0x01,
@@ -58,8 +58,8 @@ var ReadLDAPMessageTestData = []struct {
 
 	// A bind request with a simple login / password authentication
 	{
-		bytes: &Bytes{
-			offset: 0,
+		bytes: Bytes{
+			offset: NewInt(0),
 			bytes: []byte{
 				0x30, 0x1d,
 				0x02, 0x01, 0x01, // messageID
@@ -80,8 +80,8 @@ var ReadLDAPMessageTestData = []struct {
 	},
 	// A bind request with SASL (CRAM-MD5)
 	{
-		bytes: &Bytes{
-			offset: 0,
+		bytes: Bytes{
+			offset: NewInt(0),
 			bytes: []byte{
 				0x30, 0x16,
 				0x02, 0x01, 0x01, // messageID
@@ -104,8 +104,8 @@ var ReadLDAPMessageTestData = []struct {
 	},
 	// An unbind request
 	{
-		bytes: &Bytes{
-			offset: 0,
+		bytes: Bytes{
+			offset: NewInt(0),
 			bytes: []byte{
 				0x30, 0x05,
 				0x02, 0x01, 0x0b, // messageID
@@ -121,8 +121,8 @@ var ReadLDAPMessageTestData = []struct {
 	// A search request
 	
 	{
-		bytes: &Bytes{
-			offset: 0,
+		bytes: Bytes{
+			offset: NewInt(0),
 			bytes: []byte{
 				0x30, 0x38,
 				0x02, 0x01, 0x02,
@@ -176,8 +176,8 @@ var ReadLDAPMessageTestData = []struct {
 	},
 	// Search result entry
 	{
-		bytes: &Bytes{
-			offset: 0,
+		bytes: Bytes{
+			offset: NewInt(0),
 			bytes: []byte{
 				0x30, 0x2b,
 				0x02, 0x01, 0x02,
@@ -219,8 +219,8 @@ var ReadLDAPMessageTestData = []struct {
 	},
 	// SearchResultDone
 	{
-		bytes: &Bytes{
-			offset: 0,
+		bytes: Bytes{
+			offset: NewInt(0),
 			bytes: []byte{
 				0x30, 0x0c,
 				0x02, 0x01, 0x02,

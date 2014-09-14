@@ -143,7 +143,8 @@ func (p *Proxy) DecodeMessage(bytes []byte) (ret LDAPMessage, err error) {
 			err = errors.New(fmt.Sprintf("%s", e))
 		}
 	}()
-	ret, err = ReadLDAPMessage(&Bytes{offset: 0, bytes: bytes})
+	zero := 0
+	ret, err = ReadLDAPMessage(Bytes{offset: &zero, bytes: bytes})
 	return
 }
 

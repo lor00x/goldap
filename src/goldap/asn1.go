@@ -98,11 +98,10 @@ func (t *tagAndLength) ExpectCompound(isCompound bool) (err error) {
 }
 
 func ParseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset int) {
-	tag, offset, err := parseTagAndLength(bytes, initOffset)
+	ret, offset, err := parseTagAndLength(bytes, initOffset)
 	if err != nil {
 		panic(err)
 	}
-	ret = tagAndLength(tag)
 	return
 }
 
