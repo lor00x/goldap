@@ -1,4 +1,4 @@
-package goldap
+package message
 
 import ()
 
@@ -506,6 +506,8 @@ type PartialAttributeList []PartialAttribute
 //
 //        SearchResultReference ::= [APPLICATION 19] SEQUENCE
 //                                  SIZE (1..MAX) OF uri URI
+const TagSearchResultReference = 19
+
 type SearchResultReference []URI
 
 //
@@ -524,6 +526,8 @@ type SearchResultDone LDAPResult
 //                       replace (2),
 //                       ...  },
 //                  modification    PartialAttribute } }
+const TagModifyRequest = 6
+
 type ModifyRequest struct {
 	object  LDAPDN
 	changes []ModifyRequestChange
@@ -546,6 +550,7 @@ var EnumeratedModifyRequestChangeOpration = map[ENUMERATED]string{
 //
 //        ModifyResponse ::= [APPLICATION 7] LDAPResult
 const TagModifyResponse = 7
+
 type ModifyResponse LDAPResult
 
 //
@@ -564,6 +569,7 @@ type ModifyResponse LDAPResult
 //             entry           LDAPDN,
 //             attributes      AttributeList }
 const TagAddRequest = 8
+
 type AddRequest struct {
 	entry      LDAPDN
 	attributes AttributeList
@@ -576,16 +582,19 @@ type AttributeList []Attribute
 //
 //        AddResponse ::= [APPLICATION 9] LDAPResult
 const TagAddResponse = 9
+
 type AddResponse LDAPResult
 
 //
 //        DelRequest ::= [APPLICATION 10] LDAPDN
 const TagDelRequest = 10
+
 type DelRequest LDAPDN
 
 //
 //        DelResponse ::= [APPLICATION 11] LDAPResult
 const TagDelResponse = 11
+
 type DelResponse LDAPResult
 
 //
@@ -595,17 +604,20 @@ type DelResponse LDAPResult
 //             deleteoldrdn    BOOLEAN,
 //             newSuperior     [0] LDAPDN OPTIONAL }
 const TagModifyDNRequest = 12
+
 type ModifyDNRequest struct {
 	entry        LDAPDN
 	newrdn       RelativeLDAPDN
 	deleteoldrdn BOOLEAN
 	newSuperior  *LDAPDN
 }
+
 const TagModifyDNRequestNewSuperior = 0
 
 //
 //        ModifyDNResponse ::= [APPLICATION 13] LDAPResult
 const TagModifyDNResponse = 13
+
 type ModifyDNResponse LDAPResult
 
 //
@@ -613,19 +625,21 @@ type ModifyDNResponse LDAPResult
 //             entry           LDAPDN,
 //             ava             AttributeValueAssertion }
 const TagCompareRequest = 14
+
 type CompareRequest struct {
 	entry LDAPDN
 	ava   AttributeValueAssertion
 }
 
-//
 //        CompareResponse ::= [APPLICATION 15] LDAPResult
 const TagCompareResponse = 15
+
 type CompareResponse LDAPResult
 
 //
 //        AbandonRequest ::= [APPLICATION 16] MessageID
 const TagAbandonRequest = 16
+
 type AbandonRequest MessageID
 
 //
@@ -633,10 +647,12 @@ type AbandonRequest MessageID
 //             requestName      [0] LDAPOID,
 //             requestValue     [1] OCTET STRING OPTIONAL }
 const TagExtendedRequest = 23
+
 type ExtendedRequest struct {
 	requestName  LDAPOID
 	requestValue *OCTETSTRING
 }
+
 const TagExtendedRequestName = 0
 const TagExtendedRequestValue = 1
 
@@ -646,11 +662,13 @@ const TagExtendedRequestValue = 1
 //             responseName     [10] LDAPOID OPTIONAL,
 //             responseValue    [11] OCTET STRING OPTIONAL }
 const TagExtendedResponse = 24
+
 type ExtendedResponse struct {
 	LDAPResult
 	responseName  *LDAPOID
 	responseValue *OCTETSTRING
 }
+
 const TagExtendedResponseName = 0
 const TagExtendedResponseValue = 1
 
@@ -659,12 +677,15 @@ const TagExtendedResponseValue = 1
 //             responseName     [0] LDAPOID OPTIONAL,
 //             responseValue    [1] OCTET STRING OPTIONAL }
 const TagIntermediateResponse = 25
+
 type IntermediateResponse struct {
 	responseName  *LDAPOID
 	responseValue *OCTETSTRING
 }
+
 const TagIntermediateResponseName = 0
 const TagIntermediateResponseValue = 1
+
 //
 //        END
 //

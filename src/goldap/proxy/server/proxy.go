@@ -1,4 +1,4 @@
-package goldap
+package server
 
 import (
 	//	"bufio"
@@ -7,6 +7,7 @@ import (
 	"github.com/kr/pretty"
 	"log"
 	"net"
+	"goldap/message"
 )
 
 // The Proxy is a program-in-the-middle which will dump every LDAP structures
@@ -21,7 +22,7 @@ type Proxy struct {
 }
 
 // To dump each request we have to read the ASN.1 first bytes to get the lengh of the message
-// then build a slice of bytes with the correct amount of data
+// then build a slice of bytes with the correct quantity of data
 type Message struct {
 	id     int
 	source string
@@ -137,26 +138,26 @@ func (p *Proxy) Dump() {
 	}
 }
 
-func (p *Proxy) DecodeMessage(bytes []byte) (ret LDAPMessage, err error) {
+func (p *Proxy) DecodeMessage(bytes []byte) (ret message.LDAPMessage, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = errors.New(fmt.Sprintf("%s", e))
 		}
 	}()
 	zero := 0
-	ret, err = ReadLDAPMessage(Bytes{offset: &zero, bytes: bytes})
+	ret, err = message.ReadLDAPMessage(message.NewBytes(zero, bytes))
 	return
 }
 
 
 func (p *Proxy) readLdapMessageBytes(conn net.Conn) (ret *[]byte, err error){
 	var bytes []byte
-	var tagAndLength tagAndLength
+	var tagAndLength message.TagAndLength
 	tagAndLength, err = p.readTagAndLength(conn, &bytes)
 	if err != nil {
 		return
 	}
-	p.readBytes(conn, &bytes, tagAndLength.length)
+	p.readBytes(conn, &bytes, tagAndLength.Length)
 	return &bytes, err
 }
 
@@ -177,11 +178,11 @@ func (p *Proxy) readBytes(conn net.Conn, bytes *[]byte, length int) (b byte, err
 	return
 }
 
-// parseTagAndLength parses an ASN.1 tag and length pair from a live connection
+// readTagAndLength parses an ASN.1 tag and length pair from a live connection
 // into a byte slice. It returns the parsed data and the new offset. SET and
 // SET OF (tag 17) are mapped to SEQUENCE and SEQUENCE OF (tag 16) since we
 // don't distinguish between ordered and unordered objects in this code.
-func (p *Proxy) readTagAndLength(conn net.Conn, bytes *[]byte) (ret tagAndLength, err error) {
+func (p *Proxy) readTagAndLength(conn net.Conn, bytes *[]byte) (ret message.TagAndLength, err error) {
 	// offset = initOffset
 	//b := bytes[offset]
 	//offset++
@@ -190,9 +191,9 @@ func (p *Proxy) readTagAndLength(conn net.Conn, bytes *[]byte) (ret tagAndLength
 	if err != nil {
 		return
 	}
-	ret.class = int(b >> 6)
-	ret.isCompound = b&0x20 == 0x20
-	ret.tag = int(b & 0x1f)
+	ret.Class = int(b >> 6)
+	ret.IsCompound = b&0x20 == 0x20
+	ret.Tag = int(b & 0x1f)
 
 //	// If the bottom five bits are set, then the tag number is actually base 128
 //	// encoded afterwards
@@ -214,32 +215,32 @@ func (p *Proxy) readTagAndLength(conn net.Conn, bytes *[]byte) (ret tagAndLength
 	}
 	if b&0x80 == 0 {
 		// The length is encoded in the bottom 7 bits.
-		ret.length = int(b & 0x7f)
+		ret.Length = int(b & 0x7f)
 	} else {
 		// Bottom 7 bits give the number of length bytes to follow.
 		numBytes := int(b & 0x7f)
 		if numBytes == 0 {
-			err = SyntaxError{"indefinite length found (not DER)"}
+			err = message.SyntaxError{"indefinite length found (not DER)"}
 			return
 		}
-		ret.length = 0
+		ret.Length = 0
 		for i := 0; i < numBytes; i++ {
 
 			b, err = p.readBytes(conn, bytes, 1)
 			if err != nil {
 				return
 			}
-			if ret.length >= 1<<23 {
+			if ret.Length >= 1<<23 {
 				// We can't shift ret.length up without
 				// overflowing.
-				err = StructuralError{"length too large"}
+				err = message.StructuralError{"length too large"}
 				return
 			}
-			ret.length <<= 8
-			ret.length |= int(b)
-			if ret.length == 0 {
+			ret.Length <<= 8
+			ret.Length |= int(b)
+			if ret.Length == 0 {
 				// DER requires that lengths be minimal.
-				err = StructuralError{"superfluous leading zeros in length"}
+				err = message.StructuralError{"superfluous leading zeros in length"}
 				return
 			}
 		}

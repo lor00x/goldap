@@ -1,4 +1,4 @@
-package goldap
+package message
 
 import (
 	"errors"
@@ -32,7 +32,7 @@ func (b Bytes) DumpCurrentBytes() (ret string) {
 	return
 }
 
-func (b Bytes) ParseSubBytes(class int, tag int, callback func(bytes Bytes) error) (err error) {
+func (b Bytes) ReadSubBytes(class int, tag int, callback func(bytes Bytes) error) (err error) {
 	// Check tag
 	tagAndLength, err := b.ParseTagAndLength()
 	if err != nil {
@@ -44,11 +44,47 @@ func (b Bytes) ParseSubBytes(class int, tag int, callback func(bytes Bytes) erro
 	}
 
 	start := *b.offset
-	end := *b.offset + tagAndLength.GetLength()
+	end := *b.offset + tagAndLength.Length
 
 	// Check we got enough bytes to process
 	if end > len(b.bytes) {
-		return StructuralError{fmt.Sprintf("ParseSequence : DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.GetLength(), b.offset)}
+		return StructuralError{fmt.Sprintf("ParseSequence : DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, b.offset)}
+	}
+	// Process sub-bytes
+	zero := 0
+	subBytes := Bytes{offset: &zero, bytes: b.bytes[start:end]}
+	err = callback(subBytes)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+		*b.offset += *subBytes.offset
+		return
+	}
+	// Check we got no more bytes to process
+	if subBytes.HasMoreData() {
+		return StructuralError{fmt.Sprintf("ParseSequence: DATA TOO LONG: %d more bytes to read at offset %d", end-*b.offset, *b.offset)}
+	}
+	// Move offset
+	*b.offset = end
+	return
+}
+
+func (b Bytes) WriteSubBytes(class int, tag int, callback func(bytes Bytes) error) (err error) {
+	// Check tag
+	tagAndLength, err := b.ParseTagAndLength()
+	if err != nil {
+		return errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+	}
+	err = tagAndLength.Expect(class, tag, isCompound)
+	if err != nil {
+		return errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+	}
+
+	start := *b.offset
+	end := *b.offset + tagAndLength.Length
+
+	// Check we got enough bytes to process
+	if end > len(b.bytes) {
+		return StructuralError{fmt.Sprintf("ParseSequence : DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, b.offset)}
 	}
 	// Process sub-bytes
 	zero := 0
@@ -72,14 +108,14 @@ func (b Bytes) HasMoreData() bool {
 	return *b.offset < len(b.bytes)
 }
 
-func (b Bytes) PreviewTagAndLength() (tagAndLength tagAndLength, err error) {
+func (b Bytes) PreviewTagAndLength() (tagAndLength TagAndLength, err error) {
 	previousOffset := *b.offset // Save offset
 	tagAndLength, err = b.ParseTagAndLength()
 	*b.offset = previousOffset // Restore offset
 	return
 }
 
-func (b Bytes) ParseTagAndLength() (ret tagAndLength, err error) {
+func (b Bytes) ParseTagAndLength() (ret TagAndLength, err error) {
 	ret, *b.offset = ParseTagAndLength(b.bytes, *b.offset)
 	return
 }

@@ -1,4 +1,4 @@
-package goldap
+package message
 
 // Below code is largely inspired from the standard golang library encoding/asn
 // If put BEGIN / END tags in the comments to give the original library name
@@ -47,26 +47,17 @@ const (
 	isNotCompound = false
 )
 
-type tagAndLength struct {
-	class, tag, length int
-	isCompound         bool
+type TagAndLength struct {
+	Class, Tag, Length int
+	IsCompound         bool
 }
 
 //
 // END: encoding/asn1/common.go
 //
 
-func (t *tagAndLength) GetClass() int {
-	return t.class
-}
-func (t *tagAndLength) GetTag() int {
-	return t.tag
-}
-func (t *tagAndLength) GetLength() int {
-	return t.length
-}
 
-func (t *tagAndLength) Expect(class int, tag int, isCompound bool) (err error) {
+func (t *TagAndLength) Expect(class int, tag int, isCompound bool) (err error) {
 	err = t.ExpectClass(class)
 	if err != nil {
 		return
@@ -78,26 +69,26 @@ func (t *tagAndLength) Expect(class int, tag int, isCompound bool) (err error) {
 	err = t.ExpectCompound(isCompound)
 	return
 }
-func (t *tagAndLength) ExpectClass(class int) (err error) {
-	if class != t.class {
-		err = errors.New(fmt.Sprintf("Wrong tag class %d. Expected %d.", t.class, class))
+func (t *TagAndLength) ExpectClass(class int) (err error) {
+	if class != t.Class {
+		err = errors.New(fmt.Sprintf("Wrong tag class %d. Expected %d.", t.Class, class))
 	}
 	return
 }
-func (t *tagAndLength) ExpectTag(tag int) (err error) {
-	if tag != t.tag {
-		err = errors.New(fmt.Sprintf("Wrong tag value %d. Expected %d.", t.tag, tag))
+func (t *TagAndLength) ExpectTag(tag int) (err error) {
+	if tag != t.Tag {
+		err = errors.New(fmt.Sprintf("Wrong tag value %d. Expected %d.", t.Tag, tag))
 	}
 	return
 }
-func (t *tagAndLength) ExpectCompound(isCompound bool) (err error) {
-	if isCompound != t.isCompound {
-		err = errors.New(fmt.Sprintf("Wrong tag compound %t. Expected %d.", t.isCompound, isCompound))
+func (t *TagAndLength) ExpectCompound(isCompound bool) (err error) {
+	if isCompound != t.IsCompound {
+		err = errors.New(fmt.Sprintf("Wrong tag compound %t. Expected %d.", t.IsCompound, isCompound))
 	}
 	return
 }
 
-func ParseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset int) {
+func ParseTagAndLength(bytes []byte, initOffset int) (ret TagAndLength, offset int) {
 	ret, offset, err := parseTagAndLength(bytes, initOffset)
 	if err != nil {
 		panic(err)
@@ -499,18 +490,18 @@ type RawContent []byte
 // into a byte slice. It returns the parsed data and the new offset. SET and
 // SET OF (tag 17) are mapped to SEQUENCE and SEQUENCE OF (tag 16) since we
 // don't distinguish between ordered and unordered objects in this code.
-func parseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset int, err error) {
+func parseTagAndLength(bytes []byte, initOffset int) (ret TagAndLength, offset int, err error) {
 	offset = initOffset
 	b := bytes[offset]
 	offset++
-	ret.class = int(b >> 6)
-	ret.isCompound = b&0x20 == 0x20
-	ret.tag = int(b & 0x1f)
+	ret.Class = int(b >> 6)
+	ret.IsCompound = b&0x20 == 0x20
+	ret.Tag = int(b & 0x1f)
 
 	// If the bottom five bits are set, then the tag number is actually base 128
 	// encoded afterwards
-	if ret.tag == 0x1f {
-		ret.tag, offset, err = parseBase128Int(bytes, offset)
+	if ret.Tag == 0x1f {
+		ret.Tag, offset, err = parseBase128Int(bytes, offset)
 		if err != nil {
 			return
 		}
@@ -523,7 +514,7 @@ func parseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset i
 	offset++
 	if b&0x80 == 0 {
 		// The length is encoded in the bottom 7 bits.
-		ret.length = int(b & 0x7f)
+		ret.Length = int(b & 0x7f)
 	} else {
 		// Bottom 7 bits give the number of length bytes to follow.
 		numBytes := int(b & 0x7f)
@@ -531,7 +522,7 @@ func parseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset i
 			err = SyntaxError{"indefinite length found (not DER)"}
 			return
 		}
-		ret.length = 0
+		ret.Length = 0
 		for i := 0; i < numBytes; i++ {
 			if offset >= len(bytes) {
 				err = SyntaxError{"truncated tag or length"}
@@ -539,15 +530,15 @@ func parseTagAndLength(bytes []byte, initOffset int) (ret tagAndLength, offset i
 			}
 			b = bytes[offset]
 			offset++
-			if ret.length >= 1<<23 {
+			if ret.Length >= 1<<23 {
 				// We can't shift ret.length up without
 				// overflowing.
 				err = StructuralError{"length too large"}
 				return
 			}
-			ret.length <<= 8
-			ret.length |= int(b)
-			if ret.length == 0 {
+			ret.Length <<= 8
+			ret.Length |= int(b)
+			if ret.Length == 0 {
 				// DER requires that lengths be minimal.
 				err = StructuralError{"superfluous leading zeros in length"}
 				return

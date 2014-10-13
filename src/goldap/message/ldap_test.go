@@ -1,14 +1,17 @@
-package goldap
+package message
 
 import (
 	"reflect"
 	"testing"
 )
 
-var ReadLDAPMessageTestData = []struct {
+type LDAPMessageTestData struct {
 	bytes Bytes
-	out   LDAPMessage
-}{
+	out	LDAPMessage
+}
+
+func getLDAPMessageTestData()  (ret []LDAPMessageTestData) {
+	return []LDAPMessageTestData{
 	// A bind request with empty login / password
 	{
 		bytes: Bytes{
@@ -243,14 +246,31 @@ var ReadLDAPMessageTestData = []struct {
 	
 	
 }
+}
 
 func TestReadLDAPMessage(t *testing.T) {
-	for i, test := range ReadLDAPMessageTestData {
+	for i, test := range getLDAPMessageTestData() {
 		message, err := ReadLDAPMessage(test.bytes)
 		if err != nil {
-			t.Errorf("#%d failed at offset %d (%s): %s", i, test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
+			t.Errorf("#%d failed reading bytes at offset %d (%s): %s", i, test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
 		} else if !reflect.DeepEqual(message, test.out) {
 			t.Errorf("#%d:\nhave %#+v\nwant %#+v", i, message, test.out)
 		}
+	}
+}
+
+func TestWriteLDAPMessage(t *testing.T) {
+	for i, test := range getLDAPMessageTestData() {
+		message, err := ReadLDAPMessage(test.bytes)
+		if err != nil {
+			t.Errorf("#%d failed reading bytes at offset %d (%s): %s", i, test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
+		}
+		var bytes []byte
+		bytes, err = message.WriteBytes()
+		if err != nil {
+			t.Errorf("#%d failed writing bytes: %s", err)
+		} else if !reflect.DeepEqual(bytes, test.bytes) {
+			t.Errorf("#%d:\nhave %#+v\nwant %#+v", i, bytes, test.bytes)
+		} 
 	}
 }

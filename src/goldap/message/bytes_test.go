@@ -1,4 +1,4 @@
-package goldap
+package message
 
 import (
 	"reflect"
