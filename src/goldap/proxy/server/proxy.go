@@ -53,22 +53,22 @@ func Forward(local string, remote string) {
 		}
 
 		log.Printf("New connection accepted")
-		go proxy.Start()
+		go proxy.start()
 	}
 }
 
-func (p *Proxy) Start() {
+func (p *Proxy) start() {
 	p.dumpChan = make(chan Message)
 	p.clientChan = make(chan Message)
 	p.serverChan = make(chan Message)
-	go p.Dump()
-	go p.ReadClient()
-	go p.WriteServer()
-	go p.ReadServer()
-	go p.WriteClient()
+	go p.dump()
+	go p.readClient()
+	go p.writeServer()
+	go p.readServer()
+	go p.writeClient()
 }
 
-func (p *Proxy) ReadClient() {
+func (p *Proxy) readClient() {
 	messageid := 1
 	for {
 		var err error
@@ -87,13 +87,13 @@ func (p *Proxy) ReadClient() {
 	}
 }
 
-func (p *Proxy) WriteServer() {
+func (p *Proxy) writeServer() {
 	for msg := range p.serverChan {
 		p.serverConn.Write(msg.bytes)
 	}
 }
 
-func (p *Proxy) ReadServer() {
+func (p *Proxy) readServer() {
 	messageid := 0
 	for {
 		var err error
@@ -111,13 +111,13 @@ func (p *Proxy) ReadServer() {
 	}
 }
 
-func (p *Proxy) WriteClient() {
+func (p *Proxy) writeClient() {
 	for msg := range p.clientChan {
 		p.clientConn.Write(msg.bytes)
 	}
 }
 
-func (p *Proxy) Dump() {
+func (p *Proxy) dump() {
 	for msg := range p.dumpChan {
 		result := ""
 		for _, onebyte := range msg.bytes {
@@ -128,7 +128,7 @@ func (p *Proxy) Dump() {
 			}
 		}
 		// Now decode the message
-		message, err := p.DecodeMessage(msg.bytes)
+		message, err := p.decodeMessage(msg.bytes)
 		if err != nil {
 			result = fmt.Sprintf("%s\n%s", result, err.Error())
 		} else {
@@ -138,7 +138,7 @@ func (p *Proxy) Dump() {
 	}
 }
 
-func (p *Proxy) DecodeMessage(bytes []byte) (ret message.LDAPMessage, err error) {
+func (p *Proxy) decodeMessage(bytes []byte) (ret message.LDAPMessage, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = errors.New(fmt.Sprintf("%s", e))
