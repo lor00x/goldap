@@ -1,6 +1,0 @@
-[submodule "pretty"]
-	path = pretty
-	url = git@github.com:kr/pretty.git
-[submodule "externals/pretty"]
-	path = externals/pretty
-	url = git@github.com:kr/pretty.git
