@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/lor00X/goldap/proxy/server"
+	"github.com/lor00x/goldap/proxy/server"
 )
 
 func main() {
