@@ -7,7 +7,7 @@ import (
 //	"github.com/kr/pretty"
 	"log"
 	"net"
-	"goldap/message"
+	"github.com/lor00x/goldap/message"
 )
 
 // The Proxy is a program-in-the-middle which will dump every LDAP structures

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"goldap/message"
+	"github.com/lor00x/goldap/message"
 	"fmt"
 	"flag"
 	"os"
