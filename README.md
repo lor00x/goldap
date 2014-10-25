@@ -8,6 +8,11 @@ Implementation of the LDAP protocol in Go
 
 This is experimental, I'm learning Golang ;-)
 
+# Installation
+
+go get github.com/kr/pretty
+go get github.com/kr/pty
+go get github.com/lor00x/goldap
 
 # How to run the LDAP proxy
 
