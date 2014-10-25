@@ -4,7 +4,7 @@ import (
 	//	"bufio"
 	"errors"
 	"fmt"
-//	"github.com/kr/pretty"
+	"github.com/kr/pretty"
 	"log"
 	"net"
 	"github.com/lor00x/goldap/message"
@@ -132,32 +132,32 @@ func (p *Proxy) dump() {
 		if err != nil {
 			result = fmt.Sprintf("%s\n%s", result, err.Error())
 		} else {
-			result = fmt.Sprintf("%s\n%# v", result, message)
+			result = fmt.Sprintf("%s\n%# v", result, pretty.Formatter(message))
 		}
-		log.Printf("%s - %s - msg %d %s\n\n", p.name, msg.source, msg.id, result)
+		log.Printf("Message: %s - %s - msg %d %s\n\n", p.name, msg.source, msg.id, result)
 	}
 }
 
-func (p *Proxy) dumpCols() {
-	for msg := range p.dumpChan {
-		result := ""
-//		for _, onebyte := range msg.bytes {
-//			if onebyte < 0x10 {
-//				result = fmt.Sprintf("%s, 0x0%x", result, onebyte)
-//			} else {
-//				result = fmt.Sprintf("%s, 0x%x", result, onebyte)
-//			}
+//func (p *Proxy) dumpCols() {
+//	for msg := range p.dumpChan {
+//		result := ""
+////		for _, onebyte := range msg.bytes {
+////			if onebyte < 0x10 {
+////				result = fmt.Sprintf("%s, 0x0%x", result, onebyte)
+////			} else {
+////				result = fmt.Sprintf("%s, 0x%x", result, onebyte)
+////			}
+////		}
+//		// Now decode the message
+//		message, err := p.decodeMessage(msg.bytes)
+//		if err != nil {
+//			result = fmt.Sprintf("%s\n%s", result, err.Error())
+//		} else {
+//			result = fmt.Sprintf("%s\n%# v", result, pretty.Formatter(message))
 //		}
-		// Now decode the message
-		message, err := p.decodeMessage(msg.bytes)
-		if err != nil {
-			result = fmt.Sprintf("%s\n%s", result, err.Error())
-		} else {
-			result = fmt.Sprintf("%s\n%# v", result, message)
-		}
-		log.Printf("%s - %s - msg %d %s", p.name, msg.source, msg.id, result)
-	}
-}
+//		log.Printf("%s - %s - msg %d %s", p.name, msg.source, msg.id, result)
+//	}
+//}
 
 
 func (p *Proxy) decodeMessage(bytes []byte) (ret message.LDAPMessage, err error) {
