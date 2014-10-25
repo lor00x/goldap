@@ -1,7 +1,7 @@
 package main
 
 import (
-	"goldap"
+	"goldap/message"
 	"fmt"
 	"flag"
 	"os"
@@ -97,7 +97,7 @@ func main() {
 	}
 	for loop := 0; loop < 10000; loop++ {
 		for _, bytes := range messages {
-			ret, err := goldap.ReadLDAPMessage(goldap.NewBytes(0, bytes))
+			ret, err := message.ReadLDAPMessage(message.NewBytes(0, bytes))
 			if err != nil {
 				fmt.Println("Error: ", err)
 			}

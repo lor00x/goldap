@@ -4,7 +4,7 @@ import (
 	//	"bufio"
 	"errors"
 	"fmt"
-	"github.com/kr/pretty"
+//	"github.com/kr/pretty"
 	"log"
 	"net"
 	"goldap/message"
@@ -132,7 +132,7 @@ func (p *Proxy) dump() {
 		if err != nil {
 			result = fmt.Sprintf("%s\n%s", result, err.Error())
 		} else {
-			result = fmt.Sprintf("%s\n%# v", result, pretty.Formatter(message))
+			result = fmt.Sprintf("%s\n%# v", result, message)
 		}
 		log.Printf("%s - %s - msg %d %s\n\n", p.name, msg.source, msg.id, result)
 	}
@@ -153,7 +153,7 @@ func (p *Proxy) dumpCols() {
 		if err != nil {
 			result = fmt.Sprintf("%s\n%s", result, err.Error())
 		} else {
-			result = fmt.Sprintf("%s\n%# v", result, pretty.Formatter(message))
+			result = fmt.Sprintf("%s\n%# v", result, message)
 		}
 		log.Printf("%s - %s - msg %d %s", p.name, msg.source, msg.id, result)
 	}
