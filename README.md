@@ -8,6 +8,10 @@ Implementation of the LDAP protocol in Go
 
 This is experimental, I'm learning Golang ;-)
 
+I'm co-learning Golang with [Valère JEANTET](https://github.com/vjeantet). Have a look at its own implementation of LDAP in Golang: https://github.com/vjeantet/ldapserver
+
+Feel free to contribute, comment :)
+
 # Installation
 
 ```bash
