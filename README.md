@@ -8,7 +8,7 @@ This is experimental, I'm learning Golang ;-)
 
 # How to run the LDAP proxy
 
-Go to src/goldap/proxy
+Go to goldap/proxy
 
 go run main.go
 
