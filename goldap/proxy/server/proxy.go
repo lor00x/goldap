@@ -120,13 +120,34 @@ func (p *Proxy) writeClient() {
 func (p *Proxy) dump() {
 	for msg := range p.dumpChan {
 		result := ""
-		for _, onebyte := range msg.bytes {
-			if onebyte < 0x10 {
-				result = fmt.Sprintf("%s, 0x0%x", result, onebyte)
-			} else {
-				result = fmt.Sprintf("%s, 0x%x", result, onebyte)
-			}
+//		for _, onebyte := range msg.bytes {
+//			if onebyte < 0x10 {
+//				result = fmt.Sprintf("%s, 0x0%x", result, onebyte)
+//			} else {
+//				result = fmt.Sprintf("%s, 0x%x", result, onebyte)
+//			}
+//		}
+		// Now decode the message
+		message, err := p.decodeMessage(msg.bytes)
+		if err != nil {
+			result = fmt.Sprintf("%s\n%s", result, err.Error())
+		} else {
+			result = fmt.Sprintf("%s\n%# v", result, pretty.Formatter(message))
 		}
+		log.Printf("%s - %s - msg %d %s\n\n", p.name, msg.source, msg.id, result)
+	}
+}
+
+func (p *Proxy) dumpCols() {
+	for msg := range p.dumpChan {
+		result := ""
+//		for _, onebyte := range msg.bytes {
+//			if onebyte < 0x10 {
+//				result = fmt.Sprintf("%s, 0x0%x", result, onebyte)
+//			} else {
+//				result = fmt.Sprintf("%s, 0x%x", result, onebyte)
+//			}
+//		}
 		// Now decode the message
 		message, err := p.decodeMessage(msg.bytes)
 		if err != nil {
@@ -137,6 +158,7 @@ func (p *Proxy) dump() {
 		log.Printf("%s - %s - msg %d %s", p.name, msg.source, msg.id, result)
 	}
 }
+
 
 func (p *Proxy) decodeMessage(bytes []byte) (ret message.LDAPMessage, err error) {
 	defer func() {
