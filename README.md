@@ -27,7 +27,7 @@ cd proxy
 go run main.go
 ```
 
-By default the proxy will listen on the port 2389 on all interfaces and forward to 127.0.0.1:10389.
+By default the proxy will listen on the port 2389 on all network interfaces and forward to 127.0.0.1:10389.
 This is the configuration I use for testing with Apache Directory Studio.
 
 You can change the configuration by editing the file "proxy/main.go"
@@ -54,7 +54,7 @@ For testing I use Apache Directory Studio, you can download it here : http://dir
 * Launch Apache Directory Studio
 * In the lower left you should see the "Connections" panel (if not click on Window => Show view => Connections)
 * Click on the "New connection" button
-* Enter a name, then setup 127.0.0.1 for the hostname and 10389 for the port
+* Enter a name, then setup 127.0.0.1 for the hostname and 2389 for the port (the port on which our Ldap proxy is listening)
 * Click on next, select "No Authentication" as authentication method
 * Click on finish, the connection should open automatically (if not, double click on it)
 * The content of the LDAP server should be displayed in the "LDAP Browser" panel
