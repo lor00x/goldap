@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
-	"github.com/lor00x/goldap/message"
+	"strconv"
+	//	"github.com/lor00x/goldap/message"
 	"log"
 	"os"
 	"runtime/pprof"
@@ -95,14 +97,50 @@ func main() {
 		[]byte{48, 12, 2, 1, 18, 101, 7, 10, 1, 0, 4, 0, 4, 0},
 		[]byte{48, 5, 2, 1, 19, 66, 0},
 	}
-	for loop := 0; loop < 10000; loop++ {
-		for _, bytes := range messages {
-			ret, err := message.ReadLDAPMessage(message.NewBytes(0, bytes))
-			if err != nil {
-				fmt.Println("Error: ", err)
+	for loop := 0; loop < 1; loop++ {
+		for m, bytesArray := range messages {
+			var buffer bytes.Buffer
+			var buffer2 bytes.Buffer
+			// result := ""
+			for i, onebyte := range bytesArray {
+				if i != 0 {
+					buffer.WriteString(", ")
+				}
+				if onebyte < 0x10 {
+					buffer.WriteString(fmt.Sprintf("0x0%x", onebyte))
+					buffer2.WriteString(fmt.Sprintf("0%x", onebyte))
+				} else {
+					buffer.WriteString(fmt.Sprintf("0x%x", onebyte))
+					buffer2.WriteString(fmt.Sprintf("%x", onebyte))
+				}
 			}
-			_ = ret
+			// fmt.Println("{\n\tbytes: Bytes{\n\t\toffset: NewInt(0),\n\t\tbytes: []byte{", result, "},")
+			// ret, err := message.ReadLDAPMessage(message.NewBytes(0, bytes))
+			// if err != nil {
+			// 	fmt.Println("Error: ", err)
+			// }
+			// _ = ret
 			// fmt.Println("Message", i)
+			fmt.Println(`
+		// Request ` + strconv.FormatInt(int64(m+1), 10) + `
+		{
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// ` + buffer2.String() + `
+					` + buffer.String() + `,
+				},
+			},
+			out: LDAPMessage{
+				messageID: MessageID(int(0x01)),
+				protocolOp: BindRequest{
+					version:        0x03,
+					name:           LDAPDN(""),
+					authentication: OCTETSTRING([]byte("")),
+				},
+			},
+		},
+		`)
 		}
 	}
 }

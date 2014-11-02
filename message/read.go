@@ -164,8 +164,8 @@ func NewLDAPMessage() *LDAPMessage { return &LDAPMessage{} }
 func ReadLDAPMessage(bytes Bytes) (message LDAPMessage, err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, message.readLDAPMessageComponents)
 	if err != nil {
-		panic(err.Error())
-		// err = errors.New(fmt.Sprintf("readLDAPMessage: %s", err.Error()))
+		//panic(err.Error())
+		err = errors.New(fmt.Sprintf("readLDAPMessage: %s", err.Error()))
 	}
 	return
 }

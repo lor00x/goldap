@@ -203,53 +203,93 @@ type LDAPResult struct {
 	referral          *Referral
 }
 
+const ResultCodeSuccess = 0
+const ResultCodeOperationsError = 1
+const ResultCodeProtocolError = 2
+const ResultCodeTimeLimitExceeded = 3
+const ResultCodeSizeLimitExceeded = 4
+const ResultCodeCompareFalse = 5
+const ResultCodeCompareTrue = 6
+const ResultCodeAuthMethodNotSupported = 7
+const ResultCodeStrongerAuthRequired = 8
+const ResultCodeReferral = 10
+const ResultCodeAdminLimitExceeded = 11
+const ResultCodeUnavailableCriticalExtension = 12
+const ResultCodeConfidentialityRequired = 13
+const ResultCodeSaslBindInProgress = 14
+const ResultCodeNoSuchAttribute = 16
+const ResultCodeUndefinedAttributeType = 17
+const ResultCodeInappropriateMatching = 18
+const ResultCodeConstraintViolation = 19
+const ResultCodeAttributeOrValueExists = 20
+const ResultCodeInvalidAttributeSyntax = 21
+const ResultCodeNoSuchObject = 32
+const ResultCodeAliasProblem = 33
+const ResultCodeInvalidDNSyntax = 34
+const ResultCodeAliasDereferencingProblem = 36
+const ResultCodeInappropriateAuthentication = 48
+const ResultCodeInvalidCredentials = 49
+const ResultCodeInsufficientAccessRights = 50
+const ResultCodeBusy = 51
+const ResultCodeUnavailable = 52
+const ResultCodeUnwillingToPerform = 53
+const ResultCodeLoopDetect = 54
+const ResultCodeNamingViolation = 64
+const ResultCodeObjectClassViolation = 65
+const ResultCodeNotAllowedOnNonLeaf = 66
+const ResultCodeNotAllowedOnRDN = 67
+const ResultCodeEntryAlreadyExists = 68
+const ResultCodeObjectClassModsProhibited = 69
+const ResultCodeAffectsMultipleDSAs = 71
+const ResultCodeOther = 80
+
 var EnumeratedLDAPResultCode = map[ENUMERATED]string{
-	0: "success",
-	1: "operationsError",
-	2: "protocolError",
-	3: "timeLimitExceeded",
-	4: "sizeLimitExceeded",
-	5: "compareFalse",
-	6: "compareTrue",
-	7: "authMethodNotSupported",
-	8: "strongerAuthRequired",
+	ResultCodeSuccess:                "success",
+	ResultCodeOperationsError:        "operationsError",
+	ResultCodeProtocolError:          "protocolError",
+	ResultCodeTimeLimitExceeded:      "timeLimitExceeded",
+	ResultCodeSizeLimitExceeded:      "sizeLimitExceeded",
+	ResultCodeCompareFalse:           "compareFalse",
+	ResultCodeCompareTrue:            "compareTrue",
+	ResultCodeAuthMethodNotSupported: "authMethodNotSupported",
+	ResultCodeStrongerAuthRequired:   "strongerAuthRequired",
 	//                       -- 9 reserved --
-	10: "referral",
-	11: "adminLimitExceeded",
-	12: "unavailableCriticalExtension",
-	13: "confidentialityRequired",
-	14: "saslBindInProgress",
-	16: "noSuchAttribute",
-	17: "undefinedAttributeType",
-	18: "inappropriateMatching",
-	19: "constraintViolation",
-	20: "attributeOrValueExists",
-	21: "invalidAttributeSyntax",
+	ResultCodeReferral:                     "referral",
+	ResultCodeAdminLimitExceeded:           "adminLimitExceeded",
+	ResultCodeUnavailableCriticalExtension: "unavailableCriticalExtension",
+	ResultCodeConfidentialityRequired:      "confidentialityRequired",
+	ResultCodeSaslBindInProgress:           "saslBindInProgress",
+	ResultCodeNoSuchAttribute:              "noSuchAttribute",
+	ResultCodeUndefinedAttributeType:       "undefinedAttributeType",
+	ResultCodeInappropriateMatching:        "inappropriateMatching",
+	ResultCodeConstraintViolation:          "constraintViolation",
+	ResultCodeAttributeOrValueExists:       "attributeOrValueExists",
+	ResultCodeInvalidAttributeSyntax:       "invalidAttributeSyntax",
 	//                       -- 22-31 unused --
-	32: "noSuchObject",
-	33: "aliasProblem",
-	34: "invalidDNSyntax",
+	ResultCodeNoSuchObject:    "noSuchObject",
+	ResultCodeAliasProblem:    "aliasProblem",
+	ResultCodeInvalidDNSyntax: "invalidDNSyntax",
 	//                       -- 35 reserved for undefined isLeaf --
-	36: "aliasDereferencingProblem",
+	ResultCodeAliasDereferencingProblem: "aliasDereferencingProblem",
 	//                       -- 37-47 unused --
-	48: "inappropriateAuthentication",
-	49: "invalidCredentials",
-	50: "insufficientAccessRights",
-	51: "busy",
-	52: "unavailable",
-	53: "unwillingToPerform",
-	54: "loopDetect",
+	ResultCodeInappropriateAuthentication: "inappropriateAuthentication",
+	ResultCodeInvalidCredentials:          "invalidCredentials",
+	ResultCodeInsufficientAccessRights:    "insufficientAccessRights",
+	ResultCodeBusy:                        "busy",
+	ResultCodeUnavailable:                 "unavailable",
+	ResultCodeUnwillingToPerform:          "unwillingToPerform",
+	ResultCodeLoopDetect:                  "loopDetect",
 	//                       -- 55-63 unused --
-	64: "namingViolation",
-	65: "objectClassViolation",
-	66: "notAllowedOnNonLeaf",
-	67: "notAllowedOnRDN",
-	68: "entryAlreadyExists",
-	69: "objectClassModsProhibited",
+	ResultCodeNamingViolation:           "namingViolation",
+	ResultCodeObjectClassViolation:      "objectClassViolation",
+	ResultCodeNotAllowedOnNonLeaf:       "notAllowedOnNonLeaf",
+	ResultCodeNotAllowedOnRDN:           "notAllowedOnRDN",
+	ResultCodeEntryAlreadyExists:        "entryAlreadyExists",
+	ResultCodeObjectClassModsProhibited: "objectClassModsProhibited",
 	//                       -- 70 reserved for CLDAP --
-	71: "affectsMultipleDSAs",
+	ResultCodeAffectsMultipleDSAs: "affectsMultipleDSAs",
 	//                       -- 72-79 unused --
-	80: "other",
+	ResultCodeOther: "other",
 }
 
 //        Referral ::= SEQUENCE SIZE (1..MAX) OF uri URI
