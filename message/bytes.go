@@ -10,7 +10,7 @@ type Bytes struct {
 	bytes  []byte
 }
 
-func NewBytes(offset int, bytes []byte) (ret Bytes){
+func NewBytes(offset int, bytes []byte) (ret Bytes) {
 	return Bytes{offset: &offset, bytes: bytes}
 }
 

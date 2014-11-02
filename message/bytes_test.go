@@ -12,9 +12,9 @@ func NewInt(value int) (ret *int) {
 
 var ParseInt32TestData = []struct {
 	bytes  Bytes // Input
-	length int    // Input
-	value  int32  // Expected output
-	offset int    // Expected output
+	length int   // Input
+	value  int32 // Expected output
+	offset int   // Expected output
 }{
 	{value: 0x09, offset: 1, length: 1, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x09}}},
 	{value: 0x0987, offset: 2, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x09, 0x87}}, length: 2},
@@ -41,10 +41,10 @@ func TestParseInt32(t *testing.T) {
 }
 
 var ParseUTF8StringTestData = []struct {
-	bytes  Bytes     // Input
-	length int        // Input
+	bytes  Bytes  // Input
+	length int    // Input
 	value  string // Expected output
-	offset int        // Expected output
+	offset int    // Expected output
 }{
 	{value: "CRAM-MD5", offset: 8, length: 8, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35}}},
 	{value: "Hello, 世界", offset: 13, length: 13, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c}}},
@@ -65,12 +65,12 @@ func TestParseUTF8STRING(t *testing.T) {
 }
 
 var ParseOCTETSTRINGTestData = []struct {
-	bytes  Bytes     // Input
-	length int        // Input
-	value  []byte     // Expected output
-	offset int        // Expected output
+	bytes  Bytes  // Input
+	length int    // Input
+	value  []byte // Expected output
+	offset int    // Expected output
 }{
-	{value: []byte{0x41, 0x4d, 0x2d}, offset: 5, length: 3, bytes: Bytes{offset: NewInt(2),bytes: []byte{0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35}}},
+	{value: []byte{0x41, 0x4d, 0x2d}, offset: 5, length: 3, bytes: Bytes{offset: NewInt(2), bytes: []byte{0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35}}},
 	{value: []byte{0xe4, 0xb8, 0x96}, offset: 10, length: 3, bytes: Bytes{offset: NewInt(7), bytes: []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c}}},
 	{value: []byte("myLogin"), offset: 19, length: 7, bytes: Bytes{offset: NewInt(12), bytes: []byte{0x30, 0x1d, 0x02, 0x01, 0x05, 0x60, 0x18, 0x02, 0x01, 0x03, 0x04, 0x07, 0x6d, 0x79, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x80, 0x0a, 0x6d, 0x79, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64}}},
 }

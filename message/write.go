@@ -1,4 +1,5 @@
 package message
+
 //
 //import (
 //	"errors"
@@ -455,7 +456,7 @@ package message
 //	}
 //	ret = Attribute(par)
 //	return
-//	
+//
 //}
 ////
 ////        MatchingRuleId ::= LDAPString
@@ -1033,7 +1034,7 @@ package message
 //	var attributedescription AttributeDescription
 //	attributedescription, err = writeTaggedAttributeDescription(bytes, classContextSpecific, TagFilterPresent)
 //	if err != nil {
-//		return ret, LdapError{fmt.Sprintf("writeFilterPresent: %s", err.Error())} 
+//		return ret, LdapError{fmt.Sprintf("writeFilterPresent: %s", err.Error())}
 //	}
 //	ret = FilterPresent(attributedescription)
 //	return

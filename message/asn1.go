@@ -56,7 +56,6 @@ type TagAndLength struct {
 // END: encoding/asn1/common.go
 //
 
-
 func (t *TagAndLength) Expect(class int, tag int, isCompound bool) (err error) {
 	err = t.ExpectClass(class)
 	if err != nil {
@@ -95,7 +94,6 @@ func ParseTagAndLength(bytes []byte, initOffset int) (ret TagAndLength, offset i
 	}
 	return
 }
-
 
 //
 // BEGIN encoding/asn1/asn1.go
