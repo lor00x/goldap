@@ -174,22 +174,26 @@ func ReadLDAPMessage(bytes Bytes) (message LDAPMessage, err error) {
 func (message *LDAPMessage) readLDAPMessageComponents(bytes Bytes) (err error) {
 	message.messageID, err = readMessageID(bytes)
 	if err != nil {
+		err = errors.New(fmt.Sprintf("LDAPMessage.messageID: %s", err.Error()))
 		return
 	}
 	message.protocolOp, err = readProtocolOp(bytes)
 	if err != nil {
+		err = errors.New(fmt.Sprintf("LDAPMessage.protocolOp: %s", err.Error()))
 		return
 	}
 	if bytes.HasMoreData() {
 		var tag TagAndLength
 		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
+			err = errors.New(fmt.Sprintf("LDAPMessage.controls: %s", err.Error()))
 			return
 		}
 		if tag.Tag == TagLDAPMessageControls {
 			var controls Controls
 			controls, err = readTaggedControls(bytes, classContextSpecific, TagLDAPMessageControls)
 			if err != nil {
+				err = errors.New(fmt.Sprintf("LDAPMessage.controls: %s", err.Error()))
 				return
 			}
 			message.controls = controls.Pointer()
@@ -209,7 +213,7 @@ func readTaggedMessageID(bytes Bytes, class int, tag int) (ret MessageID, err er
 	var integer INTEGER
 	integer, err = readTaggedPositiveINTEGER(bytes, class, tag)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("readMessageID: %s", err.Error()))
+		err = errors.New(fmt.Sprintf("readTaggedMessageID: %s", err.Error()))
 		return
 	}
 	return MessageID(integer), err
@@ -647,6 +651,7 @@ func (controls *Controls) readControlsComponents(bytes Bytes) (err error) {
 		var control Control
 		control, err = readControl(bytes)
 		if err != nil {
+			err = errors.New(fmt.Sprintf("Controls.control: %s", err.Error()))
 			return
 		}
 		*controls = append(*controls, control)
@@ -667,16 +672,32 @@ func readControl(bytes Bytes) (control Control, err error) {
 func (control *Control) readControlComponents(bytes Bytes) (err error) {
 	control.controlType, err = readLDAPOID(bytes)
 	if err != nil {
+		err = errors.New(fmt.Sprintf("Control.controlType: %s", err.Error()))
 		return
 	}
-	control.criticality, err = readBOOLEAN(bytes)
-	if err != nil {
-		return
+	if bytes.HasMoreData() {
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
+		if err != nil {
+			err = errors.New(fmt.Sprintf("Control.criticality: %s", err.Error()))
+			return
+		}
+		if tag.Tag == tagBoolean {
+			control.criticality, err = readBOOLEAN(bytes)
+			if err != nil {
+				err = errors.New(fmt.Sprintf("Control.criticality: %s", err.Error()))
+				return
+			}
+			if control.criticality == false {
+				err = errors.New(fmt.Sprintf("Control.criticality: default value FALSE should not be specified"))
+			}
+		}
 	}
 	if bytes.HasMoreData() {
 		var octetstring OCTETSTRING
 		octetstring, err = readOCTETSTRING(bytes)
 		if err != nil {
+			err = errors.New(fmt.Sprintf("Control.controlValue: %s", err.Error()))
 			return
 		}
 		control.controlValue = octetstring.Pointer()
