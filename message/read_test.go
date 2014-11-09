@@ -242,7 +242,38 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 				},
 			},
 		},
+
+		// ModifyDNrequest
+		{
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// 302102010d6c1c04096f753d636f6e666967040a6f753d636f6e666967670101ff8000
+					0x30, 0x21,
+					0x02, 0x01, 0x0d,
+					0x6c, 0x1c,
+					0x04, 0x09, 0x6f, 0x75, 0x3d, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+					0x04, 0x0a, 0x6f, 0x75, 0x3d, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x67,
+					0x01, 0x01, 0xff,
+					0x80, 0x00,
+				},
+			},
+			out: LDAPMessage{
+				messageID: MessageID(13),
+				protocolOp: ModifyDNRequest{
+					entry:        LDAPDN("ou=config"),
+					newrdn:       RelativeLDAPDN("ou=configg"),
+					deleteoldrdn: BOOLEAN(true),
+					newSuperior:  NewLDAPDN(LDAPDN("")),
+				},
+				controls: (*Controls)(nil),
+			},
+		},
 	}
+}
+
+func NewLDAPDN(ldapdn LDAPDN) *LDAPDN {
+	return &ldapdn
 }
 
 func TestReadLDAPMessage(t *testing.T) {
@@ -263,7 +294,7 @@ func TestReadLDAPMessage(t *testing.T) {
 //			t.Errorf("#%d failed reading bytes at offset %d (%s): %s", i, test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
 //		}
 //		var bytes []byte
-//		bytes, err = message.WriteBytes()
+//		bytes, err = WriteBytes()
 //		if err != nil {
 //			t.Errorf("#%d failed writing bytes: %s", err)
 //		} else if !reflect.DeepEqual(bytes, test.bytes) {

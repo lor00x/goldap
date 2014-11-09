@@ -48,7 +48,7 @@ func (b Bytes) ReadSubBytes(class int, tag int, callback func(bytes Bytes) error
 
 	// Check we got enough bytes to process
 	if end > len(b.bytes) {
-		return StructuralError{fmt.Sprintf("ParseSequence : DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, b.offset)}
+		return StructuralError{fmt.Sprintf("ParseSequence : DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, *b.offset)}
 	}
 	// Process sub-bytes
 	zero := 0

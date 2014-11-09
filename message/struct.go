@@ -53,6 +53,8 @@ type LDAPMessage struct {
 	controls   *Controls
 }
 
+const TagLDAPMessageControls = 0
+
 type ProtocolOp interface{}
 
 //        MessageID ::= INTEGER (0 ..  maxInt)
@@ -202,6 +204,8 @@ type LDAPResult struct {
 	diagnosticMessage LDAPString
 	referral          *Referral
 }
+
+const TagLDAPResultReferral = 3
 
 const ResultCodeSuccess = 0
 const ResultCodeOperationsError = 1
@@ -709,8 +713,8 @@ type ExtendedResponse struct {
 	responseValue *OCTETSTRING
 }
 
-const TagExtendedResponseName = 0
-const TagExtendedResponseValue = 1
+const TagExtendedResponseName = 10
+const TagExtendedResponseValue = 11
 
 //
 //        IntermediateResponse ::= [APPLICATION 25] SEQUENCE {

@@ -120,6 +120,8 @@ func readTaggedOCTETSTRING(bytes Bytes, class int, tag int) (ret OCTETSTRING, er
 	return OCTETSTRING(octetstring), err
 }
 
+func (o OCTETSTRING) Pointer() *OCTETSTRING { return &o }
+
 //   This appendix is normative.
 //
 //        Lightweight-Directory-Access-Protocol-V3 {1 3 6 1 1 18}
@@ -179,12 +181,19 @@ func (message *LDAPMessage) readLDAPMessageComponents(bytes Bytes) (err error) {
 		return
 	}
 	if bytes.HasMoreData() {
-		var controls Controls
-		controls, err = readControls(bytes)
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
 		}
-		message.controls = &controls
+		if tag.Tag == TagLDAPMessageControls {
+			var controls Controls
+			controls, err = readTaggedControls(bytes, classContextSpecific, TagLDAPMessageControls)
+			if err != nil {
+				return
+			}
+			message.controls = controls.Pointer()
+		}
 	}
 	return
 }
@@ -304,6 +313,7 @@ func readTaggedLDAPOID(bytes Bytes, class int, tag int) (ret LDAPOID, err error)
 	ret = LDAPOID(octetstring)
 	return
 }
+func (l LDAPOID) Pointer() *LDAPOID { return &l }
 
 //
 //        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
@@ -328,6 +338,7 @@ func readTaggedLDAPDN(bytes Bytes, class int, tag int) (ret LDAPDN, err error) {
 	ret = LDAPDN(ldapstring)
 	return
 }
+func (l LDAPDN) Pointer() *LDAPDN { return &l }
 
 //
 //        RelativeLDAPDN ::= LDAPString -- Constrained to <name-component>
@@ -362,6 +373,7 @@ func readTaggedAttributeDescription(bytes Bytes, class int, tag int) (ret Attrib
 	ret = AttributeDescription(ldapstring)
 	return
 }
+func (a AttributeDescription) Pointer() *AttributeDescription { return &a }
 
 //
 //        AttributeValue ::= OCTET STRING
@@ -476,8 +488,9 @@ func readTaggedMatchingRuleId(bytes Bytes, class int, tag int) (matchingruleid M
 	}
 	matchingruleid = MatchingRuleId(ldapstring)
 	return
-
 }
+
+func (m MatchingRuleId) Pointer() *MatchingRuleId { return &m }
 
 //
 //        LDAPResult ::= SEQUENCE {
@@ -544,7 +557,7 @@ func readTaggedMatchingRuleId(bytes Bytes, class int, tag int) (matchingruleid M
 func readTaggedLDAPResult(bytes Bytes, class int, tag int) (ret LDAPResult, err error) {
 	err = bytes.ReadSubBytes(class, tag, ret.readLDAPResultComponents)
 	if err != nil {
-		err = fmt.Errorf("readLDAPResult: %s", err.Error())
+		err = fmt.Errorf("readTaggedLDAPResult: %s", err.Error())
 	}
 	return
 }
@@ -554,31 +567,42 @@ func readLDAPResult(bytes Bytes) (ldapresult LDAPResult, err error) {
 func (ldapresult *LDAPResult) readLDAPResultComponents(bytes Bytes) (err error) {
 	ldapresult.resultCode, err = readENUMERATED(bytes, EnumeratedLDAPResultCode)
 	if err != nil {
+		err = fmt.Errorf("readLDAPResultComponents: %s", err.Error())
 		return
 	}
 	ldapresult.matchedDN, err = readLDAPDN(bytes)
 	if err != nil {
+		err = fmt.Errorf("readLDAPResultComponents: %s", err.Error())
 		return
 	}
 	ldapresult.diagnosticMessage, err = readLDAPString(bytes)
 	if err != nil {
+		err = fmt.Errorf("readLDAPResultComponents: %s", err.Error())
 		return
 	}
 	if bytes.HasMoreData() {
-		var referral Referral
-		referral, err = readReferral(bytes)
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
 		}
-		ldapresult.referral = &referral
+		if tag.Tag == TagLDAPResultReferral {
+			var referral Referral
+			referral, err = readTaggedReferral(bytes, classContextSpecific, TagLDAPResultReferral)
+			if err != nil {
+				err = fmt.Errorf("readLDAPResultComponents	: %s", err.Error())
+				return
+			}
+			ldapresult.referral = referral.Pointer()
+		}
 	}
 	return
 }
 
 //
 //        Referral ::= SEQUENCE SIZE (1..MAX) OF uri URI
-func readReferral(bytes Bytes) (referral Referral, err error) {
-	err = bytes.ReadSubBytes(classUniversal, tagSequence, referral.readReferralComponents)
+func readTaggedReferral(bytes Bytes, class int, tag int) (referral Referral, err error) {
+	err = bytes.ReadSubBytes(class, tag, referral.readReferralComponents)
 	return
 }
 func (referral *Referral) readReferralComponents(bytes Bytes) (err error) {
@@ -591,10 +615,12 @@ func (referral *Referral) readReferralComponents(bytes Bytes) (err error) {
 		*referral = append(*referral, uri)
 	}
 	if len(*referral) == 0 {
-		return LdapError{"readReferral: expecting at least one URI"}
+		return LdapError{"readReferralComponents: expecting at least one URI"}
 	}
 	return
 }
+
+func (referral Referral) Pointer() *Referral { return &referral }
 
 //
 //        URI ::= LDAPString     -- limited to characters permitted in
@@ -612,8 +638,8 @@ func readURI(bytes Bytes) (uri URI, err error) {
 
 //
 //        Controls ::= SEQUENCE OF control Control
-func readControls(bytes Bytes) (controls Controls, err error) {
-	err = bytes.ReadSubBytes(classUniversal, tagSequence, controls.readControlsComponents)
+func readTaggedControls(bytes Bytes, class int, tag int) (controls Controls, err error) {
+	err = bytes.ReadSubBytes(class, tag, controls.readControlsComponents)
 	return
 }
 func (controls *Controls) readControlsComponents(bytes Bytes) (err error) {
@@ -627,6 +653,7 @@ func (controls *Controls) readControlsComponents(bytes Bytes) (err error) {
 	}
 	return
 }
+func (controls Controls) Pointer() *Controls { return &controls }
 
 //
 //        Control ::= SEQUENCE {
@@ -652,7 +679,7 @@ func (control *Control) readControlComponents(bytes Bytes) (err error) {
 		if err != nil {
 			return
 		}
-		control.controlValue = &octetstring
+		control.controlValue = octetstring.Pointer()
 	}
 	return
 }
@@ -744,7 +771,7 @@ func (authentication *SaslCredentials) readSaslCredentialsComponents(bytes Bytes
 		if err != nil {
 			return
 		}
-		authentication.credentials = &credentials
+		authentication.credentials = credentials.Pointer()
 	}
 	return
 }
@@ -760,9 +787,19 @@ func readBindResponse(bytes Bytes) (bindresponse BindResponse, err error) {
 func (bindresponse *BindResponse) readBindResponseComponents(bytes Bytes) (err error) {
 	bindresponse.readLDAPResultComponents(bytes)
 	if bytes.HasMoreData() {
-		var serverSaslCreds OCTETSTRING
-		serverSaslCreds, err = readTaggedOCTETSTRING(bytes, classContextSpecific, TagBindResponseServerSaslCreds)
-		bindresponse.serverSaslCreds = &serverSaslCreds
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
+		if err != nil {
+			return
+		}
+		if tag.Tag == TagBindResponseServerSaslCreds {
+			var serverSaslCreds OCTETSTRING
+			serverSaslCreds, err = readTaggedOCTETSTRING(bytes, classContextSpecific, TagBindResponseServerSaslCreds)
+			if err != nil {
+				return
+			}
+			bindresponse.serverSaslCreds = serverSaslCreds.Pointer()
+		}
 	}
 	return
 }
@@ -1187,7 +1224,7 @@ func (matchingruleassertion MatchingRuleAssertion) readMatchingRule(bytes Bytes)
 		if err != nil {
 			return LdapError{fmt.Sprintf("readMatchingRuleAssertionMatchingRule: %s", err.Error())}
 		}
-		matchingruleassertion.matchingRule = &matchingRule
+		matchingruleassertion.matchingRule = matchingRule.Pointer()
 	}
 	return
 }
@@ -1203,7 +1240,7 @@ func (matchingruleassertion MatchingRuleAssertion) readType(bytes Bytes) (err er
 		if err != nil {
 			return LdapError{fmt.Sprintf("readMatchingRuleAssertionType: %s", err.Error())}
 		}
-		matchingruleassertion.type_ = &attributedescription
+		matchingruleassertion.type_ = attributedescription.Pointer()
 	}
 	return
 }
@@ -1446,12 +1483,19 @@ func (req *ModifyDNRequest) readComponents(bytes Bytes) (err error) {
 		return
 	}
 	if bytes.HasMoreData() {
-		var ldapdn LDAPDN
-		ldapdn, err = readTaggedLDAPDN(bytes, classContextSpecific, TagModifyDNRequestNewSuperior)
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
 		}
-		req.newSuperior = &ldapdn
+		if tag.Tag == TagModifyDNRequestNewSuperior {
+			var ldapdn LDAPDN
+			ldapdn, err = readTaggedLDAPDN(bytes, classContextSpecific, TagModifyDNRequestNewSuperior)
+			if err != nil {
+				return
+			}
+			req.newSuperior = ldapdn.Pointer()
+		}
 	}
 	return
 }
@@ -1523,12 +1567,19 @@ func (req *ExtendedRequest) readComponents(bytes Bytes) (err error) {
 		return
 	}
 	if bytes.HasMoreData() {
-		var str OCTETSTRING
-		str, err = readTaggedOCTETSTRING(bytes, classContextSpecific, TagExtendedRequestValue)
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
 		}
-		req.requestValue = &str
+		if tag.Tag == TagExtendedRequestValue {
+			var requestValue OCTETSTRING
+			requestValue, err = readTaggedOCTETSTRING(bytes, classContextSpecific, TagExtendedRequestValue)
+			if err != nil {
+				return
+			}
+			req.requestValue = requestValue.Pointer()
+		}
 	}
 	return
 }
@@ -1540,25 +1591,42 @@ func (req *ExtendedRequest) readComponents(bytes Bytes) (err error) {
 //             responseValue    [11] OCTET STRING OPTIONAL }
 func readExtendedResponse(bytes Bytes) (ret ExtendedResponse, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagExtendedResponse, ret.readComponents)
+	if err != nil {
+		err = LdapError{fmt.Sprintf("readExtendedResponse: %s", err.Error())}
+	}
 	return
 }
 func (res *ExtendedResponse) readComponents(bytes Bytes) (err error) {
 	res.readLDAPResultComponents(bytes)
 	if bytes.HasMoreData() {
-		var oid LDAPOID
-		oid, err = readTaggedLDAPOID(bytes, classContextSpecific, TagExtendedResponseName)
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
 		}
-		res.responseName = &oid
+		if tag.Tag == TagExtendedResponseName {
+			var oid LDAPOID
+			oid, err = readTaggedLDAPOID(bytes, classContextSpecific, TagExtendedResponseName)
+			if err != nil {
+				return
+			}
+			res.responseName = oid.Pointer()
+		}
 	}
 	if bytes.HasMoreData() {
-		var str OCTETSTRING
-		str, err = readTaggedOCTETSTRING(bytes, classContextSpecific, TagExtendedResponseValue)
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
 		}
-		res.responseValue = &str
+		if tag.Tag == TagExtendedResponseValue {
+			var responseValue OCTETSTRING
+			responseValue, err = readTaggedOCTETSTRING(bytes, classContextSpecific, TagExtendedResponseValue)
+			if err != nil {
+				return
+			}
+			res.responseValue = responseValue.Pointer()
+		}
 	}
 	return
 }
@@ -1573,20 +1641,34 @@ func readIntermediateResponse(bytes Bytes) (ret IntermediateResponse, err error)
 }
 func (res *IntermediateResponse) readComponents(bytes Bytes) (err error) {
 	if bytes.HasMoreData() {
-		var oid LDAPOID
-		oid, err = readTaggedLDAPOID(bytes, classContextSpecific, TagIntermediateResponseName)
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
 		}
-		res.responseName = &oid
+		if tag.Tag == TagIntermediateResponseName {
+			var oid LDAPOID
+			oid, err = readTaggedLDAPOID(bytes, classContextSpecific, TagIntermediateResponseName)
+			if err != nil {
+				return
+			}
+			res.responseName = oid.Pointer()
+		}
 	}
 	if bytes.HasMoreData() {
-		var str OCTETSTRING
-		str, err = readTaggedOCTETSTRING(bytes, classContextSpecific, TagIntermediateResponseValue)
+		var tag TagAndLength
+		tag, err = bytes.PreviewTagAndLength()
 		if err != nil {
 			return
 		}
-		res.responseValue = &str
+		if tag.Tag == TagIntermediateResponseValue {
+			var str OCTETSTRING
+			str, err = readTaggedOCTETSTRING(bytes, classContextSpecific, TagIntermediateResponseValue)
+			if err != nil {
+				return
+			}
+			res.responseValue = str.Pointer()
+		}
 	}
 	return
 }
