@@ -36,11 +36,11 @@ func (b Bytes) ReadSubBytes(class int, tag int, callback func(bytes Bytes) error
 	// Check tag
 	tagAndLength, err := b.ParseTagAndLength()
 	if err != nil {
-		return errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+		return errors.New(fmt.Sprintf("ParseTagAndLength: %s", err.Error()))
 	}
 	err = tagAndLength.Expect(class, tag, isCompound)
 	if err != nil {
-		return errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+		return errors.New(fmt.Sprintf("TagAndLength.Expect: %s", err.Error()))
 	}
 
 	start := *b.offset
@@ -48,20 +48,20 @@ func (b Bytes) ReadSubBytes(class int, tag int, callback func(bytes Bytes) error
 
 	// Check we got enough bytes to process
 	if end > len(b.bytes) {
-		return StructuralError{fmt.Sprintf("ParseSequence : DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, *b.offset)}
+		return StructuralError{fmt.Sprintf("ReadData: DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, *b.offset)}
 	}
 	// Process sub-bytes
 	zero := 0
 	subBytes := Bytes{offset: &zero, bytes: b.bytes[start:end]}
 	err = callback(subBytes)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+		err = errors.New(fmt.Sprintf("ReadComponents: %s", err.Error()))
 		*b.offset += *subBytes.offset
 		return
 	}
 	// Check we got no more bytes to process
 	if subBytes.HasMoreData() {
-		return StructuralError{fmt.Sprintf("ParseSequence: DATA TOO LONG: %d more bytes to read at offset %d", end-*b.offset, *b.offset)}
+		return StructuralError{fmt.Sprintf("ReadSubBytes: DATA TOO LONG: %d more bytes to read at offset %d", end-*b.offset, *b.offset)}
 	}
 	// Move offset
 	*b.offset = end

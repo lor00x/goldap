@@ -498,10 +498,8 @@ type FilterExtensibleMatch MatchingRuleAssertion
 //             }
 type SubstringFilter struct {
 	type_      AttributeDescription
-	substrings SubstringFilterSubstrings
+	substrings []Substring
 }
-
-type SubstringFilterSubstrings []Substring
 
 type Substring interface{}
 

@@ -2514,7 +2514,7 @@ func getLDAPMessageTestSessionData() (ret []LDAPMessageTestSessionData) {
 			},
 		},
 
-		// Request 118: SERVER
+		// Request 118: SERVER SearchResultDone with Controls
 		{
 			bytes: Bytes{
 				offset: NewInt(0),
@@ -2538,6 +2538,74 @@ func getLDAPMessageTestSessionData() (ret []LDAPMessageTestSessionData) {
 						controlValue: OCTETSTRING("0\x05\x02\x01\x00\x04\x00").Pointer(),
 					},
 				},
+			},
+		},
+
+		// (|
+		//     (&
+		//         (cn=r00x)
+		//         (telephoneNumber=*)
+		//     )
+		//     (cn~=The)
+		//     (&
+		//         (!(description=Toto))
+		//         (ou=co*f*g*r*on)
+		//     )
+		// )
+		// Request 39: CLIENT
+		{
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// 30818e02010d63818804096f753d73797374656d0a01020a0103020203e8020100010100a15ca01da30a0402636e040472303078870f74656c6570686f6e654e756d626572a8090402636e0403546865a030a215a313040b6465736372697074696f6e0404546f746fa41704026f7530118002636f81016681016781017282026f6e300d040b6f626a656374436c617373
+					0x30, 0x81, 0x8e, 0x02, 0x01, 0x0d, 0x63, 0x81, 0x88, 0x04, 0x09, 0x6f, 0x75, 0x3d, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x0a, 0x01, 0x02, 0x0a, 0x01, 0x03, 0x02, 0x02, 0x03, 0xe8, 0x02, 0x01, 0x00, 0x01, 0x01, 0x00, 0xa1, 0x5c, 0xa0, 0x1d, 0xa3, 0x0a, 0x04, 0x02, 0x63, 0x6e, 0x04, 0x04, 0x72, 0x30, 0x30, 0x78, 0x87, 0x0f, 0x74, 0x65, 0x6c, 0x65, 0x70, 0x68, 0x6f, 0x6e, 0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0xa8, 0x09, 0x04, 0x02, 0x63, 0x6e, 0x04, 0x03, 0x54, 0x68, 0x65, 0xa0, 0x30, 0xa2, 0x15, 0xa3, 0x13, 0x04, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x04, 0x04, 0x54, 0x6f, 0x74, 0x6f, 0xa4, 0x17, 0x04, 0x02, 0x6f, 0x75, 0x30, 0x11, 0x80, 0x02, 0x63, 0x6f, 0x81, 0x01, 0x66, 0x81, 0x01, 0x67, 0x81, 0x01, 0x72, 0x82, 0x02, 0x6f, 0x6e, 0x30, 0x0d, 0x04, 0x0b, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x43, 0x6c, 0x61, 0x73, 0x73,
+				},
+			},
+			out: LDAPMessage{
+				messageID: MessageID(13),
+				protocolOp: SearchRequest{
+					baseObject:   LDAPDN("ou=system"),
+					scope:        ENUMERATED(2),
+					derefAliases: ENUMERATED(3),
+					sizeLimit:    INTEGER(1000),
+					timeLimit:    INTEGER(0),
+					typesOnly:    BOOLEAN(false),
+					filter: FilterOr{
+						FilterAnd{
+							FilterEqualityMatch{
+								attributeDesc:  AttributeDescription("cn"),
+								assertionValue: AssertionValue("r00x"),
+							},
+							FilterPresent("telephoneNumber"),
+						},
+						FilterApproxMatch{
+							attributeDesc:  AttributeDescription("cn"),
+							assertionValue: AssertionValue("The"),
+						},
+						FilterAnd{
+							FilterNot{
+								Filter: FilterEqualityMatch{
+									attributeDesc:  AttributeDescription("description"),
+									assertionValue: AssertionValue("Toto"),
+								},
+							},
+							FilterSubstrings{
+								type_: AttributeDescription("ou"),
+								substrings: []Substring{
+									SubstringInitial("co"),
+									SubstringAny("f"),
+									SubstringAny("g"),
+									SubstringAny("r"),
+									SubstringFinal("on"),
+								},
+							},
+						},
+					},
+					attributes: AttributeSelection{
+						LDAPString("objectClass"),
+					},
+				},
+				controls: (*Controls)(nil),
 			},
 		},
 	}
