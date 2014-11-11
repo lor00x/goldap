@@ -3,11 +3,11 @@ package message
 // Below code is largely inspired from the standard golang library encoding/asn
 // If put BEGIN / END tags in the comments to give the original library name
 import (
-	"errors"
+	//	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
-	"time"
+	// "time"
 )
 
 //
@@ -18,21 +18,21 @@ import (
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 const (
-	tagBoolean         = 1
-	tagInteger         = 2
-	tagBitString       = 3
-	tagOctetString     = 4
-	tagOID             = 6
-	tagEnum            = 10
-	tagUTF8String      = 12
-	tagSequence        = 16
-	tagSet             = 17
-	tagPrintableString = 19
-	tagT61String       = 20
-	tagIA5String       = 22
-	tagUTCTime         = 23
-	tagGeneralizedTime = 24
-	tagGeneralString   = 27
+	tagBoolean     = 1
+	tagInteger     = 2
+	tagBitString   = 3
+	tagOctetString = 4
+	tagOID         = 6
+	tagEnum        = 10
+	tagUTF8String  = 12
+	tagSequence    = 16
+	tagSet         = 17
+	// tagPrintableString = 19
+	// tagT61String       = 20
+	// tagIA5String       = 22
+	// tagUTCTime         = 23
+	// tagGeneralizedTime = 24
+	tagGeneralString = 27
 )
 
 const (
@@ -59,39 +59,39 @@ type TagAndLength struct {
 func (t *TagAndLength) Expect(class int, tag int, isCompound bool) (err error) {
 	err = t.ExpectClass(class)
 	if err != nil {
-		return
+		return LdapError{fmt.Sprintf("Expect: %s.", err)}
 	}
 	err = t.ExpectTag(tag)
 	if err != nil {
-		return
+		return LdapError{fmt.Sprintf("Expect: %s.", err)}
 	}
 	err = t.ExpectCompound(isCompound)
+	if err != nil {
+		return LdapError{fmt.Sprintf("Expect: %s.", err)}
+	}
 	return
 }
 func (t *TagAndLength) ExpectClass(class int) (err error) {
 	if class != t.Class {
-		err = errors.New(fmt.Sprintf("Wrong tag class %d. Expected %d.", t.Class, class))
+		err = SyntaxError{fmt.Sprintf("ExpectClass: wrong tag class: got %d, expected %d", t.Class, class)}
 	}
 	return
 }
 func (t *TagAndLength) ExpectTag(tag int) (err error) {
 	if tag != t.Tag {
-		err = errors.New(fmt.Sprintf("Wrong tag value %d. Expected %d.", t.Tag, tag))
+		err = SyntaxError{fmt.Sprintf("ExpectTag: wrong tag value: got %d, expected %d", t.Tag, tag)}
 	}
 	return
 }
 func (t *TagAndLength) ExpectCompound(isCompound bool) (err error) {
 	if isCompound != t.IsCompound {
-		err = errors.New(fmt.Sprintf("Wrong tag compound %t. Expected %d.", t.IsCompound, isCompound))
+		err = SyntaxError{fmt.Sprintf("ExpectCompound: wrong tag compound: got %t, expected %t", t.IsCompound, isCompound)}
 	}
 	return
 }
 
-func ParseTagAndLength(bytes []byte, initOffset int) (ret TagAndLength, offset int) {
-	ret, offset, err := parseTagAndLength(bytes, initOffset)
-	if err != nil {
-		panic(err)
-	}
+func ParseTagAndLength(bytes []byte, initOffset int) (ret TagAndLength, offset int, err error) {
+	ret, offset, err = parseTagAndLength(bytes, initOffset)
 	return
 }
 
@@ -204,100 +204,100 @@ func parseInt32(bytes []byte) (int32, error) {
 
 var bigOne = big.NewInt(1)
 
-// parseBigInt treats the given bytes as a big-endian, signed integer and returns
-// the result.
-func parseBigInt(bytes []byte) *big.Int {
-	ret := new(big.Int)
-	if len(bytes) > 0 && bytes[0]&0x80 == 0x80 {
-		// This is a negative number.
-		notBytes := make([]byte, len(bytes))
-		for i := range notBytes {
-			notBytes[i] = ^bytes[i]
-		}
-		ret.SetBytes(notBytes)
-		ret.Add(ret, bigOne)
-		ret.Neg(ret)
-		return ret
-	}
-	ret.SetBytes(bytes)
-	return ret
-}
+// // parseBigInt treats the given bytes as a big-endian, signed integer and returns
+// // the result.
+// func parseBigInt(bytes []byte) *big.Int {
+// 	ret := new(big.Int)
+// 	if len(bytes) > 0 && bytes[0]&0x80 == 0x80 {
+// 		// This is a negative number.
+// 		notBytes := make([]byte, len(bytes))
+// 		for i := range notBytes {
+// 			notBytes[i] = ^bytes[i]
+// 		}
+// 		ret.SetBytes(notBytes)
+// 		ret.Add(ret, bigOne)
+// 		ret.Neg(ret)
+// 		return ret
+// 	}
+// 	ret.SetBytes(bytes)
+// 	return ret
+// }
 
-// BIT STRING
+// // BIT STRING
 
-// BitString is the structure to use when you want an ASN.1 BIT STRING type. A
-// bit string is padded up to the nearest byte in memory and the number of
-// valid bits is recorded. Padding bits will be zero.
-type BitString struct {
-	Bytes     []byte // bits packed into bytes.
-	BitLength int    // length in bits.
-}
+// // BitString is the structure to use when you want an ASN.1 BIT STRING type. A
+// // bit string is padded up to the nearest byte in memory and the number of
+// // valid bits is recorded. Padding bits will be zero.
+// type BitString struct {
+// 	Bytes     []byte // bits packed into bytes.
+// 	BitLength int    // length in bits.
+// }
 
-// At returns the bit at the given index. If the index is out of range it
-// returns false.
-func (b BitString) At(i int) int {
-	if i < 0 || i >= b.BitLength {
-		return 0
-	}
-	x := i / 8
-	y := 7 - uint(i%8)
-	return int(b.Bytes[x]>>y) & 1
-}
+// // At returns the bit at the given index. If the index is out of range it
+// // returns false.
+// func (b BitString) At(i int) int {
+// 	if i < 0 || i >= b.BitLength {
+// 		return 0
+// 	}
+// 	x := i / 8
+// 	y := 7 - uint(i%8)
+// 	return int(b.Bytes[x]>>y) & 1
+// }
 
-// RightAlign returns a slice where the padding bits are at the beginning. The
-// slice may share memory with the BitString.
-func (b BitString) RightAlign() []byte {
-	shift := uint(8 - (b.BitLength % 8))
-	if shift == 8 || len(b.Bytes) == 0 {
-		return b.Bytes
-	}
+// // RightAlign returns a slice where the padding bits are at the beginning. The
+// // slice may share memory with the BitString.
+// func (b BitString) RightAlign() []byte {
+// 	shift := uint(8 - (b.BitLength % 8))
+// 	if shift == 8 || len(b.Bytes) == 0 {
+// 		return b.Bytes
+// 	}
 
-	a := make([]byte, len(b.Bytes))
-	a[0] = b.Bytes[0] >> shift
-	for i := 1; i < len(b.Bytes); i++ {
-		a[i] = b.Bytes[i-1] << (8 - shift)
-		a[i] |= b.Bytes[i] >> shift
-	}
+// 	a := make([]byte, len(b.Bytes))
+// 	a[0] = b.Bytes[0] >> shift
+// 	for i := 1; i < len(b.Bytes); i++ {
+// 		a[i] = b.Bytes[i-1] << (8 - shift)
+// 		a[i] |= b.Bytes[i] >> shift
+// 	}
 
-	return a
-}
+// 	return a
+// }
 
-// parseBitString parses an ASN.1 bit string from the given byte slice and returns it.
-func parseBitString(bytes []byte) (ret BitString, err error) {
-	if len(bytes) == 0 {
-		err = SyntaxError{"zero length BIT STRING"}
-		return
-	}
-	paddingBits := int(bytes[0])
-	if paddingBits > 7 ||
-		len(bytes) == 1 && paddingBits > 0 ||
-		bytes[len(bytes)-1]&((1<<bytes[0])-1) != 0 {
-		err = SyntaxError{"invalid padding bits in BIT STRING"}
-		return
-	}
-	ret.BitLength = (len(bytes)-1)*8 - paddingBits
-	ret.Bytes = bytes[1:]
-	return
-}
+// // parseBitString parses an ASN.1 bit string from the given byte slice and returns it.
+// func parseBitString(bytes []byte) (ret BitString, err error) {
+// 	if len(bytes) == 0 {
+// 		err = SyntaxError{"zero length BIT STRING"}
+// 		return
+// 	}
+// 	paddingBits := int(bytes[0])
+// 	if paddingBits > 7 ||
+// 		len(bytes) == 1 && paddingBits > 0 ||
+// 		bytes[len(bytes)-1]&((1<<bytes[0])-1) != 0 {
+// 		err = SyntaxError{"invalid padding bits in BIT STRING"}
+// 		return
+// 	}
+// 	ret.BitLength = (len(bytes)-1)*8 - paddingBits
+// 	ret.Bytes = bytes[1:]
+// 	return
+// }
 
 // OBJECT IDENTIFIER
 
 // An ObjectIdentifier represents an ASN.1 OBJECT IDENTIFIER.
 type ObjectIdentifier []int
 
-// Equal reports whether oi and other represent the same identifier.
-func (oi ObjectIdentifier) Equal(other ObjectIdentifier) bool {
-	if len(oi) != len(other) {
-		return false
-	}
-	for i := 0; i < len(oi); i++ {
-		if oi[i] != other[i] {
-			return false
-		}
-	}
+// // Equal reports whether oi and other represent the same identifier.
+// func (oi ObjectIdentifier) Equal(other ObjectIdentifier) bool {
+// 	if len(oi) != len(other) {
+// 		return false
+// 	}
+// 	for i := 0; i < len(oi); i++ {
+// 		if oi[i] != other[i] {
+// 			return false
+// 		}
+// 	}
 
-	return true
-}
+// 	return true
+// }
 
 func (oi ObjectIdentifier) String() string {
 	var s string
@@ -384,82 +384,82 @@ func parseBase128Int(bytes []byte, initOffset int) (ret, offset int, err error) 
 	return
 }
 
-// UTCTime
+// // UTCTime
 
-func parseUTCTime(bytes []byte) (ret time.Time, err error) {
-	s := string(bytes)
-	ret, err = time.Parse("0601021504Z0700", s)
-	if err != nil {
-		ret, err = time.Parse("060102150405Z0700", s)
-	}
-	if err == nil && ret.Year() >= 2050 {
-		// UTCTime only encodes times prior to 2050. See https://tools.ietf.org/html/rfc5280#section-4.1.2.5.1
-		ret = ret.AddDate(-100, 0, 0)
-	}
+// func parseUTCTime(bytes []byte) (ret time.Time, err error) {
+// 	s := string(bytes)
+// 	ret, err = time.Parse("0601021504Z0700", s)
+// 	if err != nil {
+// 		ret, err = time.Parse("060102150405Z0700", s)
+// 	}
+// 	if err == nil && ret.Year() >= 2050 {
+// 		// UTCTime only encodes times prior to 2050. See https://tools.ietf.org/html/rfc5280#section-4.1.2.5.1
+// 		ret = ret.AddDate(-100, 0, 0)
+// 	}
 
-	return
-}
+// 	return
+// }
 
-// parseGeneralizedTime parses the GeneralizedTime from the given byte slice
-// and returns the resulting time.
-func parseGeneralizedTime(bytes []byte) (ret time.Time, err error) {
-	return time.Parse("20060102150405Z0700", string(bytes))
-}
+// // parseGeneralizedTime parses the GeneralizedTime from the given byte slice
+// // and returns the resulting time.
+// func parseGeneralizedTime(bytes []byte) (ret time.Time, err error) {
+// 	return time.Parse("20060102150405Z0700", string(bytes))
+// }
 
-// PrintableString
+// // PrintableString
 
-// parsePrintableString parses a ASN.1 PrintableString from the given byte
-// array and returns it.
-func parsePrintableString(bytes []byte) (ret string, err error) {
-	for _, b := range bytes {
-		if !isPrintable(b) {
-			err = SyntaxError{"PrintableString contains invalid character"}
-			return
-		}
-	}
-	ret = string(bytes)
-	return
-}
+// // parsePrintableString parses a ASN.1 PrintableString from the given byte
+// // array and returns it.
+// func parsePrintableString(bytes []byte) (ret string, err error) {
+// 	for _, b := range bytes {
+// 		if !isPrintable(b) {
+// 			err = SyntaxError{"PrintableString contains invalid character"}
+// 			return
+// 		}
+// 	}
+// 	ret = string(bytes)
+// 	return
+// }
 
-// isPrintable returns true iff the given b is in the ASN.1 PrintableString set.
-func isPrintable(b byte) bool {
-	return 'a' <= b && b <= 'z' ||
-		'A' <= b && b <= 'Z' ||
-		'0' <= b && b <= '9' ||
-		'\'' <= b && b <= ')' ||
-		'+' <= b && b <= '/' ||
-		b == ' ' ||
-		b == ':' ||
-		b == '=' ||
-		b == '?' ||
-		// This is technically not allowed in a PrintableString.
-		// However, x509 certificates with wildcard strings don't
-		// always use the correct string type so we permit it.
-		b == '*'
-}
+// // isPrintable returns true iff the given b is in the ASN.1 PrintableString set.
+// func isPrintable(b byte) bool {
+// 	return 'a' <= b && b <= 'z' ||
+// 		'A' <= b && b <= 'Z' ||
+// 		'0' <= b && b <= '9' ||
+// 		'\'' <= b && b <= ')' ||
+// 		'+' <= b && b <= '/' ||
+// 		b == ' ' ||
+// 		b == ':' ||
+// 		b == '=' ||
+// 		b == '?' ||
+// 		// This is technically not allowed in a PrintableString.
+// 		// However, x509 certificates with wildcard strings don't
+// 		// always use the correct string type so we permit it.
+// 		b == '*'
+// }
 
-// IA5String
+// // IA5String
 
-// parseIA5String parses a ASN.1 IA5String (ASCII string) from the given
-// byte slice and returns it.
-func parseIA5String(bytes []byte) (ret string, err error) {
-	for _, b := range bytes {
-		if b >= 0x80 {
-			err = SyntaxError{"IA5String contains invalid character"}
-			return
-		}
-	}
-	ret = string(bytes)
-	return
-}
+// // parseIA5String parses a ASN.1 IA5String (ASCII string) from the given
+// // byte slice and returns it.
+// func parseIA5String(bytes []byte) (ret string, err error) {
+// 	for _, b := range bytes {
+// 		if b >= 0x80 {
+// 			err = SyntaxError{"IA5String contains invalid character"}
+// 			return
+// 		}
+// 	}
+// 	ret = string(bytes)
+// 	return
+// }
 
-// T61String
+// // T61String
 
-// parseT61String parses a ASN.1 T61String (8-bit clean string) from the given
-// byte slice and returns it.
-func parseT61String(bytes []byte) (ret string, err error) {
-	return string(bytes), nil
-}
+// // parseT61String parses a ASN.1 T61String (8-bit clean string) from the given
+// // byte slice and returns it.
+// func parseT61String(bytes []byte) (ret string, err error) {
+// 	return string(bytes), nil
+// }
 
 // UTF8String
 

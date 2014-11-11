@@ -15,7 +15,7 @@ func NewBytes(offset int, bytes []byte) (ret Bytes) {
 }
 
 func (b Bytes) Debug() {
-	fmt.Println(fmt.Sprintf("Offset: %d, Bytes: %+v", *b.offset, b.bytes))
+	fmt.Printf("Offset: %d, Bytes: %+v\n", *b.offset, b.bytes)
 }
 
 // Return a string with the hex dump of the bytes around the current offset
@@ -36,7 +36,7 @@ func (b Bytes) ReadSubBytes(class int, tag int, callback func(bytes Bytes) error
 	// Check tag
 	tagAndLength, err := b.ParseTagAndLength()
 	if err != nil {
-		return errors.New(fmt.Sprintf("ParseTagAndLength: %s", err.Error()))
+		return fmt.Errorf("ParseTagAndLength: %s", err.Error())
 	}
 	err = tagAndLength.Expect(class, tag, isCompound)
 	if err != nil {
@@ -116,7 +116,13 @@ func (b Bytes) PreviewTagAndLength() (tagAndLength TagAndLength, err error) {
 }
 
 func (b Bytes) ParseTagAndLength() (ret TagAndLength, err error) {
-	ret, *b.offset = ParseTagAndLength(b.bytes, *b.offset)
+	var offset int
+	ret, offset, err = ParseTagAndLength(b.bytes, *b.offset)
+	if err != nil {
+		err = fmt.Errorf("ParseTaAndLength: %s", err.Error())
+	} else {
+		*b.offset = offset
+	}
 	return
 }
 
