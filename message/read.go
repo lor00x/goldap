@@ -1211,7 +1211,7 @@ func readTaggedMatchingRuleAssertion(bytes Bytes, class int, tag int) (ret Match
 	err = bytes.ReadSubBytes(class, tag, ret.readMatchingRuleAssertionComponents)
 	return
 }
-func (matchingruleassertion MatchingRuleAssertion) readMatchingRuleAssertionComponents(bytes Bytes) (err error) {
+func (matchingruleassertion *MatchingRuleAssertion) readMatchingRuleAssertionComponents(bytes Bytes) (err error) {
 	err = matchingruleassertion.readMatchingRule(bytes)
 	if err != nil {
 		return LdapError{fmt.Sprintf("readMatchingRuleAssertionComponents: %s", err.Error())}
@@ -1230,7 +1230,7 @@ func (matchingruleassertion MatchingRuleAssertion) readMatchingRuleAssertionComp
 	}
 	return
 }
-func (matchingruleassertion MatchingRuleAssertion) readMatchingRule(bytes Bytes) (err error) {
+func (matchingruleassertion *MatchingRuleAssertion) readMatchingRule(bytes Bytes) (err error) {
 	var tagAndLength TagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()
 	if err != nil {
@@ -1246,7 +1246,7 @@ func (matchingruleassertion MatchingRuleAssertion) readMatchingRule(bytes Bytes)
 	}
 	return
 }
-func (matchingruleassertion MatchingRuleAssertion) readType(bytes Bytes) (err error) {
+func (matchingruleassertion *MatchingRuleAssertion) readType(bytes Bytes) (err error) {
 	var tagAndLength TagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()
 	if err != nil {
