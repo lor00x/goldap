@@ -2713,6 +2713,50 @@ func getLDAPMessageTestSessionData() (ret []LDAPMessageTestSessionData) {
 				controls: (*Controls)(nil),
 			},
 		},
+
+		// Request 1: CLIENT ExtendedRequest: Start TLS (OID 1.3.6.1.4.1.1466.20037)
+		{
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// 301d02010177188016312e332e362e312e342e312e313436362e3230303337
+					0x30, 0x1d, 0x02, 0x01, 0x01, 0x77, 0x18, 0x80, 0x16, 0x31, 0x2e, 0x33, 0x2e, 0x36, 0x2e, 0x31, 0x2e, 0x34, 0x2e, 0x31, 0x2e, 0x31, 0x34, 0x36, 0x36, 0x2e, 0x32, 0x30, 0x30, 0x33, 0x37,
+				},
+			},
+			out: LDAPMessage{
+				messageID: MessageID(1),
+				protocolOp: ExtendedRequest{
+					requestName:  LDAPOID("1.3.6.1.4.1.1466.20037"),
+					requestValue: (*OCTETSTRING)(nil),
+				},
+				controls: (*Controls)(nil),
+			},
+		},
+
+		// Request 2: SERVER ExtendedResponse: Start TLS (OID 1.3.6.1.4.1.1466.20037)
+		{
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// 302602010178210a0100040004008a16312e332e362e312e342e312e313436362e32303033378b00
+					0x30, 0x26, 0x02, 0x01, 0x01, 0x78, 0x21, 0x0a, 0x01, 0x00, 0x04, 0x00, 0x04, 0x00, 0x8a, 0x16, 0x31, 0x2e, 0x33, 0x2e, 0x36, 0x2e, 0x31, 0x2e, 0x34, 0x2e, 0x31, 0x2e, 0x31, 0x34, 0x36, 0x36, 0x2e, 0x32, 0x30, 0x30, 0x33, 0x37, 0x8b, 0x00,
+				},
+			},
+			out: LDAPMessage{
+				messageID: MessageID(1),
+				protocolOp: ExtendedResponse{
+					LDAPResult: LDAPResult{
+						resultCode:        ENUMERATED(0),
+						matchedDN:         LDAPDN(""),
+						diagnosticMessage: LDAPString(""),
+						referral:          (*Referral)(nil),
+					},
+					responseName:  LDAPOID("1.3.6.1.4.1.1466.20037").Pointer(),
+					responseValue: OCTETSTRING("").Pointer(),
+				},
+				controls: (*Controls)(nil),
+			},
+		},
 	}
 }
 
