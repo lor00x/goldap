@@ -6,7 +6,7 @@ import (
 	//	"errors"
 	"fmt"
 	"math/big"
-	"strconv"
+	// "strconv"
 	// "time"
 )
 
@@ -18,15 +18,15 @@ import (
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 const (
-	tagBoolean     = 1
-	tagInteger     = 2
-	tagBitString   = 3
+	tagBoolean = 1
+	tagInteger = 2
+	// tagBitString   = 3
 	tagOctetString = 4
-	tagOID         = 6
-	tagEnum        = 10
-	tagUTF8String  = 12
-	tagSequence    = 16
-	tagSet         = 17
+	// tagOID         = 6
+	tagEnum       = 10
+	tagUTF8String = 12
+	tagSequence   = 16
+	tagSet        = 17
 	// tagPrintableString = 19
 	// tagT61String       = 20
 	// tagIA5String       = 22
@@ -35,17 +35,38 @@ const (
 	tagGeneralString = 27
 )
 
+var tagNames = map[int]string{
+	tagBoolean:     "BOOLEAN",
+	tagInteger:     "INTEGER",
+	tagOctetString: "OCTET STRING",
+	tagEnum:        "ENUM",
+	tagUTF8String:  "UTF8STRING",
+	tagSequence:    "SEQUENCE",
+	tagSet:         "SET",
+}
+
 const (
 	classUniversal       = 0
 	classApplication     = 1
 	classContextSpecific = 2
-	classPrivate         = 3
+	// classPrivate         = 3
 )
+
+var classNames = map[int]string{
+	classUniversal:       "UNIVERSAL",
+	classApplication:     "APPLICATION",
+	classContextSpecific: "CONTEXT SPECIFIC",
+}
 
 const (
 	isCompound    = true
 	isNotCompound = false
 )
+
+var compoundNames = map[bool]string{
+	isCompound:    "COMPOUND",
+	isNotCompound: "NOT COMPOUND",
+}
 
 type TagAndLength struct {
 	Class, Tag, Length int
@@ -73,19 +94,19 @@ func (t *TagAndLength) Expect(class int, tag int, isCompound bool) (err error) {
 }
 func (t *TagAndLength) ExpectClass(class int) (err error) {
 	if class != t.Class {
-		err = SyntaxError{fmt.Sprintf("ExpectClass: wrong tag class: got %d, expected %d", t.Class, class)}
+		err = SyntaxError{fmt.Sprintf("ExpectClass: wrong tag class: got %d (%s), expected %d (%s)", t.Class, classNames[t.Class], class, classNames[class])}
 	}
 	return
 }
 func (t *TagAndLength) ExpectTag(tag int) (err error) {
 	if tag != t.Tag {
-		err = SyntaxError{fmt.Sprintf("ExpectTag: wrong tag value: got %d, expected %d", t.Tag, tag)}
+		err = SyntaxError{fmt.Sprintf("ExpectTag: wrong tag value: got %d (%s), expected %d (%s)", t.Tag, tagNames[t.Tag], tag, tagNames[tag])}
 	}
 	return
 }
 func (t *TagAndLength) ExpectCompound(isCompound bool) (err error) {
 	if isCompound != t.IsCompound {
-		err = SyntaxError{fmt.Sprintf("ExpectCompound: wrong tag compound: got %t, expected %t", t.IsCompound, isCompound)}
+		err = SyntaxError{fmt.Sprintf("ExpectCompound: wrong tag compound: got %t (%s), expected %t (%s)", t.IsCompound, compoundNames[t.IsCompound], isCompound, compoundNames[isCompound])}
 	}
 	return
 }
@@ -148,9 +169,11 @@ func (e SyntaxError) Error() string { return "asn1: syntax error: " + e.Msg }
 // BOOLEAN
 
 func parseBool(bytes []byte) (ret bool, err error) {
-	if len(bytes) != 1 {
-		err = SyntaxError{"invalid boolean"}
+	if len(bytes) > 1 {
+		err = SyntaxError{"invalid boolean: should be encoded on one byte only"}
 		return
+	} else if len(bytes) == 0 {
+		err = SyntaxError{"invalid boolean: no data to read"}
 	}
 
 	// DER demands that "If the encoding represents the boolean value TRUE,
@@ -162,7 +185,7 @@ func parseBool(bytes []byte) (ret bool, err error) {
 	case 0xff:
 		ret = true
 	default:
-		err = SyntaxError{"invalid boolean"}
+		err = SyntaxError{"invalid boolean: should be 0x00 of 0xFF"}
 	}
 
 	return
@@ -283,7 +306,7 @@ var bigOne = big.NewInt(1)
 // OBJECT IDENTIFIER
 
 // An ObjectIdentifier represents an ASN.1 OBJECT IDENTIFIER.
-type ObjectIdentifier []int
+// type ObjectIdentifier []int
 
 // // Equal reports whether oi and other represent the same identifier.
 // func (oi ObjectIdentifier) Equal(other ObjectIdentifier) bool {
@@ -299,59 +322,59 @@ type ObjectIdentifier []int
 // 	return true
 // }
 
-func (oi ObjectIdentifier) String() string {
-	var s string
+// func (oi ObjectIdentifier) String() string {
+// 	var s string
 
-	for i, v := range oi {
-		if i > 0 {
-			s += "."
-		}
-		s += strconv.Itoa(v)
-	}
+// 	for i, v := range oi {
+// 		if i > 0 {
+// 			s += "."
+// 		}
+// 		s += strconv.Itoa(v)
+// 	}
 
-	return s
-}
+// 	return s
+// }
 
-// parseObjectIdentifier parses an OBJECT IDENTIFIER from the given bytes and
-// returns it. An object identifier is a sequence of variable length integers
-// that are assigned in a hierarchy.
-func parseObjectIdentifier(bytes []byte) (s []int, err error) {
-	if len(bytes) == 0 {
-		err = SyntaxError{"zero length OBJECT IDENTIFIER"}
-		return
-	}
+// // parseObjectIdentifier parses an OBJECT IDENTIFIER from the given bytes and
+// // returns it. An object identifier is a sequence of variable length integers
+// // that are assigned in a hierarchy.
+// func parseObjectIdentifier(bytes []byte) (s []int, err error) {
+// 	if len(bytes) == 0 {
+// 		err = SyntaxError{"zero length OBJECT IDENTIFIER"}
+// 		return
+// 	}
 
-	// In the worst case, we get two elements from the first byte (which is
-	// encoded differently) and then every varint is a single byte long.
-	s = make([]int, len(bytes)+1)
+// 	// In the worst case, we get two elements from the first byte (which is
+// 	// encoded differently) and then every varint is a single byte long.
+// 	s = make([]int, len(bytes)+1)
 
-	// The first varint is 40*value1 + value2:
-	// According to this packing, value1 can take the values 0, 1 and 2 only.
-	// When value1 = 0 or value1 = 1, then value2 is <= 39. When value1 = 2,
-	// then there are no restrictions on value2.
-	v, offset, err := parseBase128Int(bytes, 0)
-	if err != nil {
-		return
-	}
-	if v < 80 {
-		s[0] = v / 40
-		s[1] = v % 40
-	} else {
-		s[0] = 2
-		s[1] = v - 80
-	}
+// 	// The first varint is 40*value1 + value2:
+// 	// According to this packing, value1 can take the values 0, 1 and 2 only.
+// 	// When value1 = 0 or value1 = 1, then value2 is <= 39. When value1 = 2,
+// 	// then there are no restrictions on value2.
+// 	v, offset, err := parseBase128Int(bytes, 0)
+// 	if err != nil {
+// 		return
+// 	}
+// 	if v < 80 {
+// 		s[0] = v / 40
+// 		s[1] = v % 40
+// 	} else {
+// 		s[0] = 2
+// 		s[1] = v - 80
+// 	}
 
-	i := 2
-	for ; offset < len(bytes); i++ {
-		v, offset, err = parseBase128Int(bytes, offset)
-		if err != nil {
-			return
-		}
-		s[i] = v
-	}
-	s = s[0:i]
-	return
-}
+// 	i := 2
+// 	for ; offset < len(bytes); i++ {
+// 		v, offset, err = parseBase128Int(bytes, offset)
+// 		if err != nil {
+// 			return
+// 		}
+// 		s[i] = v
+// 	}
+// 	s = s[0:i]
+// 	return
+// }
 
 // ENUMERATED
 
@@ -467,6 +490,10 @@ func parseBase128Int(bytes []byte, initOffset int) (ret, offset int, err error) 
 // array and returns it.
 func parseUTF8String(bytes []byte) (ret string, err error) {
 	return string(bytes), nil
+}
+
+func parseOctetString(bytes []byte) (ret []byte, err error) {
+	return bytes, nil
 }
 
 // A RawValue represents an undecoded ASN.1 object.

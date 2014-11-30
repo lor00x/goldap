@@ -5,87 +5,150 @@ import (
 	"testing"
 )
 
+func TestReadPrimitiveSubBytesTestData(t *testing.T) {
+	for i, test := range ReadPrimitiveSubBytesTestData {
+		value, err := test.bytes.ReadPrimitiveSubBytes(test.class, test.tag, test.typeTag)
+		if err != nil {
+			t.Errorf("#%d failed: %s", i+1, err)
+		} else if !reflect.DeepEqual(test.expected, value) {
+			t.Errorf("#%d: Wrong value, expected %#v, got %#v", i+1, test.expected, value)
+		} else if test.offset != *test.bytes.offset {
+			t.Errorf("#%d: Wrong Offset, expected %#v, got %#v", i+1, test.offset, *test.bytes.offset)
+		}
+	}
+}
+
 func NewInt(value int) (ret *int) {
 	ret = &value
 	return
 }
 
-var ParseInt32TestData = []struct {
-	bytes  Bytes // Input
-	length int   // Input
-	value  int32 // Expected output
-	offset int   // Expected output
+var ReadPrimitiveSubBytesTestData = []struct {
+	bytes    Bytes       // Input
+	class    int         // Expected class
+	tag      int         // Expected tag
+	typeTag  int         // Expected type
+	expected interface{} // Expected output
+	offset   int         // Expected offset after processing
 }{
-	{value: 0x09, offset: 1, length: 1, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x09}}},
-	{value: 0x0987, offset: 2, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x09, 0x87}}, length: 2},
-	{value: 0x098765, offset: 3, length: 3, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x09, 0x87, 0x65}}},
-	{value: 0x09876543, offset: 4, length: 4, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x09, 0x87, 0x65, 0x43}}},
-	{value: 0x0f, offset: 5, length: 1, bytes: Bytes{offset: NewInt(4), bytes: []byte{0x30, 0x03, 0x02, 0x01, 0x0f}}},
-	{value: 0x0f, offset: 5, length: 1, bytes: Bytes{offset: NewInt(4), bytes: []byte{0x30, 0x16, 0x02, 0x01, 0x0f, 0x60, 0x11, 0x02, 0x01, 0x03, 0x04, 0x00, 0xa3, 0x0a, 0x04, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35}}},
-	{value: 0x7fffffff, offset: 8, length: 4, bytes: Bytes{offset: NewInt(4), bytes: []byte{0x30, 0x19, 0x02, 0x04, 0x7f, 0xff, 0xff, 0xff, 0x60, 0x11, 0x02, 0x01, 0x03, 0x04, 0x00, 0xa3, 0x0a, 0x04, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35}}},
-}
-
-func TestParseInt32(t *testing.T) {
-	for i, test := range ParseInt32TestData {
-		value, err := test.bytes.ParseInt32(test.length)
-		if err != nil {
-			t.Errorf("#%d failed: %s", i, err)
-		}
-		if !reflect.DeepEqual(test.value, value) {
-			t.Errorf("#%d: Wrong int32, expected %#v, got %#v", i, &test.value, &value)
-		}
-		if test.offset != *test.bytes.offset {
-			t.Errorf("#%d: Wrong Offset, expected %#v, got %#v", i, test.offset, test.bytes.offset)
-		}
-	}
-}
-
-var ParseUTF8StringTestData = []struct {
-	bytes  Bytes  // Input
-	length int    // Input
-	value  string // Expected output
-	offset int    // Expected output
-}{
-	{value: "CRAM-MD5", offset: 8, length: 8, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35}}},
-	{value: "Hello, 世界", offset: 13, length: 13, bytes: Bytes{offset: NewInt(0), bytes: []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c}}},
-	{value: "myLogin", offset: 19, length: 7, bytes: Bytes{offset: NewInt(12), bytes: []byte{0x30, 0x1d, 0x02, 0x01, 0x05, 0x60, 0x18, 0x02, 0x01, 0x03, 0x04, 0x07, 0x6d, 0x79, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x80, 0x0a, 0x6d, 0x79, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64}}},
-}
-
-func TestParseUTF8STRING(t *testing.T) {
-	for i, test := range ParseUTF8StringTestData {
-		value, err := test.bytes.ParseUTF8String(test.length)
-		if err != nil {
-			t.Errorf("#%d failed: %s", i, err)
-		} else if !reflect.DeepEqual(test.value, value) {
-			t.Errorf("#%d: Wrong UTF8 String, expected %#+v, got %#+v", i, test.value, value)
-		} else if test.offset != *test.bytes.offset {
-			t.Errorf("#%d: Wrong Offset, expected %#v, got %#v", i, test.offset, test.bytes.offset)
-		}
-	}
-}
-
-var ParseOCTETSTRINGTestData = []struct {
-	bytes  Bytes  // Input
-	length int    // Input
-	value  []byte // Expected output
-	offset int    // Expected output
-}{
-	{value: []byte{0x41, 0x4d, 0x2d}, offset: 5, length: 3, bytes: Bytes{offset: NewInt(2), bytes: []byte{0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35}}},
-	{value: []byte{0xe4, 0xb8, 0x96}, offset: 10, length: 3, bytes: Bytes{offset: NewInt(7), bytes: []byte{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c}}},
-	{value: []byte("myLogin"), offset: 19, length: 7, bytes: Bytes{offset: NewInt(12), bytes: []byte{0x30, 0x1d, 0x02, 0x01, 0x05, 0x60, 0x18, 0x02, 0x01, 0x03, 0x04, 0x07, 0x6d, 0x79, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x80, 0x0a, 0x6d, 0x79, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64}}},
-}
-
-func TestParseOCTETSTRING(t *testing.T) {
-	for i, test := range ParseOCTETSTRINGTestData {
-		value, err := test.bytes.ParseOCTETSTRING(test.length)
-		if err != nil {
-			t.Errorf("#%d failed: %s", i, err)
-		}
-		if !reflect.DeepEqual(test.value, value) {
-			t.Errorf("#%d: Wrong OCTETSTRING, expected %#+v, got %#+v", i, test.value, value)
-		}
-		if test.offset != *test.bytes.offset {
-			t.Errorf("#%d: Wrong Offset, expected %#v, got %#v", i, test.offset, test.bytes.offset)
-		}
-	}
+	// Test 1
+	{
+		bytes: Bytes{
+			offset: NewInt(0),
+			bytes:  []byte{0x02, 0x01, 0x09},
+		},
+		class:    classUniversal,
+		tag:      tagInteger,
+		typeTag:  tagInteger,
+		expected: int32(0x09),
+		offset:   3,
+	},
+	// Test 2
+	{
+		bytes: Bytes{
+			offset: NewInt(0),
+			bytes:  []byte{0x02, 0x02, 0x09, 0x87},
+		},
+		class:    classUniversal,
+		tag:      tagInteger,
+		typeTag:  tagInteger,
+		expected: int32(0x0987),
+		offset:   4,
+	},
+	// Test 3
+	{
+		bytes: Bytes{
+			offset: NewInt(0),
+			bytes:  []byte{0x02, 0x03, 0x09, 0x87, 0x65},
+		},
+		class:    classUniversal,
+		tag:      tagInteger,
+		typeTag:  tagInteger,
+		expected: int32(0x098765),
+		offset:   5,
+	},
+	// Test 4
+	{
+		bytes: Bytes{
+			offset: NewInt(0),
+			bytes:  []byte{0x02, 0x04, 0x09, 0x87, 0x65, 0x43},
+		},
+		class:    classUniversal,
+		tag:      tagInteger,
+		typeTag:  tagInteger,
+		expected: int32(0x09876543),
+		offset:   6,
+	},
+	// Test 5
+	{
+		bytes: Bytes{
+			offset: NewInt(2),
+			bytes:  []byte{0x30, 0x03, 0x02, 0x01, 0x0f},
+		},
+		class:    classUniversal,
+		tag:      tagInteger,
+		typeTag:  tagInteger,
+		expected: int32(0x0f),
+		offset:   5,
+	},
+	// Test 6
+	{
+		bytes: Bytes{
+			offset: NewInt(2),
+			bytes:  []byte{0x30, 0x16, 0x02, 0x01, 0x0f, 0x60, 0x11, 0x02, 0x01, 0x03, 0x04, 0x00, 0xa3, 0x0a, 0x04, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35},
+		},
+		class:    classUniversal,
+		tag:      tagInteger,
+		typeTag:  tagInteger,
+		expected: int32(0x0f),
+		offset:   5,
+	},
+	// Test 7
+	{
+		bytes: Bytes{
+			offset: NewInt(2),
+			bytes:  []byte{0x30, 0x19, 0x02, 0x04, 0x7f, 0xff, 0xff, 0xff, 0x60, 0x11, 0x02, 0x01, 0x03, 0x04, 0x00, 0xa3, 0x0a, 0x04, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35},
+		},
+		class:    classUniversal,
+		tag:      tagInteger,
+		typeTag:  tagInteger,
+		expected: int32(0x07fffffff),
+		offset:   8,
+	},
+	// Test 8
+	{
+		bytes: Bytes{
+			offset: NewInt(0),
+			bytes:  []byte{0x0c, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35},
+		},
+		class:    classUniversal,
+		tag:      tagUTF8String,
+		typeTag:  tagUTF8String,
+		expected: "CRAM-MD5",
+		offset:   10,
+	},
+	// Test 9
+	{
+		bytes: Bytes{
+			offset: NewInt(0),
+			bytes:  []byte{0x0c, 0x0d, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c},
+		},
+		class:    classUniversal,
+		tag:      tagUTF8String,
+		typeTag:  tagUTF8String,
+		expected: "Hello, 世界",
+		offset:   15,
+	},
+	// Test 10
+	{
+		bytes: Bytes{
+			offset: NewInt(10),
+			bytes:  []byte{0x30, 0x1d, 0x02, 0x01, 0x05, 0x60, 0x18, 0x02, 0x01, 0x03, 0x04, 0x07, 0x6d, 0x79, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x80, 0x0a, 0x6d, 0x79, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64},
+		},
+		class:    classUniversal,
+		tag:      tagOctetString,
+		typeTag:  tagOctetString,
+		expected: []byte("myLogin"),
+		offset:   19,
+	},
 }

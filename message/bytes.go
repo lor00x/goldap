@@ -1,7 +1,6 @@
 package message
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -32,78 +31,6 @@ func (b Bytes) DumpCurrentBytes() (ret string) {
 	return
 }
 
-func (b Bytes) ReadSubBytes(class int, tag int, callback func(bytes Bytes) error) (err error) {
-	// Check tag
-	tagAndLength, err := b.ParseTagAndLength()
-	if err != nil {
-		return fmt.Errorf("ParseTagAndLength: %s", err.Error())
-	}
-	err = tagAndLength.Expect(class, tag, isCompound)
-	if err != nil {
-		return errors.New(fmt.Sprintf("TagAndLength.Expect: %s", err.Error()))
-	}
-
-	start := *b.offset
-	end := *b.offset + tagAndLength.Length
-
-	// Check we got enough bytes to process
-	if end > len(b.bytes) {
-		return StructuralError{fmt.Sprintf("ReadData: DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, *b.offset)}
-	}
-	// Process sub-bytes
-	zero := 0
-	subBytes := Bytes{offset: &zero, bytes: b.bytes[start:end]}
-	err = callback(subBytes)
-	if err != nil {
-		err = errors.New(fmt.Sprintf("ReadComponents: %s", err.Error()))
-		*b.offset += *subBytes.offset
-		return
-	}
-	// Check we got no more bytes to process
-	if subBytes.HasMoreData() {
-		return StructuralError{fmt.Sprintf("ReadSubBytes: DATA TOO LONG: %d more bytes to read at offset %d", end-*b.offset, *b.offset)}
-	}
-	// Move offset
-	*b.offset = end
-	return
-}
-
-func (b Bytes) WriteSubBytes(class int, tag int, callback func(bytes Bytes) error) (err error) {
-	// Check tag
-	tagAndLength, err := b.ParseTagAndLength()
-	if err != nil {
-		return errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
-	}
-	err = tagAndLength.Expect(class, tag, isCompound)
-	if err != nil {
-		return errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
-	}
-
-	start := *b.offset
-	end := *b.offset + tagAndLength.Length
-
-	// Check we got enough bytes to process
-	if end > len(b.bytes) {
-		return StructuralError{fmt.Sprintf("ParseSequence : DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, b.offset)}
-	}
-	// Process sub-bytes
-	zero := 0
-	subBytes := Bytes{offset: &zero, bytes: b.bytes[start:end]}
-	err = callback(subBytes)
-	if err != nil {
-		err = errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
-		*b.offset += *subBytes.offset
-		return
-	}
-	// Check we got no more bytes to process
-	if subBytes.HasMoreData() {
-		return StructuralError{fmt.Sprintf("ParseSequence: DATA TOO LONG: %d more bytes to read at offset %d", end-*b.offset, *b.offset)}
-	}
-	// Move offset
-	*b.offset = end
-	return
-}
-
 func (b Bytes) HasMoreData() bool {
 	return *b.offset < len(b.bytes)
 }
@@ -119,48 +46,143 @@ func (b Bytes) ParseTagAndLength() (ret TagAndLength, err error) {
 	var offset int
 	ret, offset, err = ParseTagAndLength(b.bytes, *b.offset)
 	if err != nil {
-		err = fmt.Errorf("ParseTaAndLength: %s", err.Error())
+		err = LdapError{fmt.Sprintf("ParseTagAndLength: %s", err.Error())}
+		return
 	} else {
 		*b.offset = offset
 	}
 	return
 }
 
-// The parse"Type" functions are use the underlaying asn1 functions
-// They are ony here to increase the offset of the current Bytes objet
-func (b Bytes) ParseBool(length int) (ret bool, err error) {
-	ret, err = parseBool(b.bytes[*b.offset : *b.offset+length])
+func (b Bytes) ReadSubBytes(class int, tag int, callback func(bytes Bytes) error) (err error) {
+	// Check tag
+	tagAndLength, err := b.ParseTagAndLength()
 	if err != nil {
+		return LdapError{fmt.Sprintf("ReadSubBytes:\n%s", err.Error())}
+	}
+	err = tagAndLength.Expect(class, tag, isCompound)
+	if err != nil {
+		return LdapError{fmt.Sprintf("ReadSubBytes:\n%s", err.Error())}
+	}
+
+	start := *b.offset
+	end := *b.offset + tagAndLength.Length
+
+	// Check we got enough bytes to process
+	if end > len(b.bytes) {
+		return LdapError{fmt.Sprintf("ReadSubBytes: data truncated: expecting %d bytes at offset %d", tagAndLength.Length, *b.offset)}
+	}
+	// Process sub-bytes
+	zero := 0
+	subBytes := Bytes{offset: &zero, bytes: b.bytes[start:end]}
+	err = callback(subBytes)
+	if err != nil {
+		err = LdapError{fmt.Sprintf("ReadSubBytes:\n%s", err.Error())}
+		*b.offset += *subBytes.offset
 		return
 	}
-	*b.offset += length
+	// Check we got no more bytes to process
+	if subBytes.HasMoreData() {
+		return LdapError{fmt.Sprintf("ReadSubBytes: data too long: %d more bytes to read at offset %d", end-*b.offset, *b.offset)}
+	}
+	// Move offset
+	*b.offset = end
 	return
 }
 
-func (b Bytes) ParseInt32(length int) (ret int32, err error) {
-	ret, err = parseInt32(b.bytes[*b.offset : *b.offset+length])
+//
+// Parse tag, length and read the a primitive value
+// Supported types are:
+// - boolean
+// - integer (parsed as int32)
+// - enumerated (parsed as int32)
+// - UTF8 string
+// - Octet string
+//
+// Parameters:
+// - class: the expected class value(classUniversal, classApplication, classContextSpecific)
+// - tag: the expected tag value
+// - typeTag: the real primitive type to parse (tagBoolean, tagInteger, tagEnym, tagUTF8String, tagOctetString)
+//
+func (b Bytes) ReadPrimitiveSubBytes(class int, tag int, typeTag int) (value interface{}, err error) {
+	// Check tag
+	tagAndLength, err := b.ParseTagAndLength()
 	if err != nil {
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
 		return
 	}
-	*b.offset += length
+	err = tagAndLength.Expect(class, tag, isNotCompound)
+	if err != nil {
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
+		return
+	}
+
+	start := *b.offset
+	end := *b.offset + tagAndLength.Length
+
+	// Check we got enough bytes to process
+	if end > len(b.bytes) {
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: data truncated: expecting %d bytes at offset %d but only %d bytes are remaining", tagAndLength.Length, *b.offset, len(b.bytes))}
+		return
+	}
+	// Process sub-bytes
+	subBytes := b.bytes[start:end]
+	switch typeTag {
+	case tagBoolean:
+		value, err = parseBool(subBytes)
+	case tagInteger:
+		value, err = parseInt32(subBytes)
+	case tagEnum:
+		value, err = parseInt32(subBytes)
+	case tagUTF8String:
+		value, err = parseUTF8String(subBytes)
+	case tagOctetString:
+		value, err = parseOctetString(subBytes)
+	default:
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: invalid type tag value %d", typeTag)}
+		return
+	}
+	if err != nil {
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
+		return
+	}
+	// Move offset
+	*b.offset = end
 	return
 }
 
-func (b Bytes) ParseUTF8String(length int) (utf8string string, err error) {
-	utf8string, err = parseUTF8String(b.bytes[*b.offset : *b.offset+length])
-	if err != nil {
-		return
-	}
-	*b.offset += length
-	return
-}
+// func (b Bytes) Writedefault:
+// 	// Check tag
+// 	tagAndLength, err := b.ParseTagAndLength()
+// 	if err != nil {
+// 		return errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+// 	}
+// 	err = tagAndLength.Expect(class, tag, isCompound)
+// 	if err != nil {
+// 		return errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+// 	}
 
-func (b Bytes) ParseOCTETSTRING(length int) (ret []byte, err error) {
-	if *b.offset+length > len(b.bytes) {
-		err = StructuralError{"Data truncated"}
-		return
-	}
-	ret = b.bytes[*b.offset : *b.offset+length]
-	*b.offset += length
-	return
-}
+// 	start := *b.offset
+// 	end := *b.offset + tagAndLength.Length
+
+// 	// Check we got enough bytes to process
+// 	if end > len(b.bytes) {
+// 		return StructuralError{fmt.Sprintf("ParseSequence : DATA TRUNCATED: expecting %d bytes at offset %d", tagAndLength.Length, b.offset)}
+// 	}
+// 	// Process sub-bytes
+// 	zero := 0
+// 	subBytes := Bytes{offset: &zero, bytes: b.bytes[start:end]}
+// 	err = callback(subBytes)
+// 	if err != nil {
+// 		err = errors.New(fmt.Sprintf("ParseSequence: %s", err.Error()))
+// 		*b.offset += *subBytes.offset
+// 		return
+// 	}
+// 	// Check we got no more bytes to process
+// 	if subBytes.HasMoreData() {
+// 		return StructuralError{fmt.Sprintf("ParseSequence: DATA TOO LONG: %d more bytes to read at offset %d", end-*b.offset, *b.offset)}
+// 	}
+// 	// Move offset
+// 	*b.offset = end
+// 	return
+// }
