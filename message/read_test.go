@@ -2803,6 +2803,22 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 				},
 			},
 		},
+		// An abandon request
+		{
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					0x30, 0x06,
+					0x02, 0x01, 0x0a, // messageID
+					0x50, 0x01, 0x05, // Abandon request [APPLICATION 16] MessageID = 0x05
+				},
+			},
+			out: LDAPMessage{
+				messageID:  MessageID(int(0x0a)),
+				protocolOp: AbandonRequest(0x05),
+				controls:   (*Controls)(nil),
+			},
+		},
 	}
 }
 

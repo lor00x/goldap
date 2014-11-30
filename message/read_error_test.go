@@ -6,6 +6,7 @@ import (
 )
 
 type LDAPMessageErrorTestData struct {
+	label string
 	bytes Bytes
 	err   string
 }
@@ -26,6 +27,7 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 		// Request 1: client => bind request
 		// Wrong authentication tag
 		{
+			label: "Client => bind request, wrong authentication tag",
 			bytes: Bytes{
 				offset: NewInt(0),
 				bytes: []byte{
@@ -50,6 +52,7 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 		// Request 2: client => bind request
 		// Wrong version (too small)
 		{
+			label: "Client => bind request, wrong version (too small)",
 			bytes: Bytes{
 				offset: NewInt(0),
 				bytes: []byte{
@@ -74,6 +77,7 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 		// Request 3: client => bind request
 		// Wrong version (too large)
 		{
+			label: "Client => bind request, wrong wrong version (too large)",
 			bytes: Bytes{
 				offset: NewInt(0),
 				bytes: []byte{
@@ -98,6 +102,7 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 		// Request 4: client => bind request
 		// Invalid type for version
 		{
+			label: "Client => bind request, invalid type for version",
 			bytes: Bytes{
 				offset: NewInt(0),
 				bytes: []byte{
@@ -119,9 +124,10 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 			err: "Expect: asn1: syntax error: ExpectTag: wrong tag value: got 4 (OCTET STRING), expected 2 (INTEGER)",
 		},
 
-		// Request 5: CLIENT SearchRequest with FilterExtensibleMatch
+		// Request 5: client SearchRequest with FilterExtensibleMatch
 		// Error: invalid tag and length for the extensible filter dnAttribute boolean
 		{
+			label: "Client SearchRequest with FilterExtensibleMatch, invalid tag and length for the extensible filter dnAttribute boolean",
 			bytes: Bytes{
 				offset: NewInt(0),
 				bytes: []byte{
@@ -133,6 +139,37 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 				},
 			},
 			err: "ReadPrimitiveSubBytes: data truncated: expecting 64 bytes at offset 53 but only 54 bytes are remaining",
+		},
+
+		// Request 6: SERVER SearchResultDone with Controls
+		// Error: invalid boolean for the criticality of controls
+		{
+			label: "server SearchResultDone with Controls, invalid boolean 0x0f for the criticality of controls",
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// 303402012465070a010004000400a02630240416312e322e3834302e3131333535362e312e342e3331390101ff040730050201000400
+					0x30, 0x34, 0x02, 0x01, 0x24, 0x65, 0x07, 0x0a, 0x01, 0x00, 0x04, 0x00, 0x04, 0x00, 0xa0, 0x26, 0x30, 0x24, 0x04, 0x16, 0x31, 0x2e, 0x32, 0x2e, 0x38, 0x34, 0x30, 0x2e, 0x31, 0x31, 0x33, 0x35, 0x35, 0x36, 0x2e, 0x31, 0x2e, 0x34, 0x2e, 0x33, 0x31, 0x39,
+					// Bad boolean here: 0x0f is not a 0x00 of 0xFF
+					0x01, 0x01, 0x0f,
+					0x04, 0x07, 0x30, 0x05, 0x02, 0x01, 0x00, 0x04, 0x00,
+				},
+			},
+			err: "asn1: syntax error: invalid boolean: should be 0x00 of 0xFF",
+		},
+
+		// An abandon request
+		{
+			label: "client AbandonRequest, invalid negative abandon message ID : 0x9f = -97",
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					0x30, 0x06,
+					0x02, 0x01, 0x0a, // messageID
+					0x50, 0x01, 0x9f, // Abandon request [APPLICATION 16] MessageID = 0x9f = -97 (invalid !)
+				},
+			},
+			err: "readTaggedPositiveINTEGER: Invalid INTEGER value -97 ! Expected value between 0 and 2147483647",
 		},
 
 		// // Request 2: server => bind response
@@ -2600,33 +2637,6 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 		// 				controlType:  LDAPOID("1.2.840.113556.1.4.319"),
 		// 				criticality:  BOOLEAN(false),
 		// 				controlValue: OCTETSTRING("0\x05\x02\x01\x03\x04\x00").Pointer(),
-		// 			},
-		// 		},
-		// 	},
-		// },
-
-		// // Request 82: SERVER SearchResultDone with Controls
-		// {
-		// 	bytes: Bytes{
-		// 		offset: NewInt(0),
-		// 		bytes: []byte{
-		// 			// 303402012465070a010004000400a02630240416312e322e3834302e3131333535362e312e342e3331390101ff040730050201000400
-		// 			0x30, 0x34, 0x02, 0x01, 0x24, 0x65, 0x07, 0x0a, 0x01, 0x00, 0x04, 0x00, 0x04, 0x00, 0xa0, 0x26, 0x30, 0x24, 0x04, 0x16, 0x31, 0x2e, 0x32, 0x2e, 0x38, 0x34, 0x30, 0x2e, 0x31, 0x31, 0x33, 0x35, 0x35, 0x36, 0x2e, 0x31, 0x2e, 0x34, 0x2e, 0x33, 0x31, 0x39, 0x01, 0x01, 0xff, 0x04, 0x07, 0x30, 0x05, 0x02, 0x01, 0x00, 0x04, 0x00,
-		// 		},
-		// 	},
-		// 	out: LDAPMessage{
-		// 		messageID: MessageID(36),
-		// 		protocolOp: SearchResultDone{
-		// 			resultCode:        ENUMERATED(0),
-		// 			matchedDN:         LDAPDN(""),
-		// 			diagnosticMessage: LDAPString(""),
-		// 			referral:          (*Referral)(nil),
-		// 		},
-		// 		controls: &Controls{
-		// 			Control{
-		// 				controlType:  LDAPOID("1.2.840.113556.1.4.319"),
-		// 				criticality:  BOOLEAN(true),
-		// 				controlValue: OCTETSTRING("0\x05\x02\x01\x00\x04\x00").Pointer(),
 		// 			},
 		// 		},
 		// 	},
