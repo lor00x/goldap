@@ -15,9 +15,9 @@ func TestReadLDAPMessageError(t *testing.T) {
 	for i, test := range getLDAPMessageErrorTestData() {
 		message, err := ReadLDAPMessage(test.bytes)
 		if err == nil {
-			t.Errorf("#%d:\nEXPECTED ERROR MESSAGE:\n%s\nGOT A LDAP STRUCT INSTEAD:\n%#+v", i, test.err, message)
+			t.Errorf("#%d: %s\nEXPECTED ERROR MESSAGE:\n%s\nGOT A LDAP STRUCT INSTEAD:\n%#+v", i, test.label, test.err, message)
 		} else if !strings.Contains(err.Error(), test.err) {
-			t.Errorf("#%d:\nGOT:\n%s\nEXPECTED:\n%s", i+1, err.Error(), test.err)
+			t.Errorf("#%d: %s\nGOT:\n%s\nEXPECTED:\n%s", i+1, test.label, err.Error(), test.err)
 		}
 	}
 }
@@ -138,7 +138,7 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x84, 0x40, 0xff, 0x30, 0x0d, 0x04, 0x0b, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x43, 0x6c, 0x61, 0x73, 0x73,
 				},
 			},
-			err: "ReadPrimitiveSubBytes: data truncated: expecting 64 bytes at offset 53 but only 54 bytes are remaining",
+			err: "ReadPrimitiveSubBytes: data truncated: expecting 64 bytes at offset 53 but only 1 bytes are remaining",
 		},
 
 		// Request 6: SERVER SearchResultDone with Controls
@@ -158,7 +158,7 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 			err: "asn1: syntax error: invalid boolean: should be 0x00 of 0xFF",
 		},
 
-		// An abandon request
+		// An abandon request with invalid negative abandon message ID
 		{
 			label: "client AbandonRequest, invalid negative abandon message ID : 0x9f = -97",
 			bytes: Bytes{
@@ -170,6 +170,20 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 				},
 			},
 			err: "readTaggedPositiveINTEGER: Invalid INTEGER value -97 ! Expected value between 0 and 2147483647",
+		},
+
+		// An abandon request with an invalid too large abandon message ID
+		{
+			label: "client AbandonRequest, invalid too large abandon message ID",
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					0x30, 0x0c,
+					0x02, 0x01, 0x0a, // messageID
+					0x50, 0x08, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // Abandon request [APPLICATION 16] MessageID = 0x0f ff ff ff ff ff ff ff
+				},
+			},
+			err: "asn1: structure error: integer too largee",
 		},
 
 		// // Request 2: server => bind response
