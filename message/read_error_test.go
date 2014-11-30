@@ -183,7 +183,7 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x50, 0x08, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // Abandon request [APPLICATION 16] MessageID = 0x0f ff ff ff ff ff ff ff
 				},
 			},
-			err: "asn1: structure error: integer too largee",
+			err: "asn1: structure error: integer too large",
 		},
 
 		// // Request 2: server => bind response
