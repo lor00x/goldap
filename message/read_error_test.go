@@ -46,7 +46,14 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x81, 0x00,
 				},
 			},
-			err: "invalid tag value 1 for AuthenticationChoice",
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readBindRequest:
+ReadSubBytes:
+readComponents:
+readAuthenticationChoice: invalid tag value 1 for AuthenticationChoice`,
 		},
 
 		// Request 2: client => bind request
@@ -71,7 +78,13 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x81, 0x00,
 				},
 			},
-			err: "invalid version 0, must be between 1 and 127",
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readBindRequest:
+ReadSubBytes:
+readComponents: invalid version 0, must be between 1 and 127`,
 		},
 
 		// Request 3: client => bind request
@@ -96,7 +109,13 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x81, 0x00,
 				},
 			},
-			err: "invalid version 255, must be between 1 and 127",
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readBindRequest:
+ReadSubBytes:
+readComponents: invalid version 255, must be between 1 and 127`,
 		},
 
 		// Request 4: client => bind request
@@ -121,7 +140,16 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x81, 0x00,
 				},
 			},
-			err: "Expect: asn1: syntax error: ExpectTag: wrong tag value: got 4 (OCTET STRING), expected 2 (INTEGER)",
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readBindRequest:
+ReadSubBytes:
+readComponents:
+readINTEGER:
+ReadPrimitiveSubBytes:
+Expect: asn1: syntax error: ExpectTag: wrong tag value: got 4 (OCTET STRING), expected 2 (INTEGER).`,
 		},
 
 		// Request 5: client SearchRequest with FilterExtensibleMatch
@@ -138,7 +166,19 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x84, 0x40, 0xff, 0x30, 0x0d, 0x04, 0x0b, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x43, 0x6c, 0x61, 0x73, 0x73,
 				},
 			},
-			err: "ReadPrimitiveSubBytes: data truncated: expecting 64 bytes at offset 53 but only 1 bytes are remaining",
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readSearchRequest:
+ReadSubBytes:
+readComponents:
+readFilter:
+readFilterExtensibleMatch:
+readTaggedMatchingRuleAssertion:
+ReadSubBytes:
+readComponents: readTaggedBOOLEAN:
+ReadPrimitiveSubBytes: data truncated: expecting 64 bytes at offset 53 but only 1 bytes are remaining`,
 		},
 
 		// Request 6: SERVER SearchResultDone with Controls
@@ -155,7 +195,18 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x04, 0x07, 0x30, 0x05, 0x02, 0x01, 0x00, 0x04, 0x00,
 				},
 			},
-			err: "asn1: syntax error: invalid boolean: should be 0x00 of 0xFF",
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readTaggedControls:
+ReadSubBytes:
+readComponents:
+readControl:
+ReadSubBytes:
+readComponents:
+readBOOLEAN:
+ReadPrimitiveSubBytes:
+asn1: syntax error: invalid boolean: should be 0x00 of 0xFF`,
 		},
 
 		// An abandon request with invalid negative abandon message ID
@@ -169,7 +220,13 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x50, 0x01, 0x9f, // Abandon request [APPLICATION 16] MessageID = 0x9f = -97 (invalid !)
 				},
 			},
-			err: "readTaggedPositiveINTEGER: Invalid INTEGER value -97 ! Expected value between 0 and 2147483647",
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readAbandonRequest:
+readTaggedMessageID:
+readTaggedPositiveINTEGER: Invalid INTEGER value -97 ! Expected value between 0 and 2147483647`,
 		},
 
 		// An abandon request with an invalid too large abandon message ID
@@ -183,9 +240,41 @@ func getLDAPMessageErrorTestData() (ret []LDAPMessageErrorTestData) {
 					0x50, 0x08, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, // Abandon request [APPLICATION 16] MessageID = 0x0f ff ff ff ff ff ff ff
 				},
 			},
-			err: "asn1: structure error: integer too large",
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readAbandonRequest:
+readTaggedMessageID:
+readTaggedPositiveINTEGER:
+readTaggedINTEGER:
+ReadPrimitiveSubBytes:
+asn1: structure error: integer too large`,
 		},
 
+		{
+			label: "server SearchResultDone, invalid too large result code",
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// 300c02010b65070a010004000400
+					0x30, 0x13, 0x02, 0x01, 0x0b, 0x65, 0x0e,
+					0x0a, 0x08, 0x0f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+					0x04, 0x00, 0x04, 0x00,
+				},
+			},
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readSearchResultDone:
+readTaggedLDAPResult:
+ReadSubBytes:
+readComponents:
+readENUMERATED:
+ReadPrimitiveSubBytes:
+asn1: structure error: integer too large`,
+		},
 		// // Request 2: server => bind response
 		// {
 		// 	bytes: Bytes{
