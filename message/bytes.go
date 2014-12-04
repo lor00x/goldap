@@ -121,7 +121,8 @@ func (b Bytes) ReadPrimitiveSubBytes(class int, tag int, typeTag int) (value int
 	end := *b.offset + tagAndLength.Length
 
 	// Check we got enough bytes to process
-	if end > len(b.bytes)+1 {
+	if end > len(b.bytes) {
+		// err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: data truncated: expecting %d bytes at offset %d but only %d bytes are remaining (start: %d, length: %d, end: %d, len(b): %d, bytes: %#+v)", tagAndLength.Length, *b.offset, len(b.bytes)-start, start, tagAndLength.Length, end, len(b.bytes), b.bytes)}
 		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: data truncated: expecting %d bytes at offset %d but only %d bytes are remaining", tagAndLength.Length, *b.offset, len(b.bytes)-start)}
 		return
 	}
