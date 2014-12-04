@@ -275,6 +275,28 @@ readENUMERATED:
 ReadPrimitiveSubBytes:
 asn1: structure error: integer too large`,
 		},
+
+		{
+			label: "server SearchResultDone, invalid result code",
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// 300c02010b65070a010004000400
+					0x30, 0x0d, 0x02, 0x01, 0x0b, 0x65, 0x08,
+					0x0a, 0x02, 0x0f, 0xff,
+					0x04, 0x00, 0x04, 0x00,
+				},
+			},
+			err: `ReadLDAPMessage:
+ReadSubBytes:
+readComponents:
+readProtocolOp:
+readSearchResultDone:
+readTaggedLDAPResult:
+ReadSubBytes:
+readComponents:
+readENUMERATED: Invalid ENUMERATED VALUE 4095`,
+		},
 		// // Request 2: server => bind response
 		// {
 		// 	bytes: Bytes{

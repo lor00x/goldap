@@ -88,17 +88,6 @@ func readENUMERATED(bytes Bytes, allowedValues map[ENUMERATED]string) (ret ENUME
 	return
 }
 
-func readUTF8STRING(bytes Bytes) (ret UTF8STRING, err error) {
-	var value interface{}
-	value, err = bytes.ReadPrimitiveSubBytes(classUniversal, tagUTF8String, tagUTF8String)
-	if err != nil {
-		err = LdapError{fmt.Sprintf("readUTF8STRING:\n%s", err.Error())}
-		return
-	}
-	ret = UTF8STRING(value.(string))
-	return
-}
-
 func readTaggedUTF8STRING(bytes Bytes, class int, tag int) (ret UTF8STRING, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(class, tag, tagUTF8String)
