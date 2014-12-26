@@ -5,6 +5,17 @@ import (
 	"testing"
 )
 
+func TestReadLDAPMessage(t *testing.T) {
+	for i, test := range getLDAPMessageTestData() {
+		message, err := ReadLDAPMessage(test.bytes)
+		if err != nil {
+			t.Errorf("#%d failed reading bytes at offset %d (%s): %s", i, *test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
+		} else if !reflect.DeepEqual(message, test.out) {
+			t.Errorf("#%d:\nGOT:\n%#+v\nEXPECTED:\n%#+v", i, message, test.out)
+		}
+	}
+}
+
 type LDAPMessageTestData struct {
 	bytes Bytes
 	out   LDAPMessage
@@ -2886,16 +2897,33 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 				controls:   (*Controls)(nil),
 			},
 		},
-	}
-}
-
-func TestReadLDAPMessage(t *testing.T) {
-	for i, test := range getLDAPMessageTestData() {
-		message, err := ReadLDAPMessage(test.bytes)
-		if err != nil {
-			t.Errorf("#%d failed reading bytes at offset %d (%s): %s", i, *test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
-		} else if !reflect.DeepEqual(message, test.out) {
-			t.Errorf("#%d:\nGOT:\n%#+v\nEXPECTED:\n%#+v", i, message, test.out)
-		}
+		// Request 93: CLIENT
+		{
+			bytes: Bytes{
+				offset: NewInt(0),
+				bytes: []byte{
+					// 304c0201156647041e636e3d723030582c6f753d636f6e73756d6572732c6f753d73797374656d302530230a0102301e040b6465736372697074696f6e310f040d48656c6c6f2c20e4b896e7958c
+					0x30, 0x4c, 0x02, 0x01, 0x15, 0x66, 0x47, 0x04, 0x1e, 0x63, 0x6e, 0x3d, 0x72, 0x30, 0x30, 0x58, 0x2c, 0x6f, 0x75, 0x3d, 0x63, 0x6f, 0x6e, 0x73, 0x75, 0x6d, 0x65, 0x72, 0x73, 0x2c, 0x6f, 0x75, 0x3d, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x30, 0x25, 0x30, 0x23, 0x0a, 0x01, 0x02, 0x30, 0x1e, 0x04, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x31, 0x0f, 0x04, 0x0d, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c,
+				},
+			},
+			out: LDAPMessage{
+				messageID: MessageID(21),
+				protocolOp: ModifyRequest{
+					object: LDAPDN("cn=r00X,ou=consumers,ou=system"),
+					changes: []ModifyRequestChange{
+						ModifyRequestChange{
+							operation: ENUMERATED(2),
+							modification: PartialAttribute{
+								type_: AttributeDescription("description"),
+								vals: []AttributeValue{
+									AttributeValue("Hello, 世界"),
+								},
+							},
+						},
+					},
+				},
+				controls: (*Controls)(nil),
+			},
+		},
 	}
 }
