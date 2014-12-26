@@ -90,6 +90,12 @@ func (b Bytes) ReadSubBytes(class int, tag int, callback func(bytes Bytes) error
 	return
 }
 
+func SizeSubBytes(tag int, callback func() int) (size int) {
+	size = callback()
+	size += sizeTagAndLength(tag, size)
+	return
+}
+
 //
 // Parse tag, length and read the a primitive value
 // Supported types are:
@@ -149,6 +155,25 @@ func (b Bytes) ReadPrimitiveSubBytes(class int, tag int, typeTag int) (value int
 	}
 	// Move offset
 	*b.offset = end
+	return
+}
+
+func SizePrimitiveSubBytes(tag int, typeTag int, value interface{}) (size int) {
+	switch typeTag {
+	case tagBoolean:
+		size = sizeBool(value.(bool))
+	case tagInteger:
+		size = sizeInt32(value.(int32))
+	case tagEnum:
+		size = sizeInt32(value.(int32))
+	case tagUTF8String:
+		size = sizeUTF8String(value.(string))
+	case tagOctetString:
+		size = sizeOctetString([]byte(value.(string)))
+	default:
+		panic(fmt.Sprintf("SizePrimitiveSubBytes: invalid type tag value %d", typeTag))
+	}
+	size += sizeTagAndLength(tag, size)
 	return
 }
 

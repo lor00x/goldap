@@ -1,12 +1,48 @@
 package message
 
-import ()
+import (
+	"fmt"
+)
 
-type OCTETSTRING string
-type UTF8STRING string
-type INTEGER int32 // In this RFC the max INTEGER value is 2^31 - 1, so int32 is enough
-type BOOLEAN bool
-type ENUMERATED int32
+func (b BOOLEAN) size() int {
+	return SizePrimitiveSubBytes(tagBoolean, tagBoolean, bool(b))
+}
+
+func (b BOOLEAN) sizeTagged(tag int) int {
+	return SizePrimitiveSubBytes(tag, tagBoolean, bool(b))
+}
+
+func (i INTEGER) size() int {
+	return SizePrimitiveSubBytes(tagInteger, tagInteger, int32(i))
+}
+
+func (i INTEGER) sizeTagged(tag int) int {
+	return SizePrimitiveSubBytes(tag, tagInteger, int32(i))
+}
+
+func (e ENUMERATED) size() int {
+	return SizePrimitiveSubBytes(tagEnum, tagEnum, int32(e))
+}
+
+func (e ENUMERATED) sizeTagged(tag int) int {
+	return SizePrimitiveSubBytes(tag, tagEnum, int32(e))
+}
+
+func (s UTF8STRING) size() int {
+	return SizePrimitiveSubBytes(tagUTF8String, tagUTF8String, string(s))
+}
+
+func (s UTF8STRING) sizeTagged(tag int) int {
+	return SizePrimitiveSubBytes(tag, tagUTF8String, string(s))
+}
+
+func (o OCTETSTRING) size() int {
+	return SizePrimitiveSubBytes(tagOctetString, tagOctetString, string(o))
+}
+
+func (o OCTETSTRING) sizeTagged(tag int) int {
+	return SizePrimitiveSubBytes(tag, tagOctetString, string(o))
+}
 
 //   This appendix is normative.
 //
@@ -47,29 +83,36 @@ type ENUMERATED int32
 //                  intermediateResponse  IntermediateResponse },
 //             controls       [0] Controls OPTIONAL }
 //
-type LDAPMessage struct {
-	messageID  MessageID
-	protocolOp ProtocolOp
-	controls   *Controls
-}
 
-const TagLDAPMessageControls = 0
-
-type ProtocolOp interface {
-	size() int
+func (m *LDAPMessage) size() (size int) {
+	size += m.messageID.size()
+	size += m.protocolOp.size()
+	if m.controls != nil {
+		size += m.controls.sizeTagged(TagLDAPMessageControls)
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	return
 }
 
 //        MessageID ::= INTEGER (0 ..  maxInt)
 //
-type MessageID INTEGER
-
 //        maxInt INTEGER ::= 2147483647 -- (2^^31 - 1) --
-const maxInt = INTEGER(2147483647)
-
 //
+func (m MessageID) size() int {
+	return INTEGER(m).size()
+}
+func (m MessageID) sizeTagged(tag int) int {
+	return INTEGER(m).sizeTagged(tag)
+}
+
 //        LDAPString ::= OCTET STRING -- UTF-8 encoded,
 //                                    -- [ISO10646] characters
-type LDAPString OCTETSTRING
+func (s LDAPString) size() int {
+	return OCTETSTRING(s).size()
+}
+func (s LDAPString) sizeTagged(tag int) int {
+	return OCTETSTRING(s).sizeTagged(tag)
+}
 
 //
 //
@@ -83,59 +126,102 @@ type LDAPString OCTETSTRING
 //
 //        LDAPOID ::= OCTET STRING -- Constrained to <numericoid>
 //                                 -- [RFC4512]
-type LDAPOID OCTETSTRING
+func (l LDAPOID) size() int {
+	return OCTETSTRING(l).size()
+}
+func (l LDAPOID) sizeTagged(tag int) int {
+	return OCTETSTRING(l).sizeTagged(tag)
+}
 
 //
 //        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
 //                              -- [RFC4514]
-type LDAPDN LDAPString
+func (l LDAPDN) size() int {
+	return LDAPString(l).size()
+}
+func (l LDAPDN) sizeTagged(tag int) int {
+	return LDAPString(l).sizeTagged(tag)
+}
 
 //
 //        RelativeLDAPDN ::= LDAPString -- Constrained to <name-component>
 //                                      -- [RFC4514]
-type RelativeLDAPDN LDAPString
+func (r RelativeLDAPDN) size() int {
+	return LDAPString(r).size()
+}
 
 //
 //        AttributeDescription ::= LDAPString
 //                                -- Constrained to <attributedescription>
 //                                -- [RFC4512]
-type AttributeDescription LDAPString
+func (a AttributeDescription) size() int {
+	return LDAPString(a).size()
+}
+func (a AttributeDescription) sizeTagged(tag int) int {
+	return LDAPString(a).sizeTagged(tag)
+}
 
 //
 //        AttributeValue ::= OCTET STRING
-type AttributeValue OCTETSTRING
+func (a AttributeValue) size() int {
+	return OCTETSTRING(a).size()
+}
 
 //
 //        AttributeValueAssertion ::= SEQUENCE {
 //             attributeDesc   AttributeDescription,
 //             assertionValue  AssertionValue }
-type AttributeValueAssertion struct {
-	attributeDesc  AttributeDescription
-	assertionValue AssertionValue
+func (a AttributeValueAssertion) size() (size int) {
+	size += a.attributeDesc.size()
+	size += a.assertionValue.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}
+
+func (a AttributeValueAssertion) sizeTagged(tag int) (size int) {
+	size += a.attributeDesc.size()
+	size += a.assertionValue.size()
+	size += sizeTagAndLength(tag, size)
+	return
 }
 
 //
 //        AssertionValue ::= OCTET STRING
-type AssertionValue OCTETSTRING
+func (a AssertionValue) size() int {
+	return OCTETSTRING(a).size()
+}
+
+func (a AssertionValue) sizeTagged(tag int) int {
+	return OCTETSTRING(a).sizeTagged(tag)
+}
 
 //
 //        PartialAttribute ::= SEQUENCE {
 //             type       AttributeDescription,
 //             vals       SET OF value AttributeValue }
-type PartialAttribute struct {
-	type_ AttributeDescription
-	vals  []AttributeValue
+func (p PartialAttribute) size() (size int) {
+	for _, value := range p.vals {
+		size += value.size()
+	}
+	size += sizeTagAndLength(tagSet, size)
+	size += p.type_.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
 }
 
 //
 //        Attribute ::= PartialAttribute(WITH COMPONENTS {
 //             ...,
 //             vals (SIZE(1..MAX))})
-type Attribute PartialAttribute
+func (a Attribute) size() (size int) {
+	return PartialAttribute(a).size()
+}
 
 //
 //        MatchingRuleId ::= LDAPString
-type MatchingRuleId LDAPString
+func (m MatchingRuleId) sizeTagged(tag int) int {
+	return LDAPString(m).sizeTagged(tag)
+}
 
 //
 //        LDAPResult ::= SEQUENCE {
@@ -199,126 +285,68 @@ type MatchingRuleId LDAPString
 //             matchedDN          LDAPDN,
 //             diagnosticMessage  LDAPString,
 //             referral           [3] Referral OPTIONAL }
+func (l LDAPResult) size() (size int) {
+	size += l.sizeComponents()
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}
+func (l LDAPResult) sizeTagged(tag int) (size int) {
+	size += l.sizeComponents()
+	size += sizeTagAndLength(tag, size)
+	return
+}
+func (l LDAPResult) sizeComponents() (size int) {
+	if l.referral != nil {
+		size += l.referral.sizeTagged(TagLDAPResultReferral)
+	}
+	size += l.diagnosticMessage.size()
+	size += l.matchedDN.size()
+	size += l.resultCode.size()
+	return
+}
+
 //
-type LDAPResult struct {
-	resultCode        ENUMERATED
-	matchedDN         LDAPDN
-	diagnosticMessage LDAPString
-	referral          *Referral
-}
-
-const TagLDAPResultReferral = 3
-
-const ResultCodeSuccess = 0
-const ResultCodeOperationsError = 1
-const ResultCodeProtocolError = 2
-const ResultCodeTimeLimitExceeded = 3
-const ResultCodeSizeLimitExceeded = 4
-const ResultCodeCompareFalse = 5
-const ResultCodeCompareTrue = 6
-const ResultCodeAuthMethodNotSupported = 7
-const ResultCodeStrongerAuthRequired = 8
-const ResultCodeReferral = 10
-const ResultCodeAdminLimitExceeded = 11
-const ResultCodeUnavailableCriticalExtension = 12
-const ResultCodeConfidentialityRequired = 13
-const ResultCodeSaslBindInProgress = 14
-const ResultCodeNoSuchAttribute = 16
-const ResultCodeUndefinedAttributeType = 17
-const ResultCodeInappropriateMatching = 18
-const ResultCodeConstraintViolation = 19
-const ResultCodeAttributeOrValueExists = 20
-const ResultCodeInvalidAttributeSyntax = 21
-const ResultCodeNoSuchObject = 32
-const ResultCodeAliasProblem = 33
-const ResultCodeInvalidDNSyntax = 34
-const ResultCodeAliasDereferencingProblem = 36
-const ResultCodeInappropriateAuthentication = 48
-const ResultCodeInvalidCredentials = 49
-const ResultCodeInsufficientAccessRights = 50
-const ResultCodeBusy = 51
-const ResultCodeUnavailable = 52
-const ResultCodeUnwillingToPerform = 53
-const ResultCodeLoopDetect = 54
-const ResultCodeNamingViolation = 64
-const ResultCodeObjectClassViolation = 65
-const ResultCodeNotAllowedOnNonLeaf = 66
-const ResultCodeNotAllowedOnRDN = 67
-const ResultCodeEntryAlreadyExists = 68
-const ResultCodeObjectClassModsProhibited = 69
-const ResultCodeAffectsMultipleDSAs = 71
-const ResultCodeOther = 80
-
-var EnumeratedLDAPResultCode = map[ENUMERATED]string{
-	ResultCodeSuccess:                "success",
-	ResultCodeOperationsError:        "operationsError",
-	ResultCodeProtocolError:          "protocolError",
-	ResultCodeTimeLimitExceeded:      "timeLimitExceeded",
-	ResultCodeSizeLimitExceeded:      "sizeLimitExceeded",
-	ResultCodeCompareFalse:           "compareFalse",
-	ResultCodeCompareTrue:            "compareTrue",
-	ResultCodeAuthMethodNotSupported: "authMethodNotSupported",
-	ResultCodeStrongerAuthRequired:   "strongerAuthRequired",
-	//                       -- 9 reserved --
-	ResultCodeReferral:                     "referral",
-	ResultCodeAdminLimitExceeded:           "adminLimitExceeded",
-	ResultCodeUnavailableCriticalExtension: "unavailableCriticalExtension",
-	ResultCodeConfidentialityRequired:      "confidentialityRequired",
-	ResultCodeSaslBindInProgress:           "saslBindInProgress",
-	ResultCodeNoSuchAttribute:              "noSuchAttribute",
-	ResultCodeUndefinedAttributeType:       "undefinedAttributeType",
-	ResultCodeInappropriateMatching:        "inappropriateMatching",
-	ResultCodeConstraintViolation:          "constraintViolation",
-	ResultCodeAttributeOrValueExists:       "attributeOrValueExists",
-	ResultCodeInvalidAttributeSyntax:       "invalidAttributeSyntax",
-	//                       -- 22-31 unused --
-	ResultCodeNoSuchObject:    "noSuchObject",
-	ResultCodeAliasProblem:    "aliasProblem",
-	ResultCodeInvalidDNSyntax: "invalidDNSyntax",
-	//                       -- 35 reserved for undefined isLeaf --
-	ResultCodeAliasDereferencingProblem: "aliasDereferencingProblem",
-	//                       -- 37-47 unused --
-	ResultCodeInappropriateAuthentication: "inappropriateAuthentication",
-	ResultCodeInvalidCredentials:          "invalidCredentials",
-	ResultCodeInsufficientAccessRights:    "insufficientAccessRights",
-	ResultCodeBusy:                        "busy",
-	ResultCodeUnavailable:                 "unavailable",
-	ResultCodeUnwillingToPerform:          "unwillingToPerform",
-	ResultCodeLoopDetect:                  "loopDetect",
-	//                       -- 55-63 unused --
-	ResultCodeNamingViolation:           "namingViolation",
-	ResultCodeObjectClassViolation:      "objectClassViolation",
-	ResultCodeNotAllowedOnNonLeaf:       "notAllowedOnNonLeaf",
-	ResultCodeNotAllowedOnRDN:           "notAllowedOnRDN",
-	ResultCodeEntryAlreadyExists:        "entryAlreadyExists",
-	ResultCodeObjectClassModsProhibited: "objectClassModsProhibited",
-	//                       -- 70 reserved for CLDAP --
-	ResultCodeAffectsMultipleDSAs: "affectsMultipleDSAs",
-	//                       -- 72-79 unused --
-	ResultCodeOther: "other",
-}
-
 //        Referral ::= SEQUENCE SIZE (1..MAX) OF uri URI
-type Referral []URI
+func (r Referral) sizeTagged(tag int) (size int) {
+	for _, uri := range r {
+		size += uri.size()
+	}
+	size += sizeTagAndLength(tag, size)
+	return
+}
 
 //
 //        URI ::= LDAPString     -- limited to characters permitted in
 //                               -- URIs
-type URI LDAPString
+func (u URI) size() int {
+	return LDAPString(u).size()
+}
 
 //
 //        Controls ::= SEQUENCE OF control Control
-type Controls []Control
+func (c Controls) sizeTagged(tag int) (size int) {
+	for _, control := range c {
+		size += control.size()
+	}
+	size += sizeTagAndLength(tag, size)
+	return
+}
 
 //
 //        Control ::= SEQUENCE {
 //             controlType             LDAPOID,
 //             criticality             BOOLEAN DEFAULT FALSE,
 //             controlValue            OCTET STRING OPTIONAL }
-type Control struct {
-	controlType  LDAPOID
-	criticality  BOOLEAN
-	controlValue *OCTETSTRING
+func (c Control) size() (size int) {
+	if c.controlValue != nil {
+		size += c.controlValue.size()
+	}
+	if c.criticality != BOOLEAN(false) {
+		size += c.criticality.size()
+	}
+	size += c.controlType.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
 }
 
 //
@@ -335,14 +363,20 @@ type Control struct {
 //             version                 INTEGER (1 ..  127),
 //             name                    LDAPDN,
 //             authentication          AuthenticationChoice }
-const TagBindRequest = 0
-const BindRequestVersionMin = 1
-const BindRequestVersionMax = 127
+func (b BindRequest) size() (size int) {
+	size += b.version.size()
+	size += b.name.size()
+	switch b.authentication.(type) {
+	case OCTETSTRING:
+		size += b.authentication.(OCTETSTRING).sizeTagged(TagAuthenticationChoiceSimple)
+	case SaslCredentials:
+		size += b.authentication.(SaslCredentials).sizeTagged(TagAuthenticationChoiceSaslCredentials)
+	default:
+		panic(fmt.Sprintf("Unknown authentication choice: %#v", b.authentication))
+	}
 
-type BindRequest struct {
-	version        INTEGER
-	name           LDAPDN
-	authentication AuthenticationChoice
+	size += sizeTagAndLength(TagBindRequest, size)
+	return
 }
 
 //
@@ -351,39 +385,38 @@ type BindRequest struct {
 //                                     -- 1 and 2 reserved
 //             sasl                    [3] SaslCredentials,
 //             ...  }
-const TagAuthenticationChoiceSimple = 0
-const TagAuthenticationChoiceSaslCredentials = 3
-
-type AuthenticationChoice interface {
-	sizeTagged(int) int
-}
 
 //
 //        SaslCredentials ::= SEQUENCE {
 //             mechanism               LDAPString,
 //             credentials             OCTET STRING OPTIONAL }
-type SaslCredentials struct {
-	mechanism   LDAPString
-	credentials *OCTETSTRING
+//
+func (s SaslCredentials) sizeTagged(tag int) (size int) {
+	if s.credentials != nil {
+		size += s.credentials.size()
+	}
+	size += s.mechanism.size()
+	size += sizeTagAndLength(tag, size)
+	return
 }
 
-//
 //        BindResponse ::= [APPLICATION 1] SEQUENCE {
 //             COMPONENTS OF LDAPResult,
 //             serverSaslCreds    [7] OCTET STRING OPTIONAL }
-const TagBindResponse = 1
-const TagBindResponseServerSaslCreds = 7
-
-type BindResponse struct {
-	LDAPResult
-	serverSaslCreds *OCTETSTRING
+func (b BindResponse) size() (size int) {
+	if b.serverSaslCreds != nil {
+		size += b.serverSaslCreds.sizeTagged(TagBindResponseServerSaslCreds)
+	}
+	size += b.LDAPResult.sizeComponents()
+	size += sizeTagAndLength(TagBindResponse, size)
+	return
 }
 
 //
 //        UnbindRequest ::= [APPLICATION 2] NULL
-const TagUnbindRequest = 2
-
-type UnbindRequest struct {
+func (u UnbindRequest) size() (size int) {
+	size = sizeTagAndLength(TagUnbindRequest, 0)
+	return
 }
 
 //
@@ -404,46 +437,30 @@ type UnbindRequest struct {
 //             typesOnly       BOOLEAN,
 //             filter          Filter,
 //             attributes      AttributeSelection }
-const TagSearchRequest = 3
-
-type SearchRequest struct {
-	baseObject   LDAPDN
-	scope        ENUMERATED
-	derefAliases ENUMERATED
-	sizeLimit    INTEGER
-	timeLimit    INTEGER
-	typesOnly    BOOLEAN
-	filter       Filter
-	attributes   AttributeSelection
-}
-
-const SearchRequestScopeBaseObject = 0
-const SearchRequestSingleLevel = 1
-const SearchRequestHomeSubtree = 2
-
-var EnumeratedSearchRequestScope = map[ENUMERATED]string{
-	SearchRequestScopeBaseObject: "baseObject",
-	SearchRequestSingleLevel:     "singleLevel",
-	SearchRequestHomeSubtree:     "homeSubtree",
-}
-
-const SearchRequetDerefAliasesNeverDerefAliases = 0
-const SearchRequetDerefAliasesDerefInSearching = 1
-const SearchRequetDerefAliasesDerefFindingBaseObj = 2
-const SearchRequetDerefAliasesDerefAlways = 3
-
-var EnumeratedSearchRequestDerefAliases = map[ENUMERATED]string{
-	SearchRequetDerefAliasesNeverDerefAliases:   "neverDerefAliases",
-	SearchRequetDerefAliasesDerefInSearching:    "derefInSearching",
-	SearchRequetDerefAliasesDerefFindingBaseObj: "derefFindingBaseObj",
-	SearchRequetDerefAliasesDerefAlways:         "derefAlways",
+func (s SearchRequest) size() (size int) {
+	size += s.baseObject.size()
+	size += s.scope.size()
+	size += s.derefAliases.size()
+	size += s.sizeLimit.size()
+	size += s.timeLimit.size()
+	size += s.typesOnly.size()
+	size += s.filter.size()
+	size += s.attributes.size()
+	size += sizeTagAndLength(TagSearchRequest, size)
+	return
 }
 
 //
 //        AttributeSelection ::= SEQUENCE OF selector LDAPString
 //                       -- The LDAPString is constrained to
 //                       -- <attributeSelector> in Section 4.5.1.8
-type AttributeSelection []LDAPString
+func (a AttributeSelection) size() (size int) {
+	for _, selector := range a {
+		size += selector.size()
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}
 
 //
 //        Filter ::= CHOICE {
@@ -467,32 +484,66 @@ type AttributeSelection []LDAPString
 //             approxMatch     [8] AttributeValueAssertion,
 //             extensibleMatch [9] MatchingRuleAssertion,
 //             ...  }
-const TagFilterAnd = 0
-const TagFilterOr = 1
-const TagFilterNot = 2
-const TagFilterEqualityMatch = 3
-const TagFilterSubstrings = 4
-const TagFilterGreaterOrEqual = 5
-const TagFilterLessOrEqual = 6
-const TagFilterPresent = 7
-const TagFilterApproxMatch = 8
-const TagFilterExtensibleMatch = 9
 
-type Filter interface {
-	size() int
+//             and             [0] SET SIZE (1..MAX) OF filter Filter,
+func (f FilterAnd) size() (size int) {
+	for _, filter := range f {
+		size += filter.size()
+	}
+	size += sizeTagAndLength(TagFilterAnd, size)
+	return
 }
-type FilterAnd []Filter
-type FilterOr []Filter
-type FilterNot struct {
-	Filter
+
+//             or              [1] SET SIZE (1..MAX) OF filter Filter,
+func (f FilterOr) size() (size int) {
+	for _, filter := range f {
+		size += filter.size()
+	}
+	size += sizeTagAndLength(TagFilterOr, size)
+	return
 }
-type FilterEqualityMatch AttributeValueAssertion
-type FilterSubstrings SubstringFilter
-type FilterGreaterOrEqual AttributeValueAssertion
-type FilterLessOrEqual AttributeValueAssertion
-type FilterPresent AttributeDescription
-type FilterApproxMatch AttributeValueAssertion
-type FilterExtensibleMatch MatchingRuleAssertion
+
+//             not             [2] Filter,
+func (f FilterNot) size() (size int) {
+	size = f.Filter.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}
+
+//             equalityMatch   [3] AttributeValueAssertion,
+func (f FilterEqualityMatch) size() int {
+	return AttributeValueAssertion(f).sizeTagged(TagFilterEqualityMatch)
+}
+
+//             substrings      [4] SubstringFilter,
+func (f FilterSubstrings) size() int {
+	return SubstringFilter(f).sizeTagged(TagFilterSubstrings)
+}
+
+//             greaterOrEqual  [5] AttributeValueAssertion,
+func (f FilterGreaterOrEqual) size() int {
+	return AttributeValueAssertion(f).sizeTagged(TagFilterGreaterOrEqual)
+}
+
+//             lessOrEqual     [6] AttributeValueAssertion,
+func (f FilterLessOrEqual) size() int {
+	return AttributeValueAssertion(f).sizeTagged(TagFilterLessOrEqual)
+}
+
+//             present         [7] AttributeDescription,
+func (f FilterPresent) size() int {
+	return AttributeDescription(f).sizeTagged(TagFilterPresent)
+}
+
+//             approxMatch     [8] AttributeValueAssertion,
+func (f FilterApproxMatch) size() int {
+	return AttributeValueAssertion(f).sizeTagged(TagFilterApproxMatch)
+}
+
+//             extensibleMatch [9] MatchingRuleAssertion,
+func (f FilterExtensibleMatch) size() int {
+	return MatchingRuleAssertion(f).sizeTagged(TagFilterExtensibleMatch)
+}
 
 //
 //        SubstringFilter ::= SEQUENCE {
@@ -502,20 +553,27 @@ type FilterExtensibleMatch MatchingRuleAssertion
 //                  any     [1] AssertionValue,
 //                  final   [2] AssertionValue } -- can occur at most once
 //             }
-type SubstringFilter struct {
-	type_      AttributeDescription
-	substrings []Substring
+func (s SubstringFilter) size() (size int) {
+	return s.sizeTagged(tagSequence)
 }
-
-type Substring interface{}
-
-const TagSubstringInitial = 0
-const TagSubstringAny = 1
-const TagSubstringFinal = 2
-
-type SubstringInitial AssertionValue
-type SubstringAny AssertionValue
-type SubstringFinal AssertionValue
+func (s SubstringFilter) sizeTagged(tag int) (size int) {
+	for _, substring := range s.substrings {
+		switch substring.(type) {
+		case SubstringInitial:
+			size += AssertionValue(substring.(SubstringInitial)).sizeTagged(TagSubstringInitial)
+		case SubstringAny:
+			size += AssertionValue(substring.(SubstringAny)).sizeTagged(TagSubstringAny)
+		case SubstringFinal:
+			size += AssertionValue(substring.(SubstringFinal)).sizeTagged(TagSubstringFinal)
+		default:
+			panic("Unknown type for SubstringFilter substring")
+		}
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	size += s.type_.size()
+	size += sizeTagAndLength(tag, size)
+	return
+}
 
 //
 //        MatchingRuleAssertion ::= SEQUENCE {
@@ -523,46 +581,62 @@ type SubstringFinal AssertionValue
 //             type            [2] AttributeDescription OPTIONAL,
 //             matchValue      [3] AssertionValue,
 //             dnAttributes    [4] BOOLEAN DEFAULT FALSE }
-type MatchingRuleAssertion struct {
-	matchingRule *MatchingRuleId
-	type_        *AttributeDescription
-	matchValue   AssertionValue
-	dnAttributes BOOLEAN
+func (m MatchingRuleAssertion) size() (size int) {
+	return m.sizeTagged(tagSequence)
 }
-
-const TagMatchingRuleAssertionMatchingRule = 1
-const TagMatchingRuleAssertionType = 2
-const TagMatchingRuleAssertionMatchValue = 3
-const TagMatchingRuleAssertionDnAttributes = 4
+func (m MatchingRuleAssertion) sizeTagged(tag int) (size int) {
+	if m.matchingRule != nil {
+		size += m.matchingRule.sizeTagged(TagMatchingRuleAssertionMatchingRule)
+	}
+	if m.type_ != nil {
+		size += m.type_.sizeTagged(TagMatchingRuleAssertionType)
+	}
+	size += m.matchValue.sizeTagged(TagMatchingRuleAssertionMatchValue)
+	if m.dnAttributes != BOOLEAN(false) {
+		size += m.dnAttributes.sizeTagged(TagMatchingRuleAssertionDnAttributes)
+	}
+	size += sizeTagAndLength(tag, size)
+	return
+}
 
 //
 //        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
 //             objectName      LDAPDN,
 //             attributes      PartialAttributeList }
-const TagSearchResultEntry = 4
-
-type SearchResultEntry struct {
-	objectName LDAPDN
-	attributes PartialAttributeList
+func (s SearchResultEntry) size() (size int) {
+	size += s.objectName.size()
+	size += s.attributes.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
 }
 
 //
 //        PartialAttributeList ::= SEQUENCE OF
 //                             partialAttribute PartialAttribute
-type PartialAttributeList []PartialAttribute
+func (p PartialAttributeList) size() (size int) {
+	for _, att := range p {
+		size += att.size()
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}
 
 //
 //        SearchResultReference ::= [APPLICATION 19] SEQUENCE
 //                                  SIZE (1..MAX) OF uri URI
-const TagSearchResultReference = 19
-
-type SearchResultReference []URI
+func (s SearchResultReference) size() (size int) {
+	for _, uri := range s {
+		size += uri.size()
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}
 
 //
 //        SearchResultDone ::= [APPLICATION 5] LDAPResult
-const TagSearchResultDone = 5
-
-type SearchResultDone LDAPResult
+func (s SearchResultDone) size() int {
+	return LDAPResult(s).sizeTagged(TagSearchResultDone)
+}
 
 //
 //        ModifyRequest ::= [APPLICATION 6] SEQUENCE {
@@ -574,32 +648,28 @@ type SearchResultDone LDAPResult
 //                       replace (2),
 //                       ...  },
 //                  modification    PartialAttribute } }
-const TagModifyRequest = 6
-
-type ModifyRequest struct {
-	object  LDAPDN
-	changes []ModifyRequestChange
+func (m ModifyRequest) size() (size int) {
+	for _, change := range m.changes {
+		size += change.size()
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	size += m.object.size()
+	size += sizeTagAndLength(TagModifyRequest, size)
+	return
 }
-type ModifyRequestChange struct {
-	operation    ENUMERATED
-	modification PartialAttribute
-}
 
-const ModifyRequestChangeOperationAdd = 0
-const ModifyRequestChangeOperationDelete = 1
-const ModifyRequestChangeOperationReplace = 2
-
-var EnumeratedModifyRequestChangeOpration = map[ENUMERATED]string{
-	ModifyRequestChangeOperationAdd:     "add",
-	ModifyRequestChangeOperationDelete:  "delete",
-	ModifyRequestChangeOperationReplace: "replace",
+func (m ModifyRequestChange) size() (size int) {
+	size += m.operation.size()
+	size += m.modification.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
 }
 
 //
 //        ModifyResponse ::= [APPLICATION 7] LDAPResult
-const TagModifyResponse = 7
-
-type ModifyResponse LDAPResult
+func (m ModifyResponse) size() int {
+	return LDAPResult(m).sizeTagged(TagModifyResponse)
+}
 
 //
 //
@@ -616,34 +686,40 @@ type ModifyResponse LDAPResult
 //        AddRequest ::= [APPLICATION 8] SEQUENCE {
 //             entry           LDAPDN,
 //             attributes      AttributeList }
-const TagAddRequest = 8
-
-type AddRequest struct {
-	entry      LDAPDN
-	attributes AttributeList
+func (a AddRequest) size() (size int) {
+	size += a.entry.size()
+	size += a.attributes.size()
+	size += sizeTagAndLength(TagAddRequest, size)
+	return
 }
 
 //
 //        AttributeList ::= SEQUENCE OF attribute Attribute
-type AttributeList []Attribute
+func (a AttributeList) size() (size int) {
+	for _, att := range a {
+		size += att.size()
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}
 
 //
 //        AddResponse ::= [APPLICATION 9] LDAPResult
-const TagAddResponse = 9
-
-type AddResponse LDAPResult
+func (a AddResponse) size() int {
+	return LDAPResult(a).sizeTagged(TagAddResponse)
+}
 
 //
 //        DelRequest ::= [APPLICATION 10] LDAPDN
-const TagDelRequest = 10
-
-type DelRequest LDAPDN
+func (d DelRequest) size() int {
+	return LDAPDN(d).sizeTagged(TagDelRequest)
+}
 
 //
 //        DelResponse ::= [APPLICATION 11] LDAPResult
-const TagDelResponse = 11
-
-type DelResponse LDAPResult
+func (d DelResponse) size() int {
+	return LDAPResult(d).sizeTagged(TagDelResponse)
+}
 
 //
 //        ModifyDNRequest ::= [APPLICATION 12] SEQUENCE {
@@ -651,88 +727,90 @@ type DelResponse LDAPResult
 //             newrdn          RelativeLDAPDN,
 //             deleteoldrdn    BOOLEAN,
 //             newSuperior     [0] LDAPDN OPTIONAL }
-const TagModifyDNRequest = 12
-
-type ModifyDNRequest struct {
-	entry        LDAPDN
-	newrdn       RelativeLDAPDN
-	deleteoldrdn BOOLEAN
-	newSuperior  *LDAPDN
+func (m ModifyDNRequest) size() (size int) {
+	size += m.entry.size()
+	size += m.newrdn.size()
+	size += m.deleteoldrdn.size()
+	if m.newSuperior != nil {
+		size += m.newSuperior.sizeTagged(TagModifyDNRequestNewSuperior)
+	}
+	size += sizeTagAndLength(TagModifyDNRequest, size)
+	return
 }
-
-const TagModifyDNRequestNewSuperior = 0
 
 //
 //        ModifyDNResponse ::= [APPLICATION 13] LDAPResult
-const TagModifyDNResponse = 13
-
-type ModifyDNResponse LDAPResult
+func (m ModifyDNResponse) size() int {
+	return LDAPResult(m).sizeTagged(TagModifyDNResponse)
+}
 
 //
 //        CompareRequest ::= [APPLICATION 14] SEQUENCE {
 //             entry           LDAPDN,
 //             ava             AttributeValueAssertion }
-const TagCompareRequest = 14
-
-type CompareRequest struct {
-	entry LDAPDN
-	ava   AttributeValueAssertion
+func (c CompareRequest) size() (size int) {
+	size += c.entry.size()
+	size += c.ava.size()
+	size += sizeTagAndLength(TagCompareRequest, size)
+	return
 }
 
+//
 //        CompareResponse ::= [APPLICATION 15] LDAPResult
-const TagCompareResponse = 15
-
-type CompareResponse LDAPResult
+func (c CompareResponse) size() int {
+	return LDAPResult(c).sizeTagged(TagCompareResponse)
+}
 
 //
 //        AbandonRequest ::= [APPLICATION 16] MessageID
-const TagAbandonRequest = 16
-
-type AbandonRequest MessageID
+func (a AbandonRequest) size() int {
+	return MessageID(a).sizeTagged(TagAbandonRequest)
+}
 
 //
 //        ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
 //             requestName      [0] LDAPOID,
 //             requestValue     [1] OCTET STRING OPTIONAL }
-const TagExtendedRequest = 23
-
-type ExtendedRequest struct {
-	requestName  LDAPOID
-	requestValue *OCTETSTRING
+func (e ExtendedRequest) size() (size int) {
+	size += e.requestName.sizeTagged(TagExtendedRequestName)
+	if e.requestValue != nil {
+		size += e.requestValue.sizeTagged(TagExtendedRequestValue)
+	}
+	size += sizeTagAndLength(TagExtendedRequest, size)
+	return
 }
-
-const TagExtendedRequestName = 0
-const TagExtendedRequestValue = 1
 
 //
 //        ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
 //             COMPONENTS OF LDAPResult,
 //             responseName     [10] LDAPOID OPTIONAL,
 //             responseValue    [11] OCTET STRING OPTIONAL }
-const TagExtendedResponse = 24
-
-type ExtendedResponse struct {
-	LDAPResult
-	responseName  *LDAPOID
-	responseValue *OCTETSTRING
+func (e ExtendedResponse) size() (size int) {
+	size += e.LDAPResult.sizeComponents()
+	if e.responseName != nil {
+		size += e.responseName.sizeTagged(TagExtendedResponseName)
+	}
+	if e.responseValue != nil {
+		size += e.responseValue.sizeTagged(TagExtendedResponseValue)
+	}
+	size += sizeTagAndLength(TagExtendedResponse, size)
+	return
 }
-
-const TagExtendedResponseName = 10
-const TagExtendedResponseValue = 11
 
 //
 //        IntermediateResponse ::= [APPLICATION 25] SEQUENCE {
 //             responseName     [0] LDAPOID OPTIONAL,
 //             responseValue    [1] OCTET STRING OPTIONAL }
-const TagIntermediateResponse = 25
-
-type IntermediateResponse struct {
-	responseName  *LDAPOID
-	responseValue *OCTETSTRING
+func (i IntermediateResponse) size() (size int) {
+	if i.responseName != nil {
+		size += i.responseName.sizeTagged(TagIntermediateResponseName)
+	}
+	if i.responseValue != nil {
+		size += i.responseValue.sizeTagged(TagIntermediateResponseValue)
+	}
+	size += sizeTagAndLength(TagIntermediateResponse, size)
+	return
 }
-
-const TagIntermediateResponseName = 0
-const TagIntermediateResponseValue = 1
 
 //
 //        END

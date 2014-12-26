@@ -191,6 +191,10 @@ func parseBool(bytes []byte) (ret bool, err error) {
 	return
 }
 
+func sizeBool(b bool) int {
+	return 1
+}
+
 // INTEGER
 
 // parseInt64 treats the given bytes as a big-endian, signed integer and
@@ -212,6 +216,26 @@ func parseInt64(bytes []byte) (ret int64, err error) {
 	return
 }
 
+func int64Length(i int64) (numBytes int) {
+	numBytes = 1
+
+	for i > 127 {
+		numBytes++
+		i >>= 8
+	}
+
+	for i < -128 {
+		numBytes++
+		i >>= 8
+	}
+
+	return
+}
+
+func sizeInt64(i int64) int {
+	return int64Length(i)
+}
+
 // parseInt treats the given bytes as a big-endian, signed integer and returns
 // the result.
 func parseInt32(bytes []byte) (int32, error) {
@@ -223,6 +247,10 @@ func parseInt32(bytes []byte) (int32, error) {
 		return 0, StructuralError{"integer too large"}
 	}
 	return int32(ret64), nil
+}
+
+func sizeInt32(i int32) int {
+	return int64Length(int64(i))
 }
 
 var bigOne = big.NewInt(1)
@@ -407,6 +435,13 @@ func parseBase128Int(bytes []byte, initOffset int) (ret, offset int, err error) 
 	return
 }
 
+func sizeBase128Int(value int) (size int) {
+	for i := value; i > 0; i >>= 7 {
+		size++
+	}
+	return
+}
+
 // // UTCTime
 
 // func parseUTCTime(bytes []byte) (ret time.Time, err error) {
@@ -492,8 +527,16 @@ func parseUTF8String(bytes []byte) (ret string, err error) {
 	return string(bytes), nil
 }
 
+func sizeUTF8String(s string) int {
+	return len(s)
+}
+
 func parseOctetString(bytes []byte) (ret []byte, err error) {
 	return bytes, nil
+}
+
+func sizeOctetString(s []byte) int {
+	return len(s)
 }
 
 // A RawValue represents an undecoded ASN.1 object.
@@ -571,6 +614,70 @@ func parseTagAndLength(bytes []byte, initOffset int) (ret TagAndLength, offset i
 		}
 	}
 
+	return
+}
+
+// func writeTagAndLength(out *forkableWriter, t tagAndLength) (err error) {
+// 	b := uint8(t.class) << 6
+// 	if t.isCompound {
+// 		b |= 0x20
+// 	}
+// 	if t.tag >= 31 {
+// 		b |= 0x1f
+// 		err = out.WriteByte(b)
+// 		if err != nil {
+// 			return
+// 		}
+// 		err = marshalBase128Int(out, int64(t.tag))
+// 		if err != nil {
+// 			return
+// 		}
+// 	} else {
+// 		b |= uint8(t.tag)
+// 		err = out.WriteByte(b)
+// 		if err != nil {
+// 			return
+// 		}
+// 	}
+
+// 	if t.length >= 128 {
+// 		l := lengthLength(t.length)
+// 		err = out.WriteByte(0x80 | byte(l))
+// 		if err != nil {
+// 			return
+// 		}
+// 		err = marshalLength(out, t.length)
+// 		if err != nil {
+// 			return
+// 		}
+// 	} else {
+// 		err = out.WriteByte(byte(t.length))
+// 		if err != nil {
+// 			return
+// 		}
+// 	}
+
+// 	return nil
+// }
+
+func sizeTagAndLength(tag int, length int) (size int) {
+	// Compute the size of the tag
+	size = 1
+	if tag >= 31 {
+		// Long-form identifier if the tag is greater than 30
+		// http://en.wikipedia.org/wiki/X.690#Identifier_tags_greater_than_30
+		size += sizeBase128Int(tag)
+	}
+	// Compute the size of the length using the definite form
+	// http://en.wikipedia.org/wiki/X.690#The_definite_form
+	size += 1
+	if length >= 128 {
+		size += 1
+		for length > 255 {
+			size++
+			length >>= 8
+		}
+	}
 	return
 }
 

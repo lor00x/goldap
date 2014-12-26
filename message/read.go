@@ -815,7 +815,7 @@ func (bindrequest *BindRequest) readComponents(bytes Bytes) (err error) {
 //                                     -- 1 and 2 reserved
 //             sasl                    [3] SaslCredentials,
 //             ...  }
-func readAuthenticationChoice(bytes Bytes) (ret interface{}, err error) {
+func readAuthenticationChoice(bytes Bytes) (ret AuthenticationChoice, err error) {
 	tagAndLength, err := bytes.PreviewTagAndLength()
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readAuthenticationChoice:\n%s", err.Error())}
