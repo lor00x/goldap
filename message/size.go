@@ -5,43 +5,43 @@ import (
 )
 
 func (b BOOLEAN) size() int {
-	return SizePrimitiveSubBytes(tagBoolean, tagBoolean, bool(b))
+	return SizePrimitiveSubBytes(tagBoolean, b)
 }
 
 func (b BOOLEAN) sizeTagged(tag int) int {
-	return SizePrimitiveSubBytes(tag, tagBoolean, bool(b))
+	return SizePrimitiveSubBytes(tag, b)
 }
 
 func (i INTEGER) size() int {
-	return SizePrimitiveSubBytes(tagInteger, tagInteger, int32(i))
+	return SizePrimitiveSubBytes(tagInteger, i)
 }
 
 func (i INTEGER) sizeTagged(tag int) int {
-	return SizePrimitiveSubBytes(tag, tagInteger, int32(i))
+	return SizePrimitiveSubBytes(tag, i)
 }
 
 func (e ENUMERATED) size() int {
-	return SizePrimitiveSubBytes(tagEnum, tagEnum, int32(e))
+	return SizePrimitiveSubBytes(tagEnum, e)
 }
 
 func (e ENUMERATED) sizeTagged(tag int) int {
-	return SizePrimitiveSubBytes(tag, tagEnum, int32(e))
+	return SizePrimitiveSubBytes(tag, e)
 }
 
 func (s UTF8STRING) size() int {
-	return SizePrimitiveSubBytes(tagUTF8String, tagUTF8String, string(s))
+	return SizePrimitiveSubBytes(tagUTF8String, s)
 }
 
 func (s UTF8STRING) sizeTagged(tag int) int {
-	return SizePrimitiveSubBytes(tag, tagUTF8String, string(s))
+	return SizePrimitiveSubBytes(tag, s)
 }
 
 func (o OCTETSTRING) size() int {
-	return SizePrimitiveSubBytes(tagOctetString, tagOctetString, string(o))
+	return SizePrimitiveSubBytes(tagOctetString, o)
 }
 
 func (o OCTETSTRING) sizeTagged(tag int) int {
-	return SizePrimitiveSubBytes(tag, tagOctetString, string(o))
+	return SizePrimitiveSubBytes(tag, o)
 }
 
 //   This appendix is normative.

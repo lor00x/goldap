@@ -12,8 +12,8 @@ func TestReadPrimitiveSubBytesTestData(t *testing.T) {
 			t.Errorf("#%d failed: %s", i+1, err)
 		} else if !reflect.DeepEqual(test.value, value) {
 			t.Errorf("#%d: Wrong value %#v, got %#v", i+1, test.value, value)
-		} else if test.offset != *test.bytes.offset {
-			t.Errorf("#%d: Wrong Offset, value %#v, got %#v", i+1, test.offset, *test.bytes.offset)
+		} else if test.offset != test.bytes.offset {
+			t.Errorf("#%d: Wrong Offset, value %#v, got %#v", i+1, test.offset, test.bytes.offset)
 		}
 	}
 }
@@ -25,8 +25,8 @@ func TestSizePrimitiveSubBytesTestData(t *testing.T) {
 			t.Errorf("#%d failed: %s", i+1, err)
 		} else if !reflect.DeepEqual(test.value, value) {
 			t.Errorf("#%d: Wrong value %#v, got %#v", i+1, test.value, value)
-		} else if test.offset != *test.bytes.offset {
-			t.Errorf("#%d: Wrong Offset, value %#v, got %#v", i+1, test.offset, *test.bytes.offset)
+		} else if test.offset != test.bytes.offset {
+			t.Errorf("#%d: Wrong Offset, value %#v, got %#v", i+1, test.offset, test.bytes.offset)
 		}
 	}
 }
@@ -51,7 +51,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 1
 		{
 			bytes: Bytes{
-				offset: NewInt(0),
+				offset: 0,
 				bytes:  []byte{0x02, 0x01, 0x09},
 			},
 			class:   classUniversal,
@@ -63,7 +63,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 2
 		{
 			bytes: Bytes{
-				offset: NewInt(0),
+				offset: 0,
 				bytes:  []byte{0x02, 0x02, 0x09, 0x87},
 			},
 			class:   classUniversal,
@@ -75,7 +75,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 3
 		{
 			bytes: Bytes{
-				offset: NewInt(0),
+				offset: 0,
 				bytes:  []byte{0x02, 0x03, 0x09, 0x87, 0x65},
 			},
 			class:   classUniversal,
@@ -87,7 +87,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 4
 		{
 			bytes: Bytes{
-				offset: NewInt(0),
+				offset: 0,
 				bytes:  []byte{0x02, 0x04, 0x09, 0x87, 0x65, 0x43},
 			},
 			class:   classUniversal,
@@ -99,7 +99,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 5
 		{
 			bytes: Bytes{
-				offset: NewInt(2),
+				offset: 2,
 				bytes:  []byte{0x30, 0x03, 0x02, 0x01, 0x0f},
 			},
 			class:   classUniversal,
@@ -111,7 +111,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 6
 		{
 			bytes: Bytes{
-				offset: NewInt(2),
+				offset: 2,
 				bytes:  []byte{0x30, 0x16, 0x02, 0x01, 0x0f, 0x60, 0x11, 0x02, 0x01, 0x03, 0x04, 0x00, 0xa3, 0x0a, 0x04, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35},
 			},
 			class:   classUniversal,
@@ -123,7 +123,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 7
 		{
 			bytes: Bytes{
-				offset: NewInt(2),
+				offset: 2,
 				bytes:  []byte{0x30, 0x19, 0x02, 0x04, 0x7f, 0xff, 0xff, 0xff, 0x60, 0x11, 0x02, 0x01, 0x03, 0x04, 0x00, 0xa3, 0x0a, 0x04, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35},
 			},
 			class:   classUniversal,
@@ -135,7 +135,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 8
 		{
 			bytes: Bytes{
-				offset: NewInt(0),
+				offset: 0,
 				bytes:  []byte{0x0c, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35},
 			},
 			class:   classUniversal,
@@ -147,7 +147,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 9
 		{
 			bytes: Bytes{
-				offset: NewInt(0),
+				offset: 0,
 				bytes:  []byte{0x0c, 0x0d, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c},
 			},
 			class:   classUniversal,
@@ -159,7 +159,7 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		// Test 10
 		{
 			bytes: Bytes{
-				offset: NewInt(10),
+				offset: 10,
 				bytes:  []byte{0x30, 0x1d, 0x02, 0x01, 0x05, 0x60, 0x18, 0x02, 0x01, 0x03, 0x04, 0x07, 0x6d, 0x79, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x80, 0x0a, 0x6d, 0x79, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64},
 			},
 			class:   classUniversal,

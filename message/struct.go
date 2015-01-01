@@ -57,6 +57,7 @@ const TagLDAPMessageControls = 0
 
 type ProtocolOp interface {
 	size() int
+	write(*Bytes) int
 }
 
 //        MessageID ::= INTEGER (0 ..  maxInt)
@@ -480,6 +481,7 @@ const TagFilterExtensibleMatch = 9
 
 type Filter interface {
 	size() int
+	write(*Bytes) int
 }
 type FilterAnd []Filter
 type FilterOr []Filter

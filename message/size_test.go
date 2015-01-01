@@ -8,9 +8,9 @@ func TestSizeLDAPMessage(t *testing.T) {
 
 	var testData = getLDAPMessageTestData()
 	for i, test := range testData {
-		message, err := ReadLDAPMessage(test.bytes)
+		message, err := ReadLDAPMessage(&test.bytes)
 		if err != nil {
-			t.Errorf("#%d error at offset %d (%s): %s", i, *test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
+			t.Errorf("#%d error at offset %d (%s): %s", i, test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
 		}
 		size := message.size()
 		expected := len(test.bytes.bytes)

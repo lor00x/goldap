@@ -13,7 +13,7 @@ func (e LdapError) Error() string {
 	return e.Msg
 }
 
-func readBOOLEAN(bytes Bytes) (ret BOOLEAN, err error) {
+func readBOOLEAN(bytes *Bytes) (ret BOOLEAN, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(classUniversal, tagBoolean, tagBoolean)
 	if err != nil {
@@ -24,7 +24,7 @@ func readBOOLEAN(bytes Bytes) (ret BOOLEAN, err error) {
 	return
 }
 
-func readTaggedBOOLEAN(bytes Bytes, class int, tag int) (ret BOOLEAN, err error) {
+func readTaggedBOOLEAN(bytes *Bytes, class int, tag int) (ret BOOLEAN, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(class, tag, tagBoolean)
 	if err != nil {
@@ -35,7 +35,7 @@ func readTaggedBOOLEAN(bytes Bytes, class int, tag int) (ret BOOLEAN, err error)
 	return
 }
 
-func readINTEGER(bytes Bytes) (ret INTEGER, err error) {
+func readINTEGER(bytes *Bytes) (ret INTEGER, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(classUniversal, tagInteger, tagInteger)
 	if err != nil {
@@ -46,7 +46,7 @@ func readINTEGER(bytes Bytes) (ret INTEGER, err error) {
 	return
 }
 
-func readTaggedINTEGER(bytes Bytes, class int, tag int) (ret INTEGER, err error) {
+func readTaggedINTEGER(bytes *Bytes, class int, tag int) (ret INTEGER, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(class, tag, tagInteger)
 	if err != nil {
@@ -57,11 +57,11 @@ func readTaggedINTEGER(bytes Bytes, class int, tag int) (ret INTEGER, err error)
 	return
 }
 
-func readPositiveINTEGER(bytes Bytes) (ret INTEGER, err error) {
+func readPositiveINTEGER(bytes *Bytes) (ret INTEGER, err error) {
 	return readTaggedPositiveINTEGER(bytes, classUniversal, tagInteger)
 }
 
-func readTaggedPositiveINTEGER(bytes Bytes, class int, tag int) (ret INTEGER, err error) {
+func readTaggedPositiveINTEGER(bytes *Bytes, class int, tag int) (ret INTEGER, err error) {
 	ret, err = readTaggedINTEGER(bytes, class, tag)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readTaggedPositiveINTEGER:\n%s", err.Error())}
@@ -73,7 +73,7 @@ func readTaggedPositiveINTEGER(bytes Bytes, class int, tag int) (ret INTEGER, er
 	return
 }
 
-func readENUMERATED(bytes Bytes, allowedValues map[ENUMERATED]string) (ret ENUMERATED, err error) {
+func readENUMERATED(bytes *Bytes, allowedValues map[ENUMERATED]string) (ret ENUMERATED, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(classUniversal, tagEnum, tagEnum)
 	if err != nil {
@@ -88,7 +88,7 @@ func readENUMERATED(bytes Bytes, allowedValues map[ENUMERATED]string) (ret ENUME
 	return
 }
 
-func readTaggedUTF8STRING(bytes Bytes, class int, tag int) (ret UTF8STRING, err error) {
+func readTaggedUTF8STRING(bytes *Bytes, class int, tag int) (ret UTF8STRING, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(class, tag, tagUTF8String)
 	if err != nil {
@@ -99,7 +99,7 @@ func readTaggedUTF8STRING(bytes Bytes, class int, tag int) (ret UTF8STRING, err 
 	return
 }
 
-func readOCTETSTRING(bytes Bytes) (ret OCTETSTRING, err error) {
+func readOCTETSTRING(bytes *Bytes) (ret OCTETSTRING, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(classUniversal, tagOctetString, tagOctetString)
 	if err != nil {
@@ -110,7 +110,7 @@ func readOCTETSTRING(bytes Bytes) (ret OCTETSTRING, err error) {
 	return
 }
 
-func readTaggedOCTETSTRING(bytes Bytes, class int, tag int) (ret OCTETSTRING, err error) {
+func readTaggedOCTETSTRING(bytes *Bytes, class int, tag int) (ret OCTETSTRING, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(class, tag, tagOctetString)
 	if err != nil {
@@ -164,7 +164,7 @@ func (o OCTETSTRING) Pointer() *OCTETSTRING { return &o }
 //
 func NewLDAPMessage() *LDAPMessage { return &LDAPMessage{} }
 
-func ReadLDAPMessage(bytes Bytes) (message LDAPMessage, err error) {
+func ReadLDAPMessage(bytes *Bytes) (message LDAPMessage, err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, message.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("ReadLDAPMessage:\n%s", err.Error())}
@@ -172,7 +172,7 @@ func ReadLDAPMessage(bytes Bytes) (message LDAPMessage, err error) {
 	}
 	return
 }
-func (message *LDAPMessage) readComponents(bytes Bytes) (err error) {
+func (message *LDAPMessage) readComponents(bytes *Bytes) (err error) {
 	message.messageID, err = readMessageID(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -207,10 +207,10 @@ func (message *LDAPMessage) readComponents(bytes Bytes) (err error) {
 //
 //        maxInt INTEGER ::= 2147483647 -- (2^^31 - 1) --
 //
-func readMessageID(bytes Bytes) (ret MessageID, err error) {
+func readMessageID(bytes *Bytes) (ret MessageID, err error) {
 	return readTaggedMessageID(bytes, classUniversal, tagInteger)
 }
-func readTaggedMessageID(bytes Bytes, class int, tag int) (ret MessageID, err error) {
+func readTaggedMessageID(bytes *Bytes, class int, tag int) (ret MessageID, err error) {
 	var integer INTEGER
 	integer, err = readTaggedPositiveINTEGER(bytes, class, tag)
 	if err != nil {
@@ -219,7 +219,7 @@ func readTaggedMessageID(bytes Bytes, class int, tag int) (ret MessageID, err er
 	}
 	return MessageID(integer), err
 }
-func readProtocolOp(bytes Bytes) (ret ProtocolOp, err error) {
+func readProtocolOp(bytes *Bytes) (ret ProtocolOp, err error) {
 	tagAndLength, err := bytes.PreviewTagAndLength()
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readProtocolOp:\n%s", err.Error())}
@@ -281,10 +281,10 @@ func readProtocolOp(bytes Bytes) (ret ProtocolOp, err error) {
 
 //        LDAPString ::= OCTET STRING -- UTF-8 encoded,
 //                                    -- [ISO10646] characters
-func readLDAPString(bytes Bytes) (ldapstring LDAPString, err error) {
+func readLDAPString(bytes *Bytes) (ldapstring LDAPString, err error) {
 	return readTaggedLDAPString(bytes, classUniversal, tagOctetString)
 }
-func readTaggedLDAPString(bytes Bytes, class int, tag int) (ldapstring LDAPString, err error) {
+func readTaggedLDAPString(bytes *Bytes, class int, tag int) (ldapstring LDAPString, err error) {
 	var utf8string UTF8STRING
 	utf8string, err = readTaggedUTF8STRING(bytes, class, tag)
 	if err != nil {
@@ -307,10 +307,10 @@ func readTaggedLDAPString(bytes Bytes, class int, tag int) (ldapstring LDAPStrin
 //
 //        LDAPOID ::= OCTET STRING -- Constrained to <numericoid>
 //                                 -- [RFC4512]
-func readLDAPOID(bytes Bytes) (ret LDAPOID, err error) {
+func readLDAPOID(bytes *Bytes) (ret LDAPOID, err error) {
 	return readTaggedLDAPOID(bytes, classUniversal, tagOctetString)
 }
-func readTaggedLDAPOID(bytes Bytes, class int, tag int) (ret LDAPOID, err error) {
+func readTaggedLDAPOID(bytes *Bytes, class int, tag int) (ret LDAPOID, err error) {
 	var octetstring OCTETSTRING
 	octetstring, err = readTaggedOCTETSTRING(bytes, class, tag)
 	if err != nil {
@@ -326,7 +326,7 @@ func (l LDAPOID) Pointer() *LDAPOID { return &l }
 //
 //        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
 //                              -- [RFC4514]
-func readLDAPDN(bytes Bytes) (ret LDAPDN, err error) {
+func readLDAPDN(bytes *Bytes) (ret LDAPDN, err error) {
 	var str LDAPString
 	str, err = readLDAPString(bytes)
 	if err != nil {
@@ -336,7 +336,7 @@ func readLDAPDN(bytes Bytes) (ret LDAPDN, err error) {
 	ret = LDAPDN(str)
 	return
 }
-func readTaggedLDAPDN(bytes Bytes, class int, tag int) (ret LDAPDN, err error) {
+func readTaggedLDAPDN(bytes *Bytes, class int, tag int) (ret LDAPDN, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readTaggedLDAPString(bytes, class, tag)
 	if err != nil {
@@ -352,7 +352,7 @@ func (l LDAPDN) Pointer() *LDAPDN { return &l }
 //
 //        RelativeLDAPDN ::= LDAPString -- Constrained to <name-component>
 //                                      -- [RFC4514]
-func readRelativeLDAPDN(bytes Bytes) (ret RelativeLDAPDN, err error) {
+func readRelativeLDAPDN(bytes *Bytes) (ret RelativeLDAPDN, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readLDAPString(bytes)
 	if err != nil {
@@ -368,7 +368,7 @@ func readRelativeLDAPDN(bytes Bytes) (ret RelativeLDAPDN, err error) {
 //        AttributeDescription ::= LDAPString
 //                                -- Constrained to <attributedescription>
 //                                -- [RFC4512]
-func readAttributeDescription(bytes Bytes) (ret AttributeDescription, err error) {
+func readAttributeDescription(bytes *Bytes) (ret AttributeDescription, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readLDAPString(bytes)
 	if err != nil {
@@ -379,7 +379,7 @@ func readAttributeDescription(bytes Bytes) (ret AttributeDescription, err error)
 	ret = AttributeDescription(ldapstring)
 	return
 }
-func readTaggedAttributeDescription(bytes Bytes, class int, tag int) (ret AttributeDescription, err error) {
+func readTaggedAttributeDescription(bytes *Bytes, class int, tag int) (ret AttributeDescription, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readTaggedLDAPString(bytes, class, tag)
 	// @TODO: check RFC4512
@@ -394,7 +394,7 @@ func (a AttributeDescription) Pointer() *AttributeDescription { return &a }
 
 //
 //        AttributeValue ::= OCTET STRING
-func readAttributeValue(bytes Bytes) (ret AttributeValue, err error) {
+func readAttributeValue(bytes *Bytes) (ret AttributeValue, err error) {
 	var octetstring OCTETSTRING
 	octetstring, err = readOCTETSTRING(bytes)
 	if err != nil {
@@ -409,7 +409,7 @@ func readAttributeValue(bytes Bytes) (ret AttributeValue, err error) {
 //        AttributeValueAssertion ::= SEQUENCE {
 //             attributeDesc   AttributeDescription,
 //             assertionValue  AssertionValue }
-func readAttributeValueAssertion(bytes Bytes) (ret AttributeValueAssertion, err error) {
+func readAttributeValueAssertion(bytes *Bytes) (ret AttributeValueAssertion, err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readAttributeValueAssertion:\n%s", err.Error())}
@@ -418,7 +418,7 @@ func readAttributeValueAssertion(bytes Bytes) (ret AttributeValueAssertion, err 
 	return
 
 }
-func readTaggedAttributeValueAssertion(bytes Bytes, class int, tag int) (ret AttributeValueAssertion, err error) {
+func readTaggedAttributeValueAssertion(bytes *Bytes, class int, tag int) (ret AttributeValueAssertion, err error) {
 	err = bytes.ReadSubBytes(class, tag, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readTaggedAttributeValueAssertion:\n%s", err.Error())}
@@ -427,7 +427,7 @@ func readTaggedAttributeValueAssertion(bytes Bytes, class int, tag int) (ret Att
 	return
 }
 
-func (attributevalueassertion *AttributeValueAssertion) readComponents(bytes Bytes) (err error) {
+func (attributevalueassertion *AttributeValueAssertion) readComponents(bytes *Bytes) (err error) {
 	attributevalueassertion.attributeDesc, err = readAttributeDescription(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -443,7 +443,7 @@ func (attributevalueassertion *AttributeValueAssertion) readComponents(bytes Byt
 
 //
 //        AssertionValue ::= OCTET STRING
-func readAssertionValue(bytes Bytes) (assertionvalue AssertionValue, err error) {
+func readAssertionValue(bytes *Bytes) (assertionvalue AssertionValue, err error) {
 	var octetstring OCTETSTRING
 	octetstring, err = readOCTETSTRING(bytes)
 	if err != nil {
@@ -453,7 +453,7 @@ func readAssertionValue(bytes Bytes) (assertionvalue AssertionValue, err error) 
 	assertionvalue = AssertionValue(octetstring)
 	return
 }
-func readTaggedAssertionValue(bytes Bytes, class int, tag int) (assertionvalue AssertionValue, err error) {
+func readTaggedAssertionValue(bytes *Bytes, class int, tag int) (assertionvalue AssertionValue, err error) {
 	var octetstring OCTETSTRING
 	octetstring, err = readTaggedOCTETSTRING(bytes, class, tag)
 	if err != nil {
@@ -468,7 +468,7 @@ func readTaggedAssertionValue(bytes Bytes, class int, tag int) (assertionvalue A
 //        PartialAttribute ::= SEQUENCE {
 //             type       AttributeDescription,
 //             vals       SET OF value AttributeValue }
-func readPartialAttribute(bytes Bytes) (ret PartialAttribute, err error) {
+func readPartialAttribute(bytes *Bytes) (ret PartialAttribute, err error) {
 	ret = PartialAttribute{vals: make([]AttributeValue, 0, 10)}
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, ret.readComponents)
 	if err != nil {
@@ -478,7 +478,7 @@ func readPartialAttribute(bytes Bytes) (ret PartialAttribute, err error) {
 	return
 }
 
-func (partialattribute *PartialAttribute) readComponents(bytes Bytes) (err error) {
+func (partialattribute *PartialAttribute) readComponents(bytes *Bytes) (err error) {
 	partialattribute.type_, err = readAttributeDescription(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -491,7 +491,7 @@ func (partialattribute *PartialAttribute) readComponents(bytes Bytes) (err error
 	}
 	return
 }
-func (partialattribute *PartialAttribute) readValsComponents(bytes Bytes) (err error) {
+func (partialattribute *PartialAttribute) readValsComponents(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var attributevalue AttributeValue
 		attributevalue, err = readAttributeValue(bytes)
@@ -508,7 +508,7 @@ func (partialattribute *PartialAttribute) readValsComponents(bytes Bytes) (err e
 //        Attribute ::= PartialAttribute(WITH COMPONENTS {
 //             ...,
 //             vals (SIZE(1..MAX))})
-func readAttribute(bytes Bytes) (ret Attribute, err error) {
+func readAttribute(bytes *Bytes) (ret Attribute, err error) {
 	var par PartialAttribute
 	par, err = readPartialAttribute(bytes)
 	if err != nil {
@@ -526,7 +526,7 @@ func readAttribute(bytes Bytes) (ret Attribute, err error) {
 
 //
 //        MatchingRuleId ::= LDAPString
-func readTaggedMatchingRuleId(bytes Bytes, class int, tag int) (matchingruleid MatchingRuleId, err error) {
+func readTaggedMatchingRuleId(bytes *Bytes, class int, tag int) (matchingruleid MatchingRuleId, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readTaggedLDAPString(bytes, class, tag)
 	if err != nil {
@@ -601,17 +601,17 @@ func (m MatchingRuleId) Pointer() *MatchingRuleId { return &m }
 //             matchedDN          LDAPDN,
 //             diagnosticMessage  LDAPString,
 //             referral           [3] Referral OPTIONAL }
-func readTaggedLDAPResult(bytes Bytes, class int, tag int) (ret LDAPResult, err error) {
+func readTaggedLDAPResult(bytes *Bytes, class int, tag int) (ret LDAPResult, err error) {
 	err = bytes.ReadSubBytes(class, tag, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readTaggedLDAPResult:\n%s", err.Error())}
 	}
 	return
 }
-func readLDAPResult(bytes Bytes) (ldapresult LDAPResult, err error) {
+func readLDAPResult(bytes *Bytes) (ldapresult LDAPResult, err error) {
 	return readTaggedLDAPResult(bytes, classUniversal, tagSequence)
 }
-func (ldapresult *LDAPResult) readComponents(bytes Bytes) (err error) {
+func (ldapresult *LDAPResult) readComponents(bytes *Bytes) (err error) {
 	ldapresult.resultCode, err = readENUMERATED(bytes, EnumeratedLDAPResultCode)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -649,7 +649,7 @@ func (ldapresult *LDAPResult) readComponents(bytes Bytes) (err error) {
 
 //
 //        Referral ::= SEQUENCE SIZE (1..MAX) OF uri URI
-func readTaggedReferral(bytes Bytes, class int, tag int) (referral Referral, err error) {
+func readTaggedReferral(bytes *Bytes, class int, tag int) (referral Referral, err error) {
 	err = bytes.ReadSubBytes(class, tag, referral.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readTaggedReferral:\n%s", err.Error())}
@@ -657,7 +657,7 @@ func readTaggedReferral(bytes Bytes, class int, tag int) (referral Referral, err
 	}
 	return
 }
-func (referral *Referral) readComponents(bytes Bytes) (err error) {
+func (referral *Referral) readComponents(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var uri URI
 		uri, err = readURI(bytes)
@@ -678,7 +678,7 @@ func (referral Referral) Pointer() *Referral { return &referral }
 //
 //        URI ::= LDAPString     -- limited to characters permitted in
 //                               -- URIs
-func readURI(bytes Bytes) (uri URI, err error) {
+func readURI(bytes *Bytes) (uri URI, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readLDAPString(bytes)
 	// @TODO: check permitted chars in URI
@@ -692,7 +692,7 @@ func readURI(bytes Bytes) (uri URI, err error) {
 
 //
 //        Controls ::= SEQUENCE OF control Control
-func readTaggedControls(bytes Bytes, class int, tag int) (controls Controls, err error) {
+func readTaggedControls(bytes *Bytes, class int, tag int) (controls Controls, err error) {
 	err = bytes.ReadSubBytes(class, tag, controls.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readTaggedControls:\n%s", err.Error())}
@@ -700,7 +700,7 @@ func readTaggedControls(bytes Bytes, class int, tag int) (controls Controls, err
 	}
 	return
 }
-func (controls *Controls) readComponents(bytes Bytes) (err error) {
+func (controls *Controls) readComponents(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var control Control
 		control, err = readControl(bytes)
@@ -719,7 +719,7 @@ func (controls Controls) Pointer() *Controls { return &controls }
 //             controlType             LDAPOID,
 //             criticality             BOOLEAN DEFAULT FALSE,
 //             controlValue            OCTET STRING OPTIONAL }
-func readControl(bytes Bytes) (control Control, err error) {
+func readControl(bytes *Bytes) (control Control, err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, control.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readControl:\n%s", err.Error())}
@@ -727,7 +727,7 @@ func readControl(bytes Bytes) (control Control, err error) {
 	}
 	return
 }
-func (control *Control) readComponents(bytes Bytes) (err error) {
+func (control *Control) readComponents(bytes *Bytes) (err error) {
 	control.controlType, err = readLDAPOID(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -778,7 +778,7 @@ func (control *Control) readComponents(bytes Bytes) (err error) {
 //             version                 INTEGER (1 ..  127),
 //             name                    LDAPDN,
 //             authentication          AuthenticationChoice }
-func readBindRequest(bytes Bytes) (bindrequest BindRequest, err error) {
+func readBindRequest(bytes *Bytes) (bindrequest BindRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagBindRequest, bindrequest.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readBindRequest:\n%s", err.Error())}
@@ -786,7 +786,7 @@ func readBindRequest(bytes Bytes) (bindrequest BindRequest, err error) {
 	}
 	return
 }
-func (bindrequest *BindRequest) readComponents(bytes Bytes) (err error) {
+func (bindrequest *BindRequest) readComponents(bytes *Bytes) (err error) {
 	bindrequest.version, err = readINTEGER(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -815,7 +815,7 @@ func (bindrequest *BindRequest) readComponents(bytes Bytes) (err error) {
 //                                     -- 1 and 2 reserved
 //             sasl                    [3] SaslCredentials,
 //             ...  }
-func readAuthenticationChoice(bytes Bytes) (ret AuthenticationChoice, err error) {
+func readAuthenticationChoice(bytes *Bytes) (ret AuthenticationChoice, err error) {
 	tagAndLength, err := bytes.PreviewTagAndLength()
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readAuthenticationChoice:\n%s", err.Error())}
@@ -847,7 +847,7 @@ func readAuthenticationChoice(bytes Bytes) (ret AuthenticationChoice, err error)
 //             mechanism               LDAPString,
 //             credentials             OCTET STRING OPTIONAL }
 //
-func readSaslCredentials(bytes Bytes) (authentication SaslCredentials, err error) {
+func readSaslCredentials(bytes *Bytes) (authentication SaslCredentials, err error) {
 	authentication = SaslCredentials{}
 	err = bytes.ReadSubBytes(classContextSpecific, TagAuthenticationChoiceSaslCredentials, authentication.readComponents)
 	if err != nil {
@@ -856,7 +856,7 @@ func readSaslCredentials(bytes Bytes) (authentication SaslCredentials, err error
 	}
 	return
 }
-func (authentication *SaslCredentials) readComponents(bytes Bytes) (err error) {
+func (authentication *SaslCredentials) readComponents(bytes *Bytes) (err error) {
 	authentication.mechanism, err = readLDAPString(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -877,7 +877,7 @@ func (authentication *SaslCredentials) readComponents(bytes Bytes) (err error) {
 //        BindResponse ::= [APPLICATION 1] SEQUENCE {
 //             COMPONENTS OF LDAPResult,
 //             serverSaslCreds    [7] OCTET STRING OPTIONAL }
-func readBindResponse(bytes Bytes) (bindresponse BindResponse, err error) {
+func readBindResponse(bytes *Bytes) (bindresponse BindResponse, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagBindResponse, bindresponse.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readBindResponse:\n%s", err.Error())}
@@ -886,7 +886,7 @@ func readBindResponse(bytes Bytes) (bindresponse BindResponse, err error) {
 	return
 }
 
-func (bindresponse *BindResponse) readComponents(bytes Bytes) (err error) {
+func (bindresponse *BindResponse) readComponents(bytes *Bytes) (err error) {
 	bindresponse.LDAPResult.readComponents(bytes)
 	if bytes.HasMoreData() {
 		var tag TagAndLength
@@ -910,7 +910,7 @@ func (bindresponse *BindResponse) readComponents(bytes Bytes) (err error) {
 
 //
 //        UnbindRequest ::= [APPLICATION 2] NULL
-func readUnbindRequest(bytes Bytes) (unbindrequest UnbindRequest, err error) {
+func readUnbindRequest(bytes *Bytes) (unbindrequest UnbindRequest, err error) {
 	var tagAndLength TagAndLength
 	tagAndLength, err = bytes.ParseTagAndLength()
 	if err != nil {
@@ -947,7 +947,7 @@ func readUnbindRequest(bytes Bytes) (unbindrequest UnbindRequest, err error) {
 //             typesOnly       BOOLEAN,
 //             filter          Filter,
 //             attributes      AttributeSelection }
-func readSearchRequest(bytes Bytes) (searchrequest SearchRequest, err error) {
+func readSearchRequest(bytes *Bytes) (searchrequest SearchRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagSearchRequest, searchrequest.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readSearchRequest:\n%s", err.Error())}
@@ -955,7 +955,7 @@ func readSearchRequest(bytes Bytes) (searchrequest SearchRequest, err error) {
 	}
 	return
 }
-func (searchrequest *SearchRequest) readComponents(bytes Bytes) (err error) {
+func (searchrequest *SearchRequest) readComponents(bytes *Bytes) (err error) {
 	searchrequest.baseObject, err = readLDAPDN(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1003,7 +1003,7 @@ func (searchrequest *SearchRequest) readComponents(bytes Bytes) (err error) {
 //        AttributeSelection ::= SEQUENCE OF selector LDAPString
 //                       -- The LDAPString is constrained to
 //                       -- <attributeSelector> in Section 4.5.1.8
-func readAttributeSelection(bytes Bytes) (attributeSelection AttributeSelection, err error) {
+func readAttributeSelection(bytes *Bytes) (attributeSelection AttributeSelection, err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, attributeSelection.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readAttributeSelection:\n%s", err.Error())}
@@ -1011,7 +1011,7 @@ func readAttributeSelection(bytes Bytes) (attributeSelection AttributeSelection,
 	}
 	return
 }
-func (attributeSelection *AttributeSelection) readComponents(bytes Bytes) (err error) {
+func (attributeSelection *AttributeSelection) readComponents(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var ldapstring LDAPString
 		ldapstring, err = readLDAPString(bytes)
@@ -1047,7 +1047,7 @@ func (attributeSelection *AttributeSelection) readComponents(bytes Bytes) (err e
 //             approxMatch     [8] AttributeValueAssertion,
 //             extensibleMatch [9] MatchingRuleAssertion,
 //             ...  }
-func readFilter(bytes Bytes) (filter Filter, err error) {
+func readFilter(bytes *Bytes) (filter Filter, err error) {
 	var tagAndLength TagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()
 	if err != nil {
@@ -1092,7 +1092,7 @@ func readFilter(bytes Bytes) (filter Filter, err error) {
 }
 
 //             and             [0] SET SIZE (1..MAX) OF filter Filter,
-func readFilterAnd(bytes Bytes) (filterand FilterAnd, err error) {
+func readFilterAnd(bytes *Bytes) (filterand FilterAnd, err error) {
 	err = bytes.ReadSubBytes(classContextSpecific, TagFilterAnd, filterand.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readFilterAnd:\n%s", err.Error())}
@@ -1100,7 +1100,7 @@ func readFilterAnd(bytes Bytes) (filterand FilterAnd, err error) {
 	}
 	return
 }
-func (filterand *FilterAnd) readComponents(bytes Bytes) (err error) {
+func (filterand *FilterAnd) readComponents(bytes *Bytes) (err error) {
 	count := 0
 	for bytes.HasMoreData() {
 		count++
@@ -1120,7 +1120,7 @@ func (filterand *FilterAnd) readComponents(bytes Bytes) (err error) {
 }
 
 //             or              [1] SET SIZE (1..MAX) OF filter Filter,
-func readFilterOr(bytes Bytes) (filteror FilterOr, err error) {
+func readFilterOr(bytes *Bytes) (filteror FilterOr, err error) {
 	err = bytes.ReadSubBytes(classContextSpecific, TagFilterOr, filteror.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readFilterOr:\n%s", err.Error())}
@@ -1129,7 +1129,7 @@ func readFilterOr(bytes Bytes) (filteror FilterOr, err error) {
 	return
 }
 
-func (filteror *FilterOr) readComponents(bytes Bytes) (err error) {
+func (filteror *FilterOr) readComponents(bytes *Bytes) (err error) {
 	count := 0
 	for bytes.HasMoreData() {
 		count++
@@ -1149,7 +1149,7 @@ func (filteror *FilterOr) readComponents(bytes Bytes) (err error) {
 }
 
 //             not             [2] Filter,
-func readFilterNot(bytes Bytes) (filternot FilterNot, err error) {
+func readFilterNot(bytes *Bytes) (filternot FilterNot, err error) {
 	err = bytes.ReadSubBytes(classContextSpecific, TagFilterNot, filternot.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readFilterNot:\n%s", err.Error())}
@@ -1158,7 +1158,7 @@ func readFilterNot(bytes Bytes) (filternot FilterNot, err error) {
 	return
 }
 
-func (filternot *FilterNot) readComponents(bytes Bytes) (err error) {
+func (filternot *FilterNot) readComponents(bytes *Bytes) (err error) {
 	filternot.Filter, err = readFilter(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1168,7 +1168,7 @@ func (filternot *FilterNot) readComponents(bytes Bytes) (err error) {
 }
 
 //             equalityMatch   [3] AttributeValueAssertion,
-func readFilterEqualityMatch(bytes Bytes) (ret FilterEqualityMatch, err error) {
+func readFilterEqualityMatch(bytes *Bytes) (ret FilterEqualityMatch, err error) {
 	var attributevalueassertion AttributeValueAssertion
 	attributevalueassertion, err = readTaggedAttributeValueAssertion(bytes, classContextSpecific, TagFilterEqualityMatch)
 	if err != nil {
@@ -1180,7 +1180,7 @@ func readFilterEqualityMatch(bytes Bytes) (ret FilterEqualityMatch, err error) {
 }
 
 //             substrings      [4] SubstringFilter,
-func readFilterSubstrings(bytes Bytes) (filtersubstrings FilterSubstrings, err error) {
+func readFilterSubstrings(bytes *Bytes) (filtersubstrings FilterSubstrings, err error) {
 	var substringfilter SubstringFilter
 	substringfilter, err = readTaggedSubstringFilter(bytes, classContextSpecific, TagFilterSubstrings)
 	if err != nil {
@@ -1192,7 +1192,7 @@ func readFilterSubstrings(bytes Bytes) (filtersubstrings FilterSubstrings, err e
 }
 
 //             greaterOrEqual  [5] AttributeValueAssertion,
-func readFilterGreaterOrEqual(bytes Bytes) (ret FilterGreaterOrEqual, err error) {
+func readFilterGreaterOrEqual(bytes *Bytes) (ret FilterGreaterOrEqual, err error) {
 	var attributevalueassertion AttributeValueAssertion
 	attributevalueassertion, err = readTaggedAttributeValueAssertion(bytes, classContextSpecific, TagFilterGreaterOrEqual)
 	if err != nil {
@@ -1204,7 +1204,7 @@ func readFilterGreaterOrEqual(bytes Bytes) (ret FilterGreaterOrEqual, err error)
 }
 
 //             lessOrEqual     [6] AttributeValueAssertion,
-func readFilterLessOrEqual(bytes Bytes) (ret FilterLessOrEqual, err error) {
+func readFilterLessOrEqual(bytes *Bytes) (ret FilterLessOrEqual, err error) {
 	var attributevalueassertion AttributeValueAssertion
 	attributevalueassertion, err = readTaggedAttributeValueAssertion(bytes, classContextSpecific, TagFilterLessOrEqual)
 	if err != nil {
@@ -1216,7 +1216,7 @@ func readFilterLessOrEqual(bytes Bytes) (ret FilterLessOrEqual, err error) {
 }
 
 //             present         [7] AttributeDescription,
-func readFilterPresent(bytes Bytes) (ret FilterPresent, err error) {
+func readFilterPresent(bytes *Bytes) (ret FilterPresent, err error) {
 	var attributedescription AttributeDescription
 	attributedescription, err = readTaggedAttributeDescription(bytes, classContextSpecific, TagFilterPresent)
 	if err != nil {
@@ -1228,7 +1228,7 @@ func readFilterPresent(bytes Bytes) (ret FilterPresent, err error) {
 }
 
 //             approxMatch     [8] AttributeValueAssertion,
-func readFilterApproxMatch(bytes Bytes) (ret FilterApproxMatch, err error) {
+func readFilterApproxMatch(bytes *Bytes) (ret FilterApproxMatch, err error) {
 	var attributevalueassertion AttributeValueAssertion
 	attributevalueassertion, err = readTaggedAttributeValueAssertion(bytes, classContextSpecific, TagFilterApproxMatch)
 	if err != nil {
@@ -1240,7 +1240,7 @@ func readFilterApproxMatch(bytes Bytes) (ret FilterApproxMatch, err error) {
 }
 
 //             extensibleMatch [9] MatchingRuleAssertion,
-func readFilterExtensibleMatch(bytes Bytes) (filterextensiblematch FilterExtensibleMatch, err error) {
+func readFilterExtensibleMatch(bytes *Bytes) (filterextensiblematch FilterExtensibleMatch, err error) {
 	var matchingruleassertion MatchingRuleAssertion
 	matchingruleassertion, err = readTaggedMatchingRuleAssertion(bytes, classContextSpecific, TagFilterExtensibleMatch)
 	if err != nil {
@@ -1259,7 +1259,7 @@ func readFilterExtensibleMatch(bytes Bytes) (filterextensiblematch FilterExtensi
 //                  any     [1] AssertionValue,
 //                  final   [2] AssertionValue } -- can occur at most once
 //             }
-func readTaggedSubstringFilter(bytes Bytes, class int, tag int) (substringfilter SubstringFilter, err error) {
+func readTaggedSubstringFilter(bytes *Bytes, class int, tag int) (substringfilter SubstringFilter, err error) {
 	err = bytes.ReadSubBytes(class, tag, substringfilter.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readTaggedSubstringFilter:\n%s", err.Error())}
@@ -1267,7 +1267,7 @@ func readTaggedSubstringFilter(bytes Bytes, class int, tag int) (substringfilter
 	}
 	return
 }
-func (substringfilter *SubstringFilter) readComponents(bytes Bytes) (err error) {
+func (substringfilter *SubstringFilter) readComponents(bytes *Bytes) (err error) {
 	substringfilter.type_, err = readAttributeDescription(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1281,7 +1281,7 @@ func (substringfilter *SubstringFilter) readComponents(bytes Bytes) (err error) 
 	return
 }
 
-func (substringfilter *SubstringFilter) readSubstrings(bytes Bytes) (err error) {
+func (substringfilter *SubstringFilter) readSubstrings(bytes *Bytes) (err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, substringfilter.readSubstringsComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readSubstrings:\n%s", err.Error())}
@@ -1290,7 +1290,7 @@ func (substringfilter *SubstringFilter) readSubstrings(bytes Bytes) (err error) 
 	return
 }
 
-func (substringfilter *SubstringFilter) readSubstringsComponents(bytes Bytes) (err error) {
+func (substringfilter *SubstringFilter) readSubstringsComponents(bytes *Bytes) (err error) {
 	var foundInitial = 0
 	var foundFinal = 0
 	var tagAndLength TagAndLength
@@ -1351,7 +1351,7 @@ func (substringfilter *SubstringFilter) readSubstringsComponents(bytes Bytes) (e
 //             type            [2] AttributeDescription OPTIONAL,
 //             matchValue      [3] AssertionValue,
 //             dnAttributes    [4] BOOLEAN DEFAULT FALSE }
-func readTaggedMatchingRuleAssertion(bytes Bytes, class int, tag int) (ret MatchingRuleAssertion, err error) {
+func readTaggedMatchingRuleAssertion(bytes *Bytes, class int, tag int) (ret MatchingRuleAssertion, err error) {
 	err = bytes.ReadSubBytes(class, tag, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readTaggedMatchingRuleAssertion:\n%s", err.Error())}
@@ -1359,7 +1359,7 @@ func readTaggedMatchingRuleAssertion(bytes Bytes, class int, tag int) (ret Match
 	}
 	return
 }
-func (matchingruleassertion *MatchingRuleAssertion) readComponents(bytes Bytes) (err error) {
+func (matchingruleassertion *MatchingRuleAssertion) readComponents(bytes *Bytes) (err error) {
 	err = matchingruleassertion.readMatchingRule(bytes)
 	if err != nil {
 		return LdapError{fmt.Sprintf("readComponents: %s", err.Error())}
@@ -1378,7 +1378,7 @@ func (matchingruleassertion *MatchingRuleAssertion) readComponents(bytes Bytes) 
 	}
 	return
 }
-func (matchingruleassertion *MatchingRuleAssertion) readMatchingRule(bytes Bytes) (err error) {
+func (matchingruleassertion *MatchingRuleAssertion) readMatchingRule(bytes *Bytes) (err error) {
 	var tagAndLength TagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()
 	if err != nil {
@@ -1394,7 +1394,7 @@ func (matchingruleassertion *MatchingRuleAssertion) readMatchingRule(bytes Bytes
 	}
 	return
 }
-func (matchingruleassertion *MatchingRuleAssertion) readType(bytes Bytes) (err error) {
+func (matchingruleassertion *MatchingRuleAssertion) readType(bytes *Bytes) (err error) {
 	var tagAndLength TagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()
 	if err != nil {
@@ -1415,7 +1415,7 @@ func (matchingruleassertion *MatchingRuleAssertion) readType(bytes Bytes) (err e
 //        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
 //             objectName      LDAPDN,
 //             attributes      PartialAttributeList }
-func readSearchResultEntry(bytes Bytes) (searchresultentry SearchResultEntry, err error) {
+func readSearchResultEntry(bytes *Bytes) (searchresultentry SearchResultEntry, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagSearchResultEntry, searchresultentry.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readSearchResultEntry:\n%s", err.Error())}
@@ -1423,7 +1423,7 @@ func readSearchResultEntry(bytes Bytes) (searchresultentry SearchResultEntry, er
 	}
 	return
 }
-func (searchresultentry *SearchResultEntry) readComponents(bytes Bytes) (err error) {
+func (searchresultentry *SearchResultEntry) readComponents(bytes *Bytes) (err error) {
 	searchresultentry.objectName, err = readLDAPDN(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1440,7 +1440,7 @@ func (searchresultentry *SearchResultEntry) readComponents(bytes Bytes) (err err
 //
 //        PartialAttributeList ::= SEQUENCE OF
 //                             partialAttribute PartialAttribute
-func readPartialAttributeList(bytes Bytes) (ret PartialAttributeList, err error) {
+func readPartialAttributeList(bytes *Bytes) (ret PartialAttributeList, err error) {
 	ret = PartialAttributeList(make([]PartialAttribute, 0, 10))
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, ret.readComponents)
 	if err != nil {
@@ -1449,7 +1449,7 @@ func readPartialAttributeList(bytes Bytes) (ret PartialAttributeList, err error)
 	}
 	return
 }
-func (partialattributelist *PartialAttributeList) readComponents(bytes Bytes) (err error) {
+func (partialattributelist *PartialAttributeList) readComponents(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var partialattribute PartialAttribute
 		partialattribute, err = readPartialAttribute(bytes)
@@ -1465,7 +1465,7 @@ func (partialattributelist *PartialAttributeList) readComponents(bytes Bytes) (e
 //
 //        SearchResultReference ::= [APPLICATION 19] SEQUENCE
 //                                  SIZE (1..MAX) OF uri URI
-func readSearchResultReference(bytes Bytes) (ret SearchResultReference, err error) {
+func readSearchResultReference(bytes *Bytes) (ret SearchResultReference, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagSearchResultReference, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readSearchResultReference:\n%s", err.Error())}
@@ -1473,7 +1473,7 @@ func readSearchResultReference(bytes Bytes) (ret SearchResultReference, err erro
 	}
 	return
 }
-func (s *SearchResultReference) readComponents(bytes Bytes) (err error) {
+func (s *SearchResultReference) readComponents(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var uri URI
 		uri, err = readURI(bytes)
@@ -1492,7 +1492,7 @@ func (s *SearchResultReference) readComponents(bytes Bytes) (err error) {
 
 //
 //        SearchResultDone ::= [APPLICATION 5] LDAPResult
-func readSearchResultDone(bytes Bytes) (ret SearchResultDone, err error) {
+func readSearchResultDone(bytes *Bytes) (ret SearchResultDone, err error) {
 	var ldapresult LDAPResult
 	ldapresult, err = readTaggedLDAPResult(bytes, classApplication, TagSearchResultDone)
 	if err != nil {
@@ -1513,7 +1513,7 @@ func readSearchResultDone(bytes Bytes) (ret SearchResultDone, err error) {
 //                       replace (2),
 //                       ...  },
 //                  modification    PartialAttribute } }
-func readModifyRequest(bytes Bytes) (ret ModifyRequest, err error) {
+func readModifyRequest(bytes *Bytes) (ret ModifyRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagModifyRequest, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readModifyRequest:\n%s", err.Error())}
@@ -1521,7 +1521,7 @@ func readModifyRequest(bytes Bytes) (ret ModifyRequest, err error) {
 	}
 	return
 }
-func (m *ModifyRequest) readComponents(bytes Bytes) (err error) {
+func (m *ModifyRequest) readComponents(bytes *Bytes) (err error) {
 	m.object, err = readLDAPDN(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1530,7 +1530,7 @@ func (m *ModifyRequest) readComponents(bytes Bytes) (err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, m.readChanges)
 	return
 }
-func (m *ModifyRequest) readChanges(bytes Bytes) (err error) {
+func (m *ModifyRequest) readChanges(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var c ModifyRequestChange
 		c, err = readModifyRequestChange(bytes)
@@ -1542,7 +1542,7 @@ func (m *ModifyRequest) readChanges(bytes Bytes) (err error) {
 	}
 	return
 }
-func readModifyRequestChange(bytes Bytes) (ret ModifyRequestChange, err error) {
+func readModifyRequestChange(bytes *Bytes) (ret ModifyRequestChange, err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readModifyRequestChange:\n%s", err.Error())}
@@ -1550,7 +1550,7 @@ func readModifyRequestChange(bytes Bytes) (ret ModifyRequestChange, err error) {
 	}
 	return
 }
-func (m *ModifyRequestChange) readComponents(bytes Bytes) (err error) {
+func (m *ModifyRequestChange) readComponents(bytes *Bytes) (err error) {
 	m.operation, err = readENUMERATED(bytes, EnumeratedModifyRequestChangeOpration)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1566,7 +1566,7 @@ func (m *ModifyRequestChange) readComponents(bytes Bytes) (err error) {
 
 //
 //        ModifyResponse ::= [APPLICATION 7] LDAPResult
-func readModifyResponse(bytes Bytes) (ret ModifyResponse, err error) {
+func readModifyResponse(bytes *Bytes) (ret ModifyResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagModifyResponse)
 	if err != nil {
@@ -1592,7 +1592,7 @@ func readModifyResponse(bytes Bytes) (ret ModifyResponse, err error) {
 //        AddRequest ::= [APPLICATION 8] SEQUENCE {
 //             entry           LDAPDN,
 //             attributes      AttributeList }
-func readAddRequest(bytes Bytes) (ret AddRequest, err error) {
+func readAddRequest(bytes *Bytes) (ret AddRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagAddRequest, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readAddRequest:\n%s", err.Error())}
@@ -1600,7 +1600,7 @@ func readAddRequest(bytes Bytes) (ret AddRequest, err error) {
 	}
 	return
 }
-func (req *AddRequest) readComponents(bytes Bytes) (err error) {
+func (req *AddRequest) readComponents(bytes *Bytes) (err error) {
 	req.entry, err = readLDAPDN(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1616,7 +1616,7 @@ func (req *AddRequest) readComponents(bytes Bytes) (err error) {
 
 //
 //        AttributeList ::= SEQUENCE OF attribute Attribute
-func readAttributeList(bytes Bytes) (ret AttributeList, err error) {
+func readAttributeList(bytes *Bytes) (ret AttributeList, err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readAttributeList:\n%s", err.Error())}
@@ -1624,7 +1624,7 @@ func readAttributeList(bytes Bytes) (ret AttributeList, err error) {
 	}
 	return
 }
-func (list *AttributeList) readComponents(bytes Bytes) (err error) {
+func (list *AttributeList) readComponents(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var attr Attribute
 		attr, err = readAttribute(bytes)
@@ -1639,7 +1639,7 @@ func (list *AttributeList) readComponents(bytes Bytes) (err error) {
 
 //
 //        AddResponse ::= [APPLICATION 9] LDAPResult
-func readAddResponse(bytes Bytes) (ret AddResponse, err error) {
+func readAddResponse(bytes *Bytes) (ret AddResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagAddResponse)
 	if err != nil {
@@ -1652,7 +1652,7 @@ func readAddResponse(bytes Bytes) (ret AddResponse, err error) {
 
 //
 //        DelRequest ::= [APPLICATION 10] LDAPDN
-func readDelRequest(bytes Bytes) (ret DelRequest, err error) {
+func readDelRequest(bytes *Bytes) (ret DelRequest, err error) {
 	var res LDAPDN
 	res, err = readTaggedLDAPDN(bytes, classApplication, TagDelRequest)
 	if err != nil {
@@ -1665,7 +1665,7 @@ func readDelRequest(bytes Bytes) (ret DelRequest, err error) {
 
 //
 //        DelResponse ::= [APPLICATION 11] LDAPResult
-func readDelResponse(bytes Bytes) (ret DelResponse, err error) {
+func readDelResponse(bytes *Bytes) (ret DelResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagDelResponse)
 	if err != nil {
@@ -1682,7 +1682,7 @@ func readDelResponse(bytes Bytes) (ret DelResponse, err error) {
 //             newrdn          RelativeLDAPDN,
 //             deleteoldrdn    BOOLEAN,
 //             newSuperior     [0] LDAPDN OPTIONAL }
-func readModifyDNRequest(bytes Bytes) (ret ModifyDNRequest, err error) {
+func readModifyDNRequest(bytes *Bytes) (ret ModifyDNRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagModifyDNRequest, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readModifyDNRequest:\n%s", err.Error())}
@@ -1690,7 +1690,7 @@ func readModifyDNRequest(bytes Bytes) (ret ModifyDNRequest, err error) {
 	}
 	return
 }
-func (req *ModifyDNRequest) readComponents(bytes Bytes) (err error) {
+func (req *ModifyDNRequest) readComponents(bytes *Bytes) (err error) {
 	req.entry, err = readLDAPDN(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1728,7 +1728,7 @@ func (req *ModifyDNRequest) readComponents(bytes Bytes) (err error) {
 
 //
 //        ModifyDNResponse ::= [APPLICATION 13] LDAPResult
-func readModifyDNResponse(bytes Bytes) (ret ModifyDNResponse, err error) {
+func readModifyDNResponse(bytes *Bytes) (ret ModifyDNResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagModifyDNResponse)
 	if err != nil {
@@ -1743,7 +1743,7 @@ func readModifyDNResponse(bytes Bytes) (ret ModifyDNResponse, err error) {
 //        CompareRequest ::= [APPLICATION 14] SEQUENCE {
 //             entry           LDAPDN,
 //             ava             AttributeValueAssertion }
-func readCompareRequest(bytes Bytes) (ret CompareRequest, err error) {
+func readCompareRequest(bytes *Bytes) (ret CompareRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagCompareRequest, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readCompareRequest:\n%s", err.Error())}
@@ -1751,7 +1751,7 @@ func readCompareRequest(bytes Bytes) (ret CompareRequest, err error) {
 	}
 	return
 }
-func (req *CompareRequest) readComponents(bytes Bytes) (err error) {
+func (req *CompareRequest) readComponents(bytes *Bytes) (err error) {
 	req.entry, err = readLDAPDN(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1767,7 +1767,7 @@ func (req *CompareRequest) readComponents(bytes Bytes) (err error) {
 
 //
 //        CompareResponse ::= [APPLICATION 15] LDAPResult
-func readCompareResponse(bytes Bytes) (ret CompareResponse, err error) {
+func readCompareResponse(bytes *Bytes) (ret CompareResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagCompareResponse)
 	if err != nil {
@@ -1780,7 +1780,7 @@ func readCompareResponse(bytes Bytes) (ret CompareResponse, err error) {
 
 //
 //        AbandonRequest ::= [APPLICATION 16] MessageID
-func readAbandonRequest(bytes Bytes) (ret AbandonRequest, err error) {
+func readAbandonRequest(bytes *Bytes) (ret AbandonRequest, err error) {
 	var mes MessageID
 	mes, err = readTaggedMessageID(bytes, classApplication, TagAbandonRequest)
 	if err != nil {
@@ -1795,7 +1795,7 @@ func readAbandonRequest(bytes Bytes) (ret AbandonRequest, err error) {
 //        ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
 //             requestName      [0] LDAPOID,
 //             requestValue     [1] OCTET STRING OPTIONAL }
-func readExtendedRequest(bytes Bytes) (ret ExtendedRequest, err error) {
+func readExtendedRequest(bytes *Bytes) (ret ExtendedRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagExtendedRequest, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readExtendedRequest:\n%s", err.Error())}
@@ -1803,7 +1803,7 @@ func readExtendedRequest(bytes Bytes) (ret ExtendedRequest, err error) {
 	}
 	return
 }
-func (req *ExtendedRequest) readComponents(bytes Bytes) (err error) {
+func (req *ExtendedRequest) readComponents(bytes *Bytes) (err error) {
 	req.requestName, err = readTaggedLDAPOID(bytes, classContextSpecific, TagExtendedRequestName)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
@@ -1834,7 +1834,7 @@ func (req *ExtendedRequest) readComponents(bytes Bytes) (err error) {
 //             COMPONENTS OF LDAPResult,
 //             responseName     [10] LDAPOID OPTIONAL,
 //             responseValue    [11] OCTET STRING OPTIONAL }
-func readExtendedResponse(bytes Bytes) (ret ExtendedResponse, err error) {
+func readExtendedResponse(bytes *Bytes) (ret ExtendedResponse, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagExtendedResponse, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readExtendedResponse:\n%s", err.Error())}
@@ -1842,7 +1842,7 @@ func readExtendedResponse(bytes Bytes) (ret ExtendedResponse, err error) {
 	}
 	return
 }
-func (res *ExtendedResponse) readComponents(bytes Bytes) (err error) {
+func (res *ExtendedResponse) readComponents(bytes *Bytes) (err error) {
 	res.LDAPResult.readComponents(bytes)
 	if bytes.HasMoreData() {
 		var tag TagAndLength
@@ -1885,7 +1885,7 @@ func (res *ExtendedResponse) readComponents(bytes Bytes) (err error) {
 //        IntermediateResponse ::= [APPLICATION 25] SEQUENCE {
 //             responseName     [0] LDAPOID OPTIONAL,
 //             responseValue    [1] OCTET STRING OPTIONAL }
-func readIntermediateResponse(bytes Bytes) (ret IntermediateResponse, err error) {
+func readIntermediateResponse(bytes *Bytes) (ret IntermediateResponse, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagIntermediateResponse, ret.readComponents)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readIntermediateResponse:\n%s", err.Error())}
@@ -1893,7 +1893,7 @@ func readIntermediateResponse(bytes Bytes) (ret IntermediateResponse, err error)
 	}
 	return
 }
-func (res *IntermediateResponse) readComponents(bytes Bytes) (err error) {
+func (res *IntermediateResponse) readComponents(bytes *Bytes) (err error) {
 	if bytes.HasMoreData() {
 		var tag TagAndLength
 		tag, err = bytes.PreviewTagAndLength()

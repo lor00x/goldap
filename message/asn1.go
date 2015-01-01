@@ -195,6 +195,14 @@ func sizeBool(b bool) int {
 	return 1
 }
 
+func writeBool(bytes *Bytes, b bool) int {
+	if b == false {
+		return bytes.writeBytes([]byte{0x00})
+	} else {
+		return bytes.writeBytes([]byte{0xff})
+	}
+}
+
 // INTEGER
 
 // parseInt64 treats the given bytes as a big-endian, signed integer and
@@ -216,24 +224,19 @@ func parseInt64(bytes []byte) (ret int64, err error) {
 	return
 }
 
-func int64Length(i int64) (numBytes int) {
-	numBytes = 1
-
-	for i > 127 {
-		numBytes++
-		i >>= 8
+func sizeInt64(i int64) (size int) {
+	for ; i != 0 || size == 0; i >>= 8 {
+		size++
 	}
-
-	for i < -128 {
-		numBytes++
-		i >>= 8
-	}
-
 	return
 }
 
-func sizeInt64(i int64) int {
-	return int64Length(i)
+func writeInt64(bytes *Bytes, i int64) (size int) {
+	for ; i != 0 || size == 0; i >>= 8 { // Write at least one byte even if the value is 0
+		bytes.writeBytes([]byte{byte(i)})
+		size++
+	}
+	return
 }
 
 // parseInt treats the given bytes as a big-endian, signed integer and returns
@@ -250,7 +253,11 @@ func parseInt32(bytes []byte) (int32, error) {
 }
 
 func sizeInt32(i int32) int {
-	return int64Length(int64(i))
+	return sizeInt64(int64(i))
+}
+
+func writeInt32(bytes *Bytes, i int32) int {
+	return writeInt64(bytes, int64(i))
 }
 
 var bigOne = big.NewInt(1)
@@ -442,6 +449,21 @@ func sizeBase128Int(value int) (size int) {
 	return
 }
 
+// Write start as the end of the slice and goes back
+// We assume we have enough size
+func writeBase128Int(bytes *Bytes, value int) (size int) {
+	for ; value > 0 || size == 0; value >>= 7 { // Write at least one byte even if the value is 0
+		// Get the 7 lowest bits
+		b := byte(value) & 0x7f
+		if value < 128 {
+			b |= 0x80
+		}
+		bytes.writeBytes([]byte{b})
+		size++
+	}
+	return
+}
+
 // // UTCTime
 
 // func parseUTCTime(bytes []byte) (ret time.Time, err error) {
@@ -526,17 +548,22 @@ func sizeBase128Int(value int) (size int) {
 func parseUTF8String(bytes []byte) (ret string, err error) {
 	return string(bytes), nil
 }
-
 func sizeUTF8String(s string) int {
 	return len(s)
 }
+func writeUTF8String(bytes *Bytes, s string) int {
+	return bytes.writeString(s)
+}
 
+// Octet string
 func parseOctetString(bytes []byte) (ret []byte, err error) {
 	return bytes, nil
 }
-
 func sizeOctetString(s []byte) int {
 	return len(s)
+}
+func writeOctetString(bytes *Bytes, s []byte) int {
+	return bytes.writeBytes(s)
 }
 
 // A RawValue represents an undecoded ASN.1 object.
@@ -678,6 +705,34 @@ func sizeTagAndLength(tag int, length int) (size int) {
 			length >>= 8
 		}
 	}
+	return
+}
+
+func writeTagAndLength(bytes *Bytes, t TagAndLength) (size int) {
+	// We are writing backward, so write the length bytes first
+	if t.Length < 0 {
+		panic("Can't have a negative length")
+
+	} else if t.Length >= 128 {
+		lengthBytes := writeInt64(bytes, int64(t.Length))
+		bytes.writeBytes([]byte{byte(0x80 | byte(lengthBytes))})
+		size += lengthBytes + 1
+
+	} else if t.Length < 128 {
+		size += bytes.writeBytes([]byte{byte(t.Length)})
+	}
+	// Then write the tag
+	b := uint8(t.Class) << 6
+	if t.IsCompound {
+		b |= 0x20
+	}
+	if t.Tag >= 31 {
+		b |= 0x1f
+		size += writeBase128Int(bytes, t.Tag)
+	} else {
+		b |= uint8(t.Tag)
+	}
+	size += bytes.writeBytes([]byte{byte(b)})
 	return
 }
 
