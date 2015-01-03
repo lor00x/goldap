@@ -28,14 +28,6 @@ func (e ENUMERATED) writeTagged(bytes *Bytes, class int, tag int) int {
 	return bytes.WritePrimitiveSubBytes(class, tag, e)
 }
 
-func (s UTF8STRING) write(bytes *Bytes) int {
-	return bytes.WritePrimitiveSubBytes(classUniversal, tagUTF8String, s)
-}
-
-func (s UTF8STRING) writeTagged(bytes *Bytes, class int, tag int) int {
-	return bytes.WritePrimitiveSubBytes(class, tag, s)
-}
-
 func (o OCTETSTRING) write(bytes *Bytes) int {
 	return bytes.WritePrimitiveSubBytes(classUniversal, tagOctetString, o)
 }

@@ -88,17 +88,6 @@ func readENUMERATED(bytes *Bytes, allowedValues map[ENUMERATED]string) (ret ENUM
 	return
 }
 
-func readTaggedUTF8STRING(bytes *Bytes, class int, tag int) (ret UTF8STRING, err error) {
-	var value interface{}
-	value, err = bytes.ReadPrimitiveSubBytes(class, tag, tagUTF8String)
-	if err != nil {
-		err = LdapError{fmt.Sprintf("readTaggedUTF8STRING:\n%s", err.Error())}
-		return
-	}
-	ret = UTF8STRING(value.(string))
-	return
-}
-
 func readOCTETSTRING(bytes *Bytes) (ret OCTETSTRING, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(classUniversal, tagOctetString, tagOctetString)
@@ -285,13 +274,13 @@ func readLDAPString(bytes *Bytes) (ldapstring LDAPString, err error) {
 	return readTaggedLDAPString(bytes, classUniversal, tagOctetString)
 }
 func readTaggedLDAPString(bytes *Bytes, class int, tag int) (ldapstring LDAPString, err error) {
-	var utf8string UTF8STRING
-	utf8string, err = readTaggedUTF8STRING(bytes, class, tag)
+	var octetstring OCTETSTRING
+	octetstring, err = readTaggedOCTETSTRING(bytes, class, tag)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readTaggedLDAPString:\n%s", err.Error())}
 		return
 	}
-	ldapstring = LDAPString(utf8string)
+	ldapstring = LDAPString(octetstring)
 	return
 }
 

@@ -24,18 +24,6 @@ func (e ENUMERATED) size() int {
 	return SizePrimitiveSubBytes(tagEnum, e)
 }
 
-func (e ENUMERATED) sizeTagged(tag int) int {
-	return SizePrimitiveSubBytes(tag, e)
-}
-
-func (s UTF8STRING) size() int {
-	return SizePrimitiveSubBytes(tagUTF8String, s)
-}
-
-func (s UTF8STRING) sizeTagged(tag int) int {
-	return SizePrimitiveSubBytes(tag, s)
-}
-
 func (o OCTETSTRING) size() int {
 	return SizePrimitiveSubBytes(tagOctetString, o)
 }

@@ -143,8 +143,6 @@ func (b *Bytes) ReadPrimitiveSubBytes(class int, tag int, typeTag int) (value in
 		value, err = parseInt32(subBytes)
 	case tagEnum:
 		value, err = parseInt32(subBytes)
-	case tagUTF8String:
-		value, err = parseUTF8String(subBytes)
 	case tagOctetString:
 		value, err = parseOctetString(subBytes)
 	default:
@@ -168,8 +166,6 @@ func SizePrimitiveSubBytes(tag int, value interface{}) (size int) {
 		size = sizeInt32(int32(value.(INTEGER)))
 	case ENUMERATED:
 		size = sizeInt32(int32(value.(ENUMERATED)))
-	case UTF8STRING:
-		size = sizeUTF8String(string(value.(UTF8STRING)))
 	case OCTETSTRING:
 		size = sizeOctetString([]byte(string(value.(OCTETSTRING))))
 	default:
@@ -187,8 +183,6 @@ func (b *Bytes) WritePrimitiveSubBytes(class int, tag int, value interface{}) (s
 		size = writeInt32(b, int32(value.(INTEGER)))
 	case ENUMERATED:
 		size = writeInt32(b, int32(value.(ENUMERATED)))
-	case UTF8STRING:
-		size = writeUTF8String(b, string(value.(UTF8STRING)))
 	case OCTETSTRING:
 		size = writeOctetString(b, []byte(string(value.(OCTETSTRING))))
 	default:

@@ -136,24 +136,24 @@ func PrimitiveSubBytesTestData() []PrimitiveSubBytesTestSingleData {
 		{
 			bytes: Bytes{
 				offset: 0,
-				bytes:  []byte{0x0c, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35},
+				bytes:  []byte{0x04, 0x08, 0x43, 0x52, 0x41, 0x4d, 0x2d, 0x4d, 0x44, 0x35},
 			},
 			class:   classUniversal,
-			tag:     tagUTF8String,
-			typeTag: tagUTF8String,
-			value:   "CRAM-MD5",
+			tag:     tagOctetString,
+			typeTag: tagOctetString,
+			value:   []byte("CRAM-MD5"),
 			offset:  10,
 		},
 		// Test 9
 		{
 			bytes: Bytes{
 				offset: 0,
-				bytes:  []byte{0x0c, 0x0d, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c},
+				bytes:  []byte{0x04, 0x0d, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0xe4, 0xb8, 0x96, 0xe7, 0x95, 0x8c},
 			},
 			class:   classUniversal,
-			tag:     tagUTF8String,
-			typeTag: tagUTF8String,
-			value:   "Hello, 世界",
+			tag:     tagOctetString,
+			typeTag: tagOctetString,
+			value:   []byte("Hello, 世界"),
 			offset:  15,
 		},
 		// Test 10

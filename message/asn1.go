@@ -23,10 +23,10 @@ const (
 	// tagBitString   = 3
 	tagOctetString = 4
 	// tagOID         = 6
-	tagEnum       = 10
-	tagUTF8String = 12
-	tagSequence   = 16
-	tagSet        = 17
+	tagEnum = 10
+	// tagUTF8String = 12
+	tagSequence = 16
+	tagSet      = 17
 	// tagPrintableString = 19
 	// tagT61String       = 20
 	// tagIA5String       = 22
@@ -40,9 +40,8 @@ var tagNames = map[int]string{
 	tagInteger:     "INTEGER",
 	tagOctetString: "OCTET STRING",
 	tagEnum:        "ENUM",
-	tagUTF8String:  "UTF8STRING",
-	tagSequence:    "SEQUENCE",
-	tagSet:         "SET",
+	tagSequence: "SEQUENCE",
+	tagSet:      "SET",
 }
 
 const (
@@ -545,15 +544,15 @@ func writeBase128Int(bytes *Bytes, value int) (size int) {
 
 // parseUTF8String parses a ASN.1 UTF8String (raw UTF-8) from the given byte
 // array and returns it.
-func parseUTF8String(bytes []byte) (ret string, err error) {
-	return string(bytes), nil
-}
-func sizeUTF8String(s string) int {
-	return len(s)
-}
-func writeUTF8String(bytes *Bytes, s string) int {
-	return bytes.writeString(s)
-}
+// func parseUTF8String(bytes []byte) (ret string, err error) {
+// 	return string(bytes), nil
+// }
+// func sizeUTF8String(s string) int {
+// 	return len(s)
+// }
+// func writeUTF8String(bytes *Bytes, s string) int {
+// 	return bytes.writeString(s)
+// }
 
 // Octet string
 func parseOctetString(bytes []byte) (ret []byte, err error) {

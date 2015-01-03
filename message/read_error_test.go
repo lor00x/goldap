@@ -315,7 +315,7 @@ readProtocolOp:
 readDelRequest:
 readTaggedLDAPDN:
 readTaggedLDAPString:
-readTaggedUTF8STRING:
+readTaggedOCTETSTRING:
 ReadPrimitiveSubBytes: data truncated: expecting 60 bytes at offset 5 but only 59 bytes are remaining`,
 		},
 
