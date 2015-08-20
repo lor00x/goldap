@@ -1,7 +1,5 @@
 package message
 
-import ()
-
 type OCTETSTRING string
 type INTEGER int32 // In this RFC the max INTEGER value is 2^31 - 1, so int32 is enough
 type BOOLEAN bool
