@@ -1,31 +1,39 @@
 package message
 
-func (l *LDAPOID) String() string {
-	return string(*l)
+import (
+	"errors"
+	"reflect"
+)
+
+func (l LDAPOID) String() string {
+	return string(l)
 }
 
-func (l *LDAPOID) Bytes() []byte {
-	return []byte(*l)
+func (l LDAPOID) Bytes() []byte {
+	return []byte(l)
 }
 
-func (l *OCTETSTRING) String() string {
-	return string(*l)
+func (l OCTETSTRING) String() string {
+	return string(l)
 }
 
-func (l *OCTETSTRING) Bytes() []byte {
-	return []byte(*l)
+func (l OCTETSTRING) Bytes() []byte {
+	return []byte(l)
 }
 
-func (l *INTEGER) Int() int {
-	return int(*l)
+func (l INTEGER) Int() int {
+	return int(l)
+}
+func (l MessageID) Int() int {
+	return int(l)
 }
 
-func (l *ENUMERATED) Int() int {
-	return int(*l)
+func (l ENUMERATED) Int() int {
+	return int(l)
 }
 
-func (l *BOOLEAN) Bool() bool {
-	return bool(*l)
+func (l BOOLEAN) Bool() bool {
+	return bool(l)
 }
 
 func (l *LDAPMessage) MessageID() MessageID {
@@ -39,6 +47,16 @@ func (l *LDAPMessage) Controls() *Controls {
 func (l *LDAPMessage) ProtocolOp() ProtocolOp {
 	return l.protocolOp
 }
+func (l *LDAPMessage) ProtocolOpName() string {
+	return reflect.TypeOf(l.ProtocolOp()).Name()
+}
+func (l *LDAPMessage) ProtocolOpType() int {
+	switch l.protocolOp.(type) {
+	case BindRequest:
+		return TagBindRequest
+	}
+	return 0
+}
 
 func (b *BindRequest) Name() LDAPDN {
 	return b.name
@@ -46,6 +64,20 @@ func (b *BindRequest) Name() LDAPDN {
 
 func (b *BindRequest) Authentication() AuthenticationChoice {
 	return b.authentication
+}
+
+func (b *BindRequest) AuthenticationSimple() OCTETSTRING {
+	return b.Authentication().(OCTETSTRING)
+}
+
+func (b *BindRequest) AuthenticationChoice() string {
+	switch b.Authentication().(type) {
+	case OCTETSTRING:
+		return "simple"
+	case SaslCredentials:
+		return "sasl"
+	}
+	return ""
 }
 
 func (e *ExtendedRequest) RequestName() LDAPOID {
@@ -81,6 +113,92 @@ func (s *SearchRequest) Attributes() AttributeSelection {
 
 func (s *SearchRequest) Filter() Filter {
 	return s.filter
+}
+
+func (s *SearchRequest) FilterString() string {
+	str, _ := s.decompileFilter(s.Filter())
+	return str
+}
+
+func (s *SearchRequest) decompileFilter(packet Filter) (ret string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New("error decompiling filter")
+		}
+	}()
+
+	ret = "("
+	err = nil
+	childStr := ""
+
+	switch f := packet.(type) {
+	case FilterAnd:
+		ret += "&"
+		for _, child := range f {
+			childStr, err = s.decompileFilter(child)
+			if err != nil {
+				return
+			}
+			ret += childStr
+		}
+	case FilterOr:
+		ret += "|"
+		for _, child := range f {
+			childStr, err = s.decompileFilter(child)
+			if err != nil {
+				return
+			}
+			ret += childStr
+		}
+	case FilterNot:
+		ret += "!"
+		childStr, err = s.decompileFilter(f)
+		if err != nil {
+			return
+		}
+		ret += childStr
+
+	case FilterSubstrings:
+		ret += string(f.Type_())
+		ret += "="
+		for _, fs := range f.Substrings() {
+			switch fsv := fs.(type) {
+			case SubstringInitial:
+				ret += string(fsv) + "*"
+			case SubstringAny:
+				ret += "*" + string(fsv) + "*"
+			case SubstringFinal:
+				ret += "*" + string(fsv)
+			}
+		}
+	case FilterEqualityMatch:
+		ret += string(f.AttributeDesc())
+		ret += "="
+		ret += string(f.AssertionValue())
+	case FilterGreaterOrEqual:
+		ret += string(f.AttributeDesc())
+		ret += ">="
+		ret += string(f.AssertionValue())
+	case FilterLessOrEqual:
+		ret += string(f.AttributeDesc())
+		ret += "<="
+		ret += string(f.AssertionValue())
+	case FilterPresent:
+		// if 0 == len(packet.Children) {
+		// 	ret += ber.DecodeString(packet.Data.Bytes())
+		// } else {
+		// 	ret += ber.DecodeString(packet.Children[0].Data.Bytes())
+		// }
+		ret += string(f)
+		ret += "=*"
+	case FilterApproxMatch:
+		ret += string(f.AttributeDesc())
+		ret += "~="
+		ret += string(f.AssertionValue())
+	}
+
+	ret += ")"
+	return
 }
 
 func (c *CompareRequest) Entry() LDAPDN {
