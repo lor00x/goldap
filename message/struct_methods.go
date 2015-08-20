@@ -1,5 +1,33 @@
 package message
 
+func (l *LDAPOID) String() string {
+	return string(*l)
+}
+
+func (l *LDAPOID) Bytes() []byte {
+	return []byte(*l)
+}
+
+func (l *OCTETSTRING) String() string {
+	return string(*l)
+}
+
+func (l *OCTETSTRING) Bytes() []byte {
+	return []byte(*l)
+}
+
+func (l *INTEGER) Int() int {
+	return int(*l)
+}
+
+func (l *ENUMERATED) Int() int {
+	return int(*l)
+}
+
+func (l *BOOLEAN) Bool() bool {
+	return bool(*l)
+}
+
 func (l *LDAPMessage) MessageID() MessageID {
 	return l.messageID
 }
