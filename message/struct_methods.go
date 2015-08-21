@@ -5,6 +5,10 @@ import (
 	"reflect"
 )
 
+func (b *Bytes) Bytes() []byte {
+	return b.bytes
+}
+
 func (l LDAPOID) String() string {
 	return string(l)
 }
@@ -38,6 +42,9 @@ func (l BOOLEAN) Bool() bool {
 
 func (l *LDAPMessage) MessageID() MessageID {
 	return l.messageID
+}
+func (l *LDAPMessage) SetMessageID(ID int) {
+	l.messageID = MessageID(ID)
 }
 
 func (l *LDAPMessage) Controls() *Controls {
@@ -306,6 +313,26 @@ func (s *FilterSubstrings) Substrings() []Substring {
 	return s.substrings
 }
 
+func (l *CompareResponse) SetResultCode(code int) {
+	l.resultCode = ENUMERATED(code)
+}
+
+func (l *ModifyResponse) SetResultCode(code int) {
+	l.resultCode = ENUMERATED(code)
+}
+
+func (l *DelResponse) SetResultCode(code int) {
+	l.resultCode = ENUMERATED(code)
+}
+
+func (l *AddResponse) SetResultCode(code int) {
+	l.resultCode = ENUMERATED(code)
+}
+
+func (l *SearchResultDone) SetResultCode(code int) {
+	l.resultCode = ENUMERATED(code)
+}
+
 func (l *LDAPResult) SetResultCode(code int) {
 	l.resultCode = ENUMERATED(code)
 }
@@ -320,4 +347,27 @@ func (l *LDAPResult) SetDiagnosticMessage(code string) {
 
 func (l *LDAPResult) SetReferral(r *Referral) {
 	l.referral = r
+}
+
+func (e *ExtendedResponse) SetResponseName(name LDAPOID) {
+	e.responseName = &name
+}
+
+func NewLDAPMessageWithProtocolOp(po ProtocolOp) *LDAPMessage {
+	m := NewLDAPMessage()
+	m.protocolOp = po
+	return m
+}
+
+func (s *SearchResultEntry) SetObjectName(on string) {
+	s.objectName = LDAPDN(on)
+}
+
+func (s *SearchResultEntry) AddAttribute(name AttributeDescription, values ...AttributeValue) {
+	var ea = PartialAttribute{type_: name, vals: values}
+	s.attributes.add(ea)
+}
+
+func (p *PartialAttributeList) add(a PartialAttribute) {
+	*p = append(*p, a)
 }
