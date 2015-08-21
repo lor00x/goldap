@@ -305,3 +305,19 @@ func (s *FilterSubstrings) Type_() AttributeDescription {
 func (s *FilterSubstrings) Substrings() []Substring {
 	return s.substrings
 }
+
+func (l *LDAPResult) SetResultCode(code int) {
+	l.resultCode = ENUMERATED(code)
+}
+
+func (l *LDAPResult) SeMatchedDN(code string) {
+	l.matchedDN = LDAPDN(code)
+}
+
+func (l *LDAPResult) SetDiagnosticMessage(code string) {
+	l.diagnosticMessage = LDAPString(code)
+}
+
+func (l *LDAPResult) SetReferral(r *Referral) {
+	l.referral = r
+}
