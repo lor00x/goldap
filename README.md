@@ -4,10 +4,9 @@
 
 # LDAP library in Golang
 
-This library perform decoding of LDAP message.
+This library performs decoding and encoding of LDAP message.
 It still requires a lot of testing.
-
-Encoding of the messages will be implemented soon !
 
 # Usage example
 See my [LDAP proxy](https://github.com/lor00x/goldap-proxy).
+See [LDAP Server](https://github.com/vjeantet/ldapserver).
