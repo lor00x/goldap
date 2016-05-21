@@ -159,7 +159,7 @@ func (s *SearchRequest) decompileFilter(packet Filter) (ret string, err error) {
 		}
 	case FilterNot:
 		ret += "!"
-		childStr, err = s.decompileFilter(f)
+		childStr, err = s.decompileFilter(f.Filter)
 		if err != nil {
 			return
 		}
