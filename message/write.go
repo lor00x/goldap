@@ -495,9 +495,12 @@ func (a AttributeSelection) write(bytes *Bytes) (size int) {
 //             ...  }
 
 //             and             [0] SET SIZE (1..MAX) OF filter Filter,
-func (f FilterAnd) write(bytes *Bytes) (size int) {
-	for i := len(f) - 1; i >= 0; i-- {
-		size += f[i].write(bytes)
+func (filter FilterAnd) write(bytes *Bytes) (size int) {
+
+	for i := len(filter) - 1; i >= 0; i-- {
+		size += filter[i].write(bytes)
+		// for _, and := range filter {
+		//	size += and.write(bytes)
 	}
 	size += bytes.WriteTagAndLength(classContextSpecific, isCompound, TagFilterAnd, size)
 	return

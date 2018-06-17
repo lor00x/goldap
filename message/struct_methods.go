@@ -5,8 +5,8 @@ import (
 	"reflect"
 )
 
-func (b *Bytes) Bytes() []byte {
-	return b.bytes
+func (bytes *Bytes) Bytes() []byte {
+	return bytes.bytes
 }
 
 func (l LDAPOID) String() string {

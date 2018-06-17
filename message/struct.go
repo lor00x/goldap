@@ -479,6 +479,7 @@ const TagFilterExtensibleMatch = 9
 type Filter interface {
 	size() int
 	write(*Bytes) int
+	getFilterTag() int
 }
 type FilterAnd []Filter
 type FilterOr []Filter

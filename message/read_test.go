@@ -189,7 +189,7 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 					objectName: LDAPDN(""),
 					attributes: PartialAttributeList(
 						[]PartialAttribute{
-							PartialAttribute{
+							{
 								type_: AttributeDescription("subschemaSubentry"),
 								vals:  []AttributeValue{AttributeValue("cn=schema")},
 							},
@@ -342,11 +342,11 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 					objectName: LDAPDN("cn=schema"),
 					attributes: PartialAttributeList(
 						[]PartialAttribute{
-							PartialAttribute{
+							{
 								type_: AttributeDescription("modifyTimestamp"),
 								vals:  []AttributeValue{AttributeValue("20090818022733Z")},
 							},
-							PartialAttribute{
+							{
 								type_: AttributeDescription("createTimestamp"),
 								vals:  []AttributeValue{AttributeValue("20090818022733Z")},
 							},
@@ -2327,7 +2327,7 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 				protocolOp: ModifyRequest{
 					object: LDAPDN("cn=r00X+commonname=The r00X+description=A test user,ou=consumers,ou=system"),
 					changes: []ModifyRequestChange{
-						ModifyRequestChange{
+						{
 							operation: ENUMERATED(0),
 							modification: PartialAttribute{
 								type_: AttributeDescription("telephoneNumber"),
@@ -2920,7 +2920,7 @@ func getLDAPMessageTestData() (ret []LDAPMessageTestData) {
 				protocolOp: ModifyRequest{
 					object: LDAPDN("cn=r00X,ou=consumers,ou=system"),
 					changes: []ModifyRequestChange{
-						ModifyRequestChange{
+						{
 							operation: ENUMERATED(2),
 							modification: PartialAttribute{
 								type_: AttributeDescription("description"),

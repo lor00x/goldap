@@ -474,8 +474,8 @@ func (a AttributeSelection) size() (size int) {
 //             ...  }
 
 //             and             [0] SET SIZE (1..MAX) OF filter Filter,
-func (f FilterAnd) size() (size int) {
-	for _, filter := range f {
+func (filter FilterAnd) size() (size int) {
+	for _, filter := range filter {
 		size += filter.size()
 	}
 	size += sizeTagAndLength(TagFilterAnd, size)

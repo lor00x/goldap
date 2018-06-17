@@ -61,7 +61,7 @@ func getSizeTagAndLengthTestData() (ret []tagAndLengthTestData) {
 			length:       65535,
 			expectedSize: 4,
 		},
-		// Length between 65536 (2^16) and 16777215 (2^24-1) and 255 are encoded on two bytes
+		// Length between 65536 (2^16) and 16777215 (2^24-1) are encoded on four bytes
 		{
 			tag:          tagSequence,
 			length:       65536,
