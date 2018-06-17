@@ -21,3 +21,8 @@ func (f FilterPresent) write(bytes *Bytes) int {
 func (filterAnd FilterPresent) getFilterTag() int {
 	return TagFilterPresent
 }
+
+//             present         [7] AttributeDescription,
+func (f FilterPresent) size() int {
+	return AttributeDescription(f).sizeTagged(TagFilterPresent)
+}

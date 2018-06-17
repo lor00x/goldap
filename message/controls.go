@@ -35,3 +35,13 @@ func (c Controls) writeTagged(bytes *Bytes, class int, tag int) (size int) {
 	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
 	return
 }
+
+//
+//        Controls ::= SEQUENCE OF control Control
+func (c Controls) sizeTagged(tag int) (size int) {
+	for _, control := range c {
+		size += control.size()
+	}
+	size += sizeTagAndLength(tag, size)
+	return
+}

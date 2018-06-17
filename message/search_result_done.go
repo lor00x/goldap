@@ -20,3 +20,9 @@ func readSearchResultDone(bytes *Bytes) (ret SearchResultDone, err error) {
 func (s SearchResultDone) write(bytes *Bytes) int {
 	return LDAPResult(s).writeTagged(bytes, classApplication, TagSearchResultDone)
 }
+
+//
+//        SearchResultDone ::= [APPLICATION 5] LDAPResult
+func (s SearchResultDone) size() int {
+	return LDAPResult(s).sizeTagged(TagSearchResultDone)
+}

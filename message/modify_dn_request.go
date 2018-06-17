@@ -68,3 +68,20 @@ func (m ModifyDNRequest) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagModifyDNRequest, size)
 	return
 }
+
+//
+//        ModifyDNRequest ::= [APPLICATION 12] SEQUENCE {
+//             entry           LDAPDN,
+//             newrdn          RelativeLDAPDN,
+//             deleteoldrdn    BOOLEAN,
+//             newSuperior     [0] LDAPDN OPTIONAL }
+func (m ModifyDNRequest) size() (size int) {
+	size += m.entry.size()
+	size += m.newrdn.size()
+	size += m.deleteoldrdn.size()
+	if m.newSuperior != nil {
+		size += m.newSuperior.sizeTagged(TagModifyDNRequestNewSuperior)
+	}
+	size += sizeTagAndLength(TagModifyDNRequest, size)
+	return
+}

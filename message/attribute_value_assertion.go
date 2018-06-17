@@ -32,3 +32,20 @@ func (a AttributeValueAssertion) writeTagged(bytes *Bytes, class int, tag int) (
 	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
 	return
 }
+
+//
+//        AttributeValueAssertion ::= SEQUENCE {
+//             attributeDesc   AttributeDescription,
+//             assertionValue  AssertionValue }
+func (a AttributeValueAssertion) size() (size int) {
+	size += a.attributeDesc.size()
+	size += a.assertionValue.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}
+func (a AttributeValueAssertion) sizeTagged(tag int) (size int) {
+	size += a.attributeDesc.size()
+	size += a.assertionValue.size()
+	size += sizeTagAndLength(tag, size)
+	return
+}

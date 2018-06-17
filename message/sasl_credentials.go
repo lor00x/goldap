@@ -47,3 +47,17 @@ func (s SaslCredentials) writeTagged(bytes *Bytes, class int, tag int) (size int
 	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
 	return
 }
+
+//
+//        SaslCredentials ::= SEQUENCE {
+//             mechanism               LDAPString,
+//             credentials             OCTET STRING OPTIONAL }
+//
+func (s SaslCredentials) sizeTagged(tag int) (size int) {
+	if s.credentials != nil {
+		size += s.credentials.size()
+	}
+	size += s.mechanism.size()
+	size += sizeTagAndLength(tag, size)
+	return
+}

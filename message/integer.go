@@ -42,3 +42,9 @@ func (i INTEGER) write(bytes *Bytes) int {
 func (i INTEGER) writeTagged(bytes *Bytes, class int, tag int) int {
 	return bytes.WritePrimitiveSubBytes(class, tag, i)
 }
+func (i INTEGER) size() int {
+	return SizePrimitiveSubBytes(tagInteger, i)
+}
+func (i INTEGER) sizeTagged(tag int) int {
+	return SizePrimitiveSubBytes(tag, i)
+}

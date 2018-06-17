@@ -22,3 +22,6 @@ func (e ENUMERATED) write(bytes *Bytes) int {
 func (e ENUMERATED) writeTagged(bytes *Bytes, class int, tag int) int {
 	return bytes.WritePrimitiveSubBytes(class, tag, e)
 }
+func (e ENUMERATED) size() int {
+	return SizePrimitiveSubBytes(tagEnum, e)
+}

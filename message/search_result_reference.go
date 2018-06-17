@@ -40,3 +40,14 @@ func (s SearchResultReference) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagSearchResultReference, size)
 	return
 }
+
+//
+//        SearchResultReference ::= [APPLICATION 19] SEQUENCE
+//                                  SIZE (1..MAX) OF uri URI
+func (s SearchResultReference) size() (size int) {
+	for _, uri := range s {
+		size += uri.size()
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}

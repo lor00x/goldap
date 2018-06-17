@@ -25,3 +25,9 @@ func (l LDAPResult) writeTagged(bytes *Bytes, class int, tag int) (size int) {
 func (m ModifyResponse) write(bytes *Bytes) int {
 	return LDAPResult(m).writeTagged(bytes, classApplication, TagModifyResponse)
 }
+
+//
+//        ModifyResponse ::= [APPLICATION 7] LDAPResult
+func (m ModifyResponse) size() int {
+	return LDAPResult(m).sizeTagged(TagModifyResponse)
+}

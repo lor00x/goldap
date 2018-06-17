@@ -91,23 +91,6 @@ func SizeSubBytes(tag int, callback func() int) (size int) {
 	return
 }
 
-func SizePrimitiveSubBytes(tag int, value interface{}) (size int) {
-	switch value.(type) {
-	case BOOLEAN:
-		size = sizeBool(bool(value.(BOOLEAN)))
-	case INTEGER:
-		size = sizeInt32(int32(value.(INTEGER)))
-	case ENUMERATED:
-		size = sizeInt32(int32(value.(ENUMERATED)))
-	case OCTETSTRING:
-		size = sizeOctetString([]byte(string(value.(OCTETSTRING))))
-	default:
-		panic(fmt.Sprintf("SizePrimitiveSubBytes: invalid value type %v", value))
-	}
-	size += sizeTagAndLength(tag, size)
-	return
-}
-
 func (bytes *Bytes) WritePrimitiveSubBytes(class int, tag int, value interface{}) (size int) {
 	switch value.(type) {
 	case BOOLEAN:

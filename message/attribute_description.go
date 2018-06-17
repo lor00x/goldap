@@ -40,3 +40,14 @@ func (a AttributeDescription) write(bytes *Bytes) int {
 func (a AttributeDescription) writeTagged(bytes *Bytes, class int, tag int) int {
 	return LDAPString(a).writeTagged(bytes, class, tag)
 }
+
+//
+//        AttributeDescription ::= LDAPString
+//                                -- Constrained to <attributedescription>
+//                                -- [RFC4512]
+func (a AttributeDescription) size() int {
+	return LDAPString(a).size()
+}
+func (a AttributeDescription) sizeTagged(tag int) int {
+	return LDAPString(a).sizeTagged(tag)
+}

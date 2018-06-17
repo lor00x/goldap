@@ -38,3 +38,14 @@ func (c CompareRequest) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagCompareRequest, size)
 	return
 }
+
+//
+//        CompareRequest ::= [APPLICATION 14] SEQUENCE {
+//             entry           LDAPDN,
+//             ava             AttributeValueAssertion }
+func (c CompareRequest) size() (size int) {
+	size += c.entry.size()
+	size += c.ava.size()
+	size += sizeTagAndLength(TagCompareRequest, size)
+	return
+}

@@ -34,3 +34,13 @@ func (a AttributeList) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
 	return
 }
+
+//
+//        AttributeList ::= SEQUENCE OF attribute Attribute
+func (a AttributeList) size() (size int) {
+	for _, att := range a {
+		size += att.size()
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}

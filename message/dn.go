@@ -52,3 +52,13 @@ func (l LDAPDN) write(bytes *Bytes) int {
 func (l LDAPDN) writeTagged(bytes *Bytes, class int, tag int) int {
 	return LDAPString(l).writeTagged(bytes, class, tag)
 }
+
+//
+//        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
+//                              -- [RFC4514]
+func (l LDAPDN) size() int {
+	return LDAPString(l).size()
+}
+func (l LDAPDN) sizeTagged(tag int) int {
+	return LDAPString(l).sizeTagged(tag)
+}

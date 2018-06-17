@@ -21,3 +21,8 @@ func (f FilterLessOrEqual) write(bytes *Bytes) int {
 func (filterAnd FilterLessOrEqual) getFilterTag() int {
 	return TagFilterLessOrEqual
 }
+
+//             lessOrEqual     [6] AttributeValueAssertion,
+func (f FilterLessOrEqual) size() int {
+	return AttributeValueAssertion(f).sizeTagged(TagFilterLessOrEqual)
+}

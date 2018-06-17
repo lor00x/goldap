@@ -30,3 +30,14 @@ func (m MessageID) write(bytes *Bytes) int {
 func (m MessageID) writeTagged(bytes *Bytes, class int, tag int) int {
 	return INTEGER(m).writeTagged(bytes, class, tag)
 }
+
+//        MessageID ::= INTEGER (0 ..  maxInt)
+//
+//        maxInt INTEGER ::= 2147483647 -- (2^^31 - 1) --
+//
+func (m MessageID) size() int {
+	return INTEGER(m).size()
+}
+func (m MessageID) sizeTagged(tag int) int {
+	return INTEGER(m).sizeTagged(tag)
+}

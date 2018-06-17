@@ -144,3 +144,38 @@ func (s SubstringFilter) write(bytes *Bytes) (size int) {
 func (filter FilterSubstrings) getFilterTag() int {
 	return TagFilterSubstrings
 }
+
+//             substrings      [4] SubstringFilter,
+func (f FilterSubstrings) size() int {
+	return SubstringFilter(f).sizeTagged(TagFilterSubstrings)
+}
+
+//
+//        SubstringFilter ::= SEQUENCE {
+//             type           AttributeDescription,
+//             substrings     SEQUENCE SIZE (1..MAX) OF substring CHOICE {
+//                  initial [0] AssertionValue,  -- can occur at most once
+//                  any     [1] AssertionValue,
+//                  final   [2] AssertionValue } -- can occur at most once
+//             }
+func (s SubstringFilter) size() (size int) {
+	return s.sizeTagged(tagSequence)
+}
+func (s SubstringFilter) sizeTagged(tag int) (size int) {
+	for _, substring := range s.substrings {
+		switch substring.(type) {
+		case SubstringInitial:
+			size += AssertionValue(substring.(SubstringInitial)).sizeTagged(TagSubstringInitial)
+		case SubstringAny:
+			size += AssertionValue(substring.(SubstringAny)).sizeTagged(TagSubstringAny)
+		case SubstringFinal:
+			size += AssertionValue(substring.(SubstringFinal)).sizeTagged(TagSubstringFinal)
+		default:
+			panic("Unknown type for SubstringFilter substring")
+		}
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	size += s.type_.size()
+	size += sizeTagAndLength(tag, size)
+	return
+}

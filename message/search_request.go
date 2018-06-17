@@ -102,3 +102,34 @@ func (s SearchRequest) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagSearchRequest, size)
 	return
 }
+
+//
+//        SearchRequest ::= [APPLICATION 3] SEQUENCE {
+//             baseObject      LDAPDN,
+//             scope           ENUMERATED {
+//                  baseObject              (0),
+//                  singleLevel             (1),
+//                  wholeSubtree            (2),
+//                  ...  },
+//             derefAliases    ENUMERATED {
+//                  neverDerefAliases       (0),
+//                  derefInSearching        (1),
+//                  derefFindingBaseObj     (2),
+//                  derefAlways             (3) },
+//             sizeLimit       INTEGER (0 ..  maxInt),
+//             timeLimit       INTEGER (0 ..  maxInt),
+//             typesOnly       BOOLEAN,
+//             filter          Filter,
+//             attributes      AttributeSelection }
+func (s SearchRequest) size() (size int) {
+	size += s.baseObject.size()
+	size += s.scope.size()
+	size += s.derefAliases.size()
+	size += s.sizeLimit.size()
+	size += s.timeLimit.size()
+	size += s.typesOnly.size()
+	size += s.filter.size()
+	size += s.attributes.size()
+	size += sizeTagAndLength(TagSearchRequest, size)
+	return
+}

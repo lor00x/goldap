@@ -49,3 +49,22 @@ func (l LDAPOID) write(bytes *Bytes) int {
 func (l LDAPOID) writeTagged(bytes *Bytes, class int, tag int) int {
 	return OCTETSTRING(l).writeTagged(bytes, class, tag)
 }
+
+//
+//
+//
+//
+//Sermersheim                 Standards Track                    [Page 54]
+//
+//
+//RFC 4511                         LDAPv3                        June 2006
+//
+//
+//        LDAPOID ::= OCTET STRING -- Constrained to <numericoid>
+//                                 -- [RFC4512]
+func (l LDAPOID) size() int {
+	return OCTETSTRING(l).size()
+}
+func (l LDAPOID) sizeTagged(tag int) int {
+	return OCTETSTRING(l).sizeTagged(tag)
+}

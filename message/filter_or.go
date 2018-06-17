@@ -41,3 +41,12 @@ func (f FilterOr) write(bytes *Bytes) (size int) {
 func (filter FilterOr) getFilterTag() int {
 	return TagFilterOr
 }
+
+//             or              [1] SET SIZE (1..MAX) OF filter Filter,
+func (f FilterOr) size() (size int) {
+	for _, filter := range f {
+		size += filter.size()
+	}
+	size += sizeTagAndLength(TagFilterOr, size)
+	return
+}

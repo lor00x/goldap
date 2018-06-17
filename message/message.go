@@ -99,3 +99,12 @@ func (m *LDAPMessage) Write() (bytes *Bytes, err error) {
 	}
 	return
 }
+func (m *LDAPMessage) size() (size int) {
+	size += m.messageID.size()
+	size += m.protocolOp.size()
+	if m.controls != nil {
+		size += m.controls.sizeTagged(TagLDAPMessageControls)
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}

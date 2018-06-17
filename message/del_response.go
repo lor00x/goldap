@@ -20,3 +20,9 @@ func readDelResponse(bytes *Bytes) (ret DelResponse, err error) {
 func (d DelResponse) write(bytes *Bytes) int {
 	return LDAPResult(d).writeTagged(bytes, classApplication, TagDelResponse)
 }
+
+//
+//        DelResponse ::= [APPLICATION 11] LDAPResult
+func (d DelResponse) size() int {
+	return LDAPResult(d).sizeTagged(TagDelResponse)
+}

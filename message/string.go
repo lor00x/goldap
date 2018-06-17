@@ -27,3 +27,12 @@ func (s LDAPString) write(bytes *Bytes) int {
 func (s LDAPString) writeTagged(bytes *Bytes, class int, tag int) int {
 	return OCTETSTRING(s).writeTagged(bytes, class, tag)
 }
+
+//        LDAPString ::= OCTET STRING -- UTF-8 encoded,
+//                                    -- [ISO10646] characters
+func (s LDAPString) size() int {
+	return OCTETSTRING(s).size()
+}
+func (s LDAPString) sizeTagged(tag int) int {
+	return OCTETSTRING(s).sizeTagged(tag)
+}

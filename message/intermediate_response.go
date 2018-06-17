@@ -72,3 +72,18 @@ func (i IntermediateResponse) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagIntermediateResponse, size)
 	return
 }
+
+//
+//        IntermediateResponse ::= [APPLICATION 25] SEQUENCE {
+//             responseName     [0] LDAPOID OPTIONAL,
+//             responseValue    [1] OCTET STRING OPTIONAL }
+func (i IntermediateResponse) size() (size int) {
+	if i.responseName != nil {
+		size += i.responseName.sizeTagged(TagIntermediateResponseName)
+	}
+	if i.responseValue != nil {
+		size += i.responseValue.sizeTagged(TagIntermediateResponseValue)
+	}
+	size += sizeTagAndLength(TagIntermediateResponse, size)
+	return
+}

@@ -54,3 +54,17 @@ func (p PartialAttribute) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
 	return
 }
+
+//
+//        PartialAttribute ::= SEQUENCE {
+//             type       AttributeDescription,
+//             vals       SET OF value AttributeValue }
+func (p PartialAttribute) size() (size int) {
+	for _, value := range p.vals {
+		size += value.size()
+	}
+	size += sizeTagAndLength(tagSet, size)
+	size += p.type_.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}

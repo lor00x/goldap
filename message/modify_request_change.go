@@ -29,3 +29,9 @@ func (m ModifyRequestChange) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
 	return
 }
+func (m ModifyRequestChange) size() (size int) {
+	size += m.operation.size()
+	size += m.modification.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}

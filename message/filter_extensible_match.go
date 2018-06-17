@@ -21,3 +21,8 @@ func (f FilterExtensibleMatch) write(bytes *Bytes) int {
 func (filterAnd FilterExtensibleMatch) getFilterTag() int {
 	return TagFilterExtensibleMatch
 }
+
+//             extensibleMatch [9] MatchingRuleAssertion,
+func (f FilterExtensibleMatch) size() int {
+	return MatchingRuleAssertion(f).sizeTagged(TagFilterExtensibleMatch)
+}

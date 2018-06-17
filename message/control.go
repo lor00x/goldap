@@ -71,3 +71,20 @@ func (c Control) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
 	return
 }
+
+//
+//        Control ::= SEQUENCE {
+//             controlType             LDAPOID,
+//             criticality             BOOLEAN DEFAULT FALSE,
+//             controlValue            OCTET STRING OPTIONAL }
+func (c Control) size() (size int) {
+	if c.controlValue != nil {
+		size += c.controlValue.size()
+	}
+	if c.criticality != BOOLEAN(false) {
+		size += c.criticality.size()
+	}
+	size += c.controlType.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}

@@ -38,3 +38,13 @@ func (r Referral) writeTagged(bytes *Bytes, class int, tag int) (size int) {
 	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
 	return
 }
+
+//
+//        Referral ::= SEQUENCE SIZE (1..MAX) OF uri URI
+func (r Referral) sizeTagged(tag int) (size int) {
+	for _, uri := range r {
+		size += uri.size()
+	}
+	size += sizeTagAndLength(tag, size)
+	return
+}

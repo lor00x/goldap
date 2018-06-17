@@ -52,3 +52,16 @@ func (e ExtendedRequest) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagExtendedRequest, size)
 	return
 }
+
+//
+//        ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
+//             requestName      [0] LDAPOID,
+//             requestValue     [1] OCTET STRING OPTIONAL }
+func (e ExtendedRequest) size() (size int) {
+	size += e.requestName.sizeTagged(TagExtendedRequestName)
+	if e.requestValue != nil {
+		size += e.requestValue.sizeTagged(TagExtendedRequestValue)
+	}
+	size += sizeTagAndLength(TagExtendedRequest, size)
+	return
+}

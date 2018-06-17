@@ -21,3 +21,8 @@ func (filter FilterGreaterOrEqual) write(bytes *Bytes) int {
 func (filter FilterGreaterOrEqual) getFilterTag() int {
 	return TagFilterGreaterOrEqual
 }
+
+//             greaterOrEqual  [5] AttributeValueAssertion,
+func (filter FilterGreaterOrEqual) size() int {
+	return AttributeValueAssertion(filter).sizeTagged(TagFilterGreaterOrEqual)
+}

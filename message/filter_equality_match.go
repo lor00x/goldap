@@ -21,3 +21,8 @@ func (f FilterEqualityMatch) write(bytes *Bytes) int {
 func (filter FilterEqualityMatch) getFilterTag() int {
 	return TagFilterEqualityMatch
 }
+
+//             equalityMatch   [3] AttributeValueAssertion,
+func (f FilterEqualityMatch) size() int {
+	return AttributeValueAssertion(f).sizeTagged(TagFilterEqualityMatch)
+}

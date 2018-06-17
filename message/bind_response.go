@@ -46,3 +46,15 @@ func (b BindResponse) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagBindResponse, size)
 	return
 }
+
+//        BindResponse ::= [APPLICATION 1] SEQUENCE {
+//             COMPONENTS OF LDAPResult,
+//             serverSaslCreds    [7] OCTET STRING OPTIONAL }
+func (b BindResponse) size() (size int) {
+	if b.serverSaslCreds != nil {
+		size += b.serverSaslCreds.sizeTagged(TagBindResponseServerSaslCreds)
+	}
+	size += b.LDAPResult.sizeComponents()
+	size += sizeTagAndLength(TagBindResponse, size)
+	return
+}

@@ -38,3 +38,14 @@ func (s SearchResultEntry) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagSearchResultEntry, size)
 	return
 }
+
+//
+//        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
+//             objectName      LDAPDN,
+//             attributes      PartialAttributeList }
+func (s SearchResultEntry) size() (size int) {
+	size += s.objectName.size()
+	size += s.attributes.size()
+	size += sizeTagAndLength(tagSequence, size)
+	return
+}

@@ -21,3 +21,8 @@ func (f FilterApproxMatch) write(bytes *Bytes) int {
 func (filterAnd FilterApproxMatch) getFilterTag() int {
 	return TagFilterApproxMatch
 }
+
+//             approxMatch     [8] AttributeValueAssertion,
+func (f FilterApproxMatch) size() int {
+	return AttributeValueAssertion(f).sizeTagged(TagFilterApproxMatch)
+}

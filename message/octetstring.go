@@ -30,3 +30,9 @@ func (o OCTETSTRING) write(bytes *Bytes) int {
 func (o OCTETSTRING) writeTagged(bytes *Bytes, class int, tag int) int {
 	return bytes.WritePrimitiveSubBytes(class, tag, o)
 }
+func (o OCTETSTRING) size() int {
+	return SizePrimitiveSubBytes(tagOctetString, o)
+}
+func (o OCTETSTRING) sizeTagged(tag int) int {
+	return SizePrimitiveSubBytes(tag, o)
+}

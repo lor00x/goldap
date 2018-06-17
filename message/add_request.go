@@ -60,3 +60,25 @@ func (a AddRequest) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagAddRequest, size)
 	return
 }
+
+//
+//
+//
+//
+//
+//
+//Sermersheim                 Standards Track                    [Page 58]
+//
+//
+//RFC 4511                         LDAPv3                        June 2006
+//
+//
+//        AddRequest ::= [APPLICATION 8] SEQUENCE {
+//             entry           LDAPDN,
+//             attributes      AttributeList }
+func (a AddRequest) size() (size int) {
+	size += a.entry.size()
+	size += a.attributes.size()
+	size += sizeTagAndLength(TagAddRequest, size)
+	return
+}

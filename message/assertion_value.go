@@ -33,3 +33,18 @@ func (a AssertionValue) write(bytes *Bytes) int {
 func (a AssertionValue) writeTagged(bytes *Bytes, class int, tag int) int {
 	return OCTETSTRING(a).writeTagged(bytes, class, tag)
 }
+
+//
+//        AttributeValue ::= OCTET STRING
+func (a AttributeValue) size() int {
+	return OCTETSTRING(a).size()
+}
+
+//
+//        AssertionValue ::= OCTET STRING
+func (a AssertionValue) size() int {
+	return OCTETSTRING(a).size()
+}
+func (a AssertionValue) sizeTagged(tag int) int {
+	return OCTETSTRING(a).sizeTagged(tag)
+}

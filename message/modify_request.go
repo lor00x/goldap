@@ -61,3 +61,23 @@ func (m ModifyRequest) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagModifyRequest, size)
 	return
 }
+
+//
+//        ModifyRequest ::= [APPLICATION 6] SEQUENCE {
+//             object          LDAPDN,
+//             changes         SEQUENCE OF change SEQUENCE {
+//                  operation       ENUMERATED {
+//                       add     (0),
+//                       delete  (1),
+//                       replace (2),
+//                       ...  },
+//                  modification    PartialAttribute } }
+func (m ModifyRequest) size() (size int) {
+	for _, change := range m.changes {
+		size += change.size()
+	}
+	size += sizeTagAndLength(tagSequence, size)
+	size += m.object.size()
+	size += sizeTagAndLength(TagModifyRequest, size)
+	return
+}

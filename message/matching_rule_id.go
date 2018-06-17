@@ -21,3 +21,9 @@ func (m MatchingRuleId) Pointer() *MatchingRuleId { return &m }
 func (m MatchingRuleId) writeTagged(bytes *Bytes, class int, tag int) int {
 	return LDAPString(m).writeTagged(bytes, class, tag)
 }
+
+//
+//        MatchingRuleId ::= LDAPString
+func (m MatchingRuleId) sizeTagged(tag int) int {
+	return LDAPString(m).sizeTagged(tag)
+}

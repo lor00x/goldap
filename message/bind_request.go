@@ -75,3 +75,33 @@ func (b BindRequest) write(bytes *Bytes) (size int) {
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagBindRequest, size)
 	return
 }
+
+//
+//
+//
+//
+//Sermersheim                 Standards Track                    [Page 56]
+//
+//
+//RFC 4511                         LDAPv3                        June 2006
+//
+//
+//        BindRequest ::= [APPLICATION 0] SEQUENCE {
+//             version                 INTEGER (1 ..  127),
+//             name                    LDAPDN,
+//             authentication          AuthenticationChoice }
+func (b BindRequest) size() (size int) {
+	size += b.version.size()
+	size += b.name.size()
+	switch b.authentication.(type) {
+	case OCTETSTRING:
+		size += b.authentication.(OCTETSTRING).sizeTagged(TagAuthenticationChoiceSimple)
+	case SaslCredentials:
+		size += b.authentication.(SaslCredentials).sizeTagged(TagAuthenticationChoiceSaslCredentials)
+	default:
+		panic(fmt.Sprintf("Unknown authentication choice: %#v", b.authentication))
+	}
+
+	size += sizeTagAndLength(TagBindRequest, size)
+	return
+}
