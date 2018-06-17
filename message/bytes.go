@@ -38,13 +38,6 @@ func (bytes *Bytes) HasMoreData() bool {
 	return bytes.offset < len(bytes.bytes)
 }
 
-func (bytes *Bytes) PreviewTagAndLength() (tagAndLength TagAndLength, err error) {
-	previousOffset := bytes.offset // Save offset
-	tagAndLength, err = bytes.ParseTagAndLength()
-	bytes.offset = previousOffset // Restore offset
-	return
-}
-
 func (bytes *Bytes) ParseTagAndLength() (ret TagAndLength, err error) {
 	var offset int
 	ret, offset, err = ParseTagAndLength(bytes.bytes, bytes.offset)
@@ -95,66 +88,6 @@ func (bytes *Bytes) ReadSubBytes(class int, tag int, callback func(bytes *Bytes)
 func SizeSubBytes(tag int, callback func() int) (size int) {
 	size = callback()
 	size += sizeTagAndLength(tag, size)
-	return
-}
-
-//
-// Parse tag, length and read the a primitive value
-// Supported types are:
-// - boolean
-// - integer (parsed as int32)
-// - enumerated (parsed as int32)
-// - UTF8 string
-// - Octet string
-//
-// Parameters:
-// - class: the expected class value(classUniversal, classApplication, classContextSpecific)
-// - tag: the expected tag value
-// - typeTag: the real primitive type to parse (tagBoolean, tagInteger, tagEnym, tagUTF8String, tagOctetString)
-//
-func (bytes *Bytes) ReadPrimitiveSubBytes(class int, tag int, typeTag int) (value interface{}, err error) {
-	// Check tag
-	tagAndLength, err := bytes.ParseTagAndLength()
-	if err != nil {
-		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
-		return
-	}
-	err = tagAndLength.Expect(class, tag, isNotCompound)
-	if err != nil {
-		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
-		return
-	}
-
-	start := bytes.offset
-	end := bytes.offset + tagAndLength.Length
-
-	// Check we got enough bytes to process
-	if end > len(bytes.bytes) {
-		// err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: data truncated: expecting %d bytes at offset %d but only %d bytes are remaining (start: %d, length: %d, end: %d, len(b): %d, bytes: %#+v)", tagAndLength.Length, *b.offset, len(b.bytes)-start, start, tagAndLength.Length, end, len(b.bytes), b.bytes)}
-		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: data truncated: expecting %d bytes at offset %d but only %d bytes are remaining", tagAndLength.Length, bytes.offset, len(bytes.bytes)-start)}
-		return
-	}
-	// Process sub-bytes
-	subBytes := bytes.bytes[start:end]
-	switch typeTag {
-	case tagBoolean:
-		value, err = parseBool(subBytes)
-	case tagInteger:
-		value, err = parseInt32(subBytes)
-	case tagEnum:
-		value, err = parseInt32(subBytes)
-	case tagOctetString:
-		value, err = parseOctetString(subBytes)
-	default:
-		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: invalid type tag value %d", typeTag)}
-		return
-	}
-	if err != nil {
-		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
-		return
-	}
-	// Move offset
-	bytes.offset = end
 	return
 }
 
@@ -215,5 +148,65 @@ func (bytes *Bytes) writeBytes(b []byte) (size int) {
 	}
 	copy(bytes.bytes[start:], b)
 	bytes.offset = start
+	return
+}
+
+//
+// Parse tag, length and read the a primitive value
+// Supported types are:
+// - boolean
+// - integer (parsed as int32)
+// - enumerated (parsed as int32)
+// - UTF8 string
+// - Octet string
+//
+// Parameters:
+// - class: the expected class value(classUniversal, classApplication, classContextSpecific)
+// - tag: the expected tag value
+// - typeTag: the real primitive type to parse (tagBoolean, tagInteger, tagEnym, tagUTF8String, tagOctetString)
+//
+func (bytes *Bytes) ReadPrimitiveSubBytes(class int, tag int, typeTag int) (value interface{}, err error) {
+	// Check tag
+	tagAndLength, err := bytes.ParseTagAndLength()
+	if err != nil {
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
+		return
+	}
+	err = tagAndLength.Expect(class, tag, isNotCompound)
+	if err != nil {
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
+		return
+	}
+
+	start := bytes.offset
+	end := bytes.offset + tagAndLength.Length
+
+	// Check we got enough bytes to process
+	if end > len(bytes.bytes) {
+		// err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: data truncated: expecting %d bytes at offset %d but only %d bytes are remaining (start: %d, length: %d, end: %d, len(b): %d, bytes: %#+v)", tagAndLength.Length, *b.offset, len(b.bytes)-start, start, tagAndLength.Length, end, len(b.bytes), b.bytes)}
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: data truncated: expecting %d bytes at offset %d but only %d bytes are remaining", tagAndLength.Length, bytes.offset, len(bytes.bytes)-start)}
+		return
+	}
+	// Process sub-bytes
+	subBytes := bytes.bytes[start:end]
+	switch typeTag {
+	case tagBoolean:
+		value, err = parseBool(subBytes)
+	case tagInteger:
+		value, err = parseInt32(subBytes)
+	case tagEnum:
+		value, err = parseInt32(subBytes)
+	case tagOctetString:
+		value, err = parseOctetString(subBytes)
+	default:
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes: invalid type tag value %d", typeTag)}
+		return
+	}
+	if err != nil {
+		err = LdapError{fmt.Sprintf("ReadPrimitiveSubBytes:\n%s", err.Error())}
+		return
+	}
+	// Move offset
+	bytes.offset = end
 	return
 }

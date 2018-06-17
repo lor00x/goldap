@@ -4,12 +4,9 @@ import (
 	"fmt"
 )
 
-func (b BOOLEAN) write(bytes *Bytes) int {
-	return bytes.WritePrimitiveSubBytes(classUniversal, tagBoolean, b)
-}
-
-func (b BOOLEAN) writeTagged(bytes *Bytes, class int, tag int) int {
-	return bytes.WritePrimitiveSubBytes(class, tag, b)
+type Writable interface {
+	write(bytes *Bytes) int
+	writeTagged(bytes *Bytes, class int, tag int) int
 }
 
 func (i INTEGER) write(bytes *Bytes) int {
@@ -494,31 +491,12 @@ func (a AttributeSelection) write(bytes *Bytes) (size int) {
 //             extensibleMatch [9] MatchingRuleAssertion,
 //             ...  }
 
-//             and             [0] SET SIZE (1..MAX) OF filter Filter,
-func (filter FilterAnd) write(bytes *Bytes) (size int) {
-
-	for i := len(filter) - 1; i >= 0; i-- {
-		size += filter[i].write(bytes)
-		// for _, and := range filter {
-		//	size += and.write(bytes)
-	}
-	size += bytes.WriteTagAndLength(classContextSpecific, isCompound, TagFilterAnd, size)
-	return
-}
-
 //             or              [1] SET SIZE (1..MAX) OF filter Filter,
 func (f FilterOr) write(bytes *Bytes) (size int) {
 	for i := len(f) - 1; i >= 0; i-- {
 		size += f[i].write(bytes)
 	}
 	size += bytes.WriteTagAndLength(classContextSpecific, isCompound, TagFilterOr, size)
-	return
-}
-
-//             not             [2] Filter,
-func (f FilterNot) write(bytes *Bytes) (size int) {
-	size = f.Filter.write(bytes)
-	size += bytes.WriteTagAndLength(classContextSpecific, isCompound, TagFilterNot, size)
 	return
 }
 
@@ -533,8 +511,8 @@ func (f FilterSubstrings) write(bytes *Bytes) int {
 }
 
 //             greaterOrEqual  [5] AttributeValueAssertion,
-func (f FilterGreaterOrEqual) write(bytes *Bytes) int {
-	return AttributeValueAssertion(f).writeTagged(bytes, classContextSpecific, TagFilterGreaterOrEqual)
+func (filter FilterGreaterOrEqual) write(bytes *Bytes) int {
+	return AttributeValueAssertion(filter).writeTagged(bytes, classContextSpecific, TagFilterGreaterOrEqual)
 }
 
 //             lessOrEqual     [6] AttributeValueAssertion,

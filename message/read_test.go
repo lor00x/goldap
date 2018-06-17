@@ -7,13 +7,11 @@ import (
 
 func TestReadLDAPMessage(t *testing.T) {
 	for i, test := range getLDAPMessageTestData() {
-		if i == 92 {
-			message, err := ReadLDAPMessage(&test.bytes)
-			if err != nil {
-				t.Errorf("#%d failed reading bytes at offset %d (%s): %s", i, test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
-			} else if !reflect.DeepEqual(message, test.out) {
-				t.Errorf("#%d:\nGOT:\n%#+v\nEXPECTED:\n%#+v", i, message, test.out)
-			}
+		message, err := ReadLDAPMessage(&test.bytes)
+		if err != nil {
+			t.Errorf("#%d failed reading bytes at offset %d (%s): %s", i, test.bytes.offset, test.bytes.DumpCurrentBytes(), err)
+		} else if !reflect.DeepEqual(message, test.out) {
+			t.Errorf("#%d:\nGOT:\n%#+v\nEXPECTED:\n%#+v", i, message, test.out)
 		}
 	}
 }

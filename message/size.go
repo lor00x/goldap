@@ -473,28 +473,12 @@ func (a AttributeSelection) size() (size int) {
 //             extensibleMatch [9] MatchingRuleAssertion,
 //             ...  }
 
-//             and             [0] SET SIZE (1..MAX) OF filter Filter,
-func (filter FilterAnd) size() (size int) {
-	for _, filter := range filter {
-		size += filter.size()
-	}
-	size += sizeTagAndLength(TagFilterAnd, size)
-	return
-}
-
 //             or              [1] SET SIZE (1..MAX) OF filter Filter,
 func (f FilterOr) size() (size int) {
 	for _, filter := range f {
 		size += filter.size()
 	}
 	size += sizeTagAndLength(TagFilterOr, size)
-	return
-}
-
-//             not             [2] Filter,
-func (f FilterNot) size() (size int) {
-	size = f.Filter.size()
-	size += sizeTagAndLength(tagSequence, size)
 	return
 }
 
@@ -509,8 +493,8 @@ func (f FilterSubstrings) size() int {
 }
 
 //             greaterOrEqual  [5] AttributeValueAssertion,
-func (f FilterGreaterOrEqual) size() int {
-	return AttributeValueAssertion(f).sizeTagged(TagFilterGreaterOrEqual)
+func (filter FilterGreaterOrEqual) size() int {
+	return AttributeValueAssertion(filter).sizeTagged(TagFilterGreaterOrEqual)
 }
 
 //             lessOrEqual     [6] AttributeValueAssertion,

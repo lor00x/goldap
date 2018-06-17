@@ -281,12 +281,12 @@ func (a *FilterEqualityMatch) AssertionValue() AssertionValue {
 	return a.assertionValue
 }
 
-func (a *FilterGreaterOrEqual) AttributeDesc() AttributeDescription {
-	return a.attributeDesc
+func (filter *FilterGreaterOrEqual) AttributeDesc() AttributeDescription {
+	return filter.attributeDesc
 }
 
-func (a *FilterGreaterOrEqual) AssertionValue() AssertionValue {
-	return a.assertionValue
+func (filter *FilterGreaterOrEqual) AssertionValue() AssertionValue {
+	return filter.assertionValue
 }
 
 func (a *FilterLessOrEqual) AttributeDesc() AttributeDescription {

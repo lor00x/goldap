@@ -589,7 +589,7 @@ const ModifyRequestChangeOperationAdd = 0
 const ModifyRequestChangeOperationDelete = 1
 const ModifyRequestChangeOperationReplace = 2
 
-var EnumeratedModifyRequestChangeOpration = map[ENUMERATED]string{
+var EnumeratedModifyRequestChangeOperation = map[ENUMERATED]string{
 	ModifyRequestChangeOperationAdd:     "add",
 	ModifyRequestChangeOperationDelete:  "delete",
 	ModifyRequestChangeOperationReplace: "replace",
