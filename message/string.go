@@ -18,3 +18,12 @@ func readTaggedLDAPString(bytes *Bytes, class int, tag int) (ldapstring LDAPStri
 func readLDAPString(bytes *Bytes) (ldapstring LDAPString, err error) {
 	return readTaggedLDAPString(bytes, classUniversal, tagOctetString)
 }
+
+//        LDAPString ::= OCTET STRING -- UTF-8 encoded,
+//                                    -- [ISO10646] characters
+func (s LDAPString) write(bytes *Bytes) int {
+	return OCTETSTRING(s).write(bytes)
+}
+func (s LDAPString) writeTagged(bytes *Bytes, class int, tag int) int {
+	return OCTETSTRING(s).writeTagged(bytes, class, tag)
+}

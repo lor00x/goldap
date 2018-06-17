@@ -27,3 +27,14 @@ func (searchresultentry *SearchResultEntry) readComponents(bytes *Bytes) (err er
 	}
 	return
 }
+
+//
+//        SearchResultEntry ::= [APPLICATION 4] SEQUENCE {
+//             objectName      LDAPDN,
+//             attributes      PartialAttributeList }
+func (s SearchResultEntry) write(bytes *Bytes) (size int) {
+	size += s.attributes.write(bytes)
+	size += s.objectName.write(bytes)
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagSearchResultEntry, size)
+	return
+}

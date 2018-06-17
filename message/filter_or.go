@@ -29,3 +29,15 @@ func (filteror *FilterOr) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//             or              [1] SET SIZE (1..MAX) OF filter Filter,
+func (f FilterOr) write(bytes *Bytes) (size int) {
+	for i := len(f) - 1; i >= 0; i-- {
+		size += f[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(classContextSpecific, isCompound, TagFilterOr, size)
+	return
+}
+func (filter FilterOr) getFilterTag() int {
+	return TagFilterOr
+}

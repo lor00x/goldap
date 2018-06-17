@@ -21,3 +21,11 @@ func readAttribute(bytes *Bytes) (ret Attribute, err error) {
 	return
 
 }
+
+//
+//        Attribute ::= PartialAttribute(WITH COMPONENTS {
+//             ...,
+//             vals (SIZE(1..MAX))})
+func (a Attribute) write(bytes *Bytes) (size int) {
+	return PartialAttribute(a).write(bytes)
+}

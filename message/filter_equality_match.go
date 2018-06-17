@@ -13,3 +13,11 @@ func readFilterEqualityMatch(bytes *Bytes) (ret FilterEqualityMatch, err error) 
 	ret = FilterEqualityMatch(attributevalueassertion)
 	return
 }
+
+//             equalityMatch   [3] AttributeValueAssertion,
+func (f FilterEqualityMatch) write(bytes *Bytes) int {
+	return AttributeValueAssertion(f).writeTagged(bytes, classContextSpecific, TagFilterEqualityMatch)
+}
+func (filter FilterEqualityMatch) getFilterTag() int {
+	return TagFilterEqualityMatch
+}

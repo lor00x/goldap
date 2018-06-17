@@ -24,3 +24,9 @@ func readTaggedOCTETSTRING(bytes *Bytes, class int, tag int) (ret OCTETSTRING, e
 	return
 }
 func (o OCTETSTRING) Pointer() *OCTETSTRING { return &o }
+func (o OCTETSTRING) write(bytes *Bytes) int {
+	return bytes.WritePrimitiveSubBytes(classUniversal, tagOctetString, o)
+}
+func (o OCTETSTRING) writeTagged(bytes *Bytes, class int, tag int) int {
+	return bytes.WritePrimitiveSubBytes(class, tag, o)
+}

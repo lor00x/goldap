@@ -14,3 +14,9 @@ func readCompareResponse(bytes *Bytes) (ret CompareResponse, err error) {
 	ret = CompareResponse(res)
 	return
 }
+
+//
+//        CompareResponse ::= [APPLICATION 15] LDAPResult
+func (c CompareResponse) write(bytes *Bytes) int {
+	return LDAPResult(c).writeTagged(bytes, classApplication, TagCompareResponse)
+}

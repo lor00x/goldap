@@ -24,3 +24,12 @@ func readTaggedAssertionValue(bytes *Bytes, class int, tag int) (assertionvalue 
 	assertionvalue = AssertionValue(octetstring)
 	return
 }
+
+//
+//        AssertionValue ::= OCTET STRING
+func (a AssertionValue) write(bytes *Bytes) int {
+	return OCTETSTRING(a).write(bytes)
+}
+func (a AssertionValue) writeTagged(bytes *Bytes, class int, tag int) int {
+	return OCTETSTRING(a).writeTagged(bytes, class, tag)
+}

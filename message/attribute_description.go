@@ -29,3 +29,14 @@ func readTaggedAttributeDescription(bytes *Bytes, class int, tag int) (ret Attri
 	return
 }
 func (a AttributeDescription) Pointer() *AttributeDescription { return &a }
+
+//
+//        AttributeDescription ::= LDAPString
+//                                -- Constrained to <attributedescription>
+//                                -- [RFC4512]
+func (a AttributeDescription) write(bytes *Bytes) int {
+	return LDAPString(a).write(bytes)
+}
+func (a AttributeDescription) writeTagged(bytes *Bytes, class int, tag int) int {
+	return LDAPString(a).writeTagged(bytes, class, tag)
+}

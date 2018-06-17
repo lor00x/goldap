@@ -41,3 +41,23 @@ func (m *ModifyRequest) readChanges(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        ModifyRequest ::= [APPLICATION 6] SEQUENCE {
+//             object          LDAPDN,
+//             changes         SEQUENCE OF change SEQUENCE {
+//                  operation       ENUMERATED {
+//                       add     (0),
+//                       delete  (1),
+//                       replace (2),
+//                       ...  },
+//                  modification    PartialAttribute } }
+func (m ModifyRequest) write(bytes *Bytes) (size int) {
+	for i := len(m.changes) - 1; i >= 0; i-- {
+		size += m.changes[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	size += m.object.write(bytes)
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagModifyRequest, size)
+	return
+}

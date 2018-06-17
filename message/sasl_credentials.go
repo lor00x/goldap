@@ -33,3 +33,17 @@ func (authentication *SaslCredentials) readComponents(bytes *Bytes) (err error) 
 	}
 	return
 }
+
+//
+//        SaslCredentials ::= SEQUENCE {
+//             mechanism               LDAPString,
+//             credentials             OCTET STRING OPTIONAL }
+//
+func (s SaslCredentials) writeTagged(bytes *Bytes, class int, tag int) (size int) {
+	if s.credentials != nil {
+		size += s.credentials.write(bytes)
+	}
+	size += s.mechanism.write(bytes)
+	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
+	return
+}

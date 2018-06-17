@@ -15,3 +15,20 @@ func (attributevalueassertion *AttributeValueAssertion) readComponents(bytes *By
 	}
 	return
 }
+
+//
+//        AttributeValueAssertion ::= SEQUENCE {
+//             attributeDesc   AttributeDescription,
+//             assertionValue  AssertionValue }
+func (a AttributeValueAssertion) write(bytes *Bytes) (size int) {
+	size += a.assertionValue.write(bytes)
+	size += a.attributeDesc.write(bytes)
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	return
+}
+func (a AttributeValueAssertion) writeTagged(bytes *Bytes, class int, tag int) (size int) {
+	size += a.assertionValue.write(bytes)
+	size += a.attributeDesc.write(bytes)
+	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
+	return
+}

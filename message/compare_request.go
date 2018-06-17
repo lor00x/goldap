@@ -27,3 +27,14 @@ func (req *CompareRequest) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        CompareRequest ::= [APPLICATION 14] SEQUENCE {
+//             entry           LDAPDN,
+//             ava             AttributeValueAssertion }
+func (c CompareRequest) write(bytes *Bytes) (size int) {
+	size += c.ava.write(bytes)
+	size += c.entry.write(bytes)
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagCompareRequest, size)
+	return
+}

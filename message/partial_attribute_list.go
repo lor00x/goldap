@@ -26,3 +26,14 @@ func (partialattributelist *PartialAttributeList) readComponents(bytes *Bytes) (
 	}
 	return
 }
+
+//
+//        PartialAttributeList ::= SEQUENCE OF
+//                             partialAttribute PartialAttribute
+func (p PartialAttributeList) write(bytes *Bytes) (size int) {
+	for i := len(p) - 1; i >= 0; i-- {
+		size += p[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	return
+}

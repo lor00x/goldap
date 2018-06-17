@@ -14,3 +14,9 @@ func readAbandonRequest(bytes *Bytes) (ret AbandonRequest, err error) {
 	ret = AbandonRequest(mes)
 	return
 }
+
+//
+//        AbandonRequest ::= [APPLICATION 16] MessageID
+func (a AbandonRequest) write(bytes *Bytes) int {
+	return MessageID(a).writeTagged(bytes, classApplication, TagAbandonRequest)
+}

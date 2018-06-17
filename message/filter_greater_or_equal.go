@@ -13,3 +13,11 @@ func readFilterGreaterOrEqual(bytes *Bytes) (ret FilterGreaterOrEqual, err error
 	ret = FilterGreaterOrEqual(attributevalueassertion)
 	return
 }
+
+//             greaterOrEqual  [5] AttributeValueAssertion,
+func (filter FilterGreaterOrEqual) write(bytes *Bytes) int {
+	return AttributeValueAssertion(filter).writeTagged(bytes, classContextSpecific, TagFilterGreaterOrEqual)
+}
+func (filter FilterGreaterOrEqual) getFilterTag() int {
+	return TagFilterGreaterOrEqual
+}

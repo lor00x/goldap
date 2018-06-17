@@ -27,3 +27,15 @@ func (attributeSelection *AttributeSelection) readComponents(bytes *Bytes) (err 
 	}
 	return
 }
+
+//
+//        AttributeSelection ::= SEQUENCE OF selector LDAPString
+//                       -- The LDAPString is constrained to
+//                       -- <attributeSelector> in Section 4.5.1.8
+func (a AttributeSelection) write(bytes *Bytes) (size int) {
+	for i := len(a) - 1; i >= 0; i-- {
+		size += a[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	return
+}

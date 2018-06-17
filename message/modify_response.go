@@ -14,3 +14,14 @@ func readModifyResponse(bytes *Bytes) (ret ModifyResponse, err error) {
 	ret = ModifyResponse(res)
 	return
 }
+func (l LDAPResult) writeTagged(bytes *Bytes, class int, tag int) (size int) {
+	size += l.writeComponents(bytes)
+	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
+	return
+}
+
+//
+//        ModifyResponse ::= [APPLICATION 7] LDAPResult
+func (m ModifyResponse) write(bytes *Bytes) int {
+	return LDAPResult(m).writeTagged(bytes, classApplication, TagModifyResponse)
+}

@@ -16,3 +16,10 @@ func readURI(bytes *Bytes) (uri URI, err error) {
 	uri = URI(ldapstring)
 	return
 }
+
+//
+//        URI ::= LDAPString     -- limited to characters permitted in
+//                               -- URIs
+func (u URI) write(bytes *Bytes) int {
+	return LDAPString(u).write(bytes)
+}

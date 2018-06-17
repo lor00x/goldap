@@ -67,3 +67,27 @@ func (matchingruleassertion *MatchingRuleAssertion) readType(bytes *Bytes) (err 
 	}
 	return
 }
+func (m MatchingRuleAssertion) writeTagged(bytes *Bytes, class int, tag int) (size int) {
+	if m.dnAttributes != BOOLEAN(false) {
+		size += m.dnAttributes.writeTagged(bytes, classContextSpecific, TagMatchingRuleAssertionDnAttributes)
+	}
+	size += m.matchValue.writeTagged(bytes, classContextSpecific, TagMatchingRuleAssertionMatchValue)
+	if m.type_ != nil {
+		size += m.type_.writeTagged(bytes, classContextSpecific, TagMatchingRuleAssertionType)
+	}
+	if m.matchingRule != nil {
+		size += m.matchingRule.writeTagged(bytes, classContextSpecific, TagMatchingRuleAssertionMatchingRule)
+	}
+	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
+	return
+}
+
+//
+//        MatchingRuleAssertion ::= SEQUENCE {
+//             matchingRule    [1] MatchingRuleId OPTIONAL,
+//             type            [2] AttributeDescription OPTIONAL,
+//             matchValue      [3] AssertionValue,
+//             dnAttributes    [4] BOOLEAN DEFAULT FALSE }
+func (m MatchingRuleAssertion) write(bytes *Bytes) (size int) {
+	return m.writeTagged(bytes, classUniversal, tagSequence)
+}

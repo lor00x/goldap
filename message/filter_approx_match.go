@@ -13,3 +13,11 @@ func readFilterApproxMatch(bytes *Bytes) (ret FilterApproxMatch, err error) {
 	ret = FilterApproxMatch(attributevalueassertion)
 	return
 }
+
+//             approxMatch     [8] AttributeValueAssertion,
+func (f FilterApproxMatch) write(bytes *Bytes) int {
+	return AttributeValueAssertion(f).writeTagged(bytes, classContextSpecific, TagFilterApproxMatch)
+}
+func (filterAnd FilterApproxMatch) getFilterTag() int {
+	return TagFilterApproxMatch
+}

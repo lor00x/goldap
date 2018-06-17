@@ -14,3 +14,9 @@ func readAddResponse(bytes *Bytes) (ret AddResponse, err error) {
 	ret = AddResponse(res)
 	return
 }
+
+//
+//        AddResponse ::= [APPLICATION 9] LDAPResult
+func (a AddResponse) write(bytes *Bytes) int {
+	return LDAPResult(a).writeTagged(bytes, classApplication, TagAddResponse)
+}

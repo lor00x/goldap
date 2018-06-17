@@ -105,3 +105,42 @@ func (substringfilter *SubstringFilter) readSubstringsComponents(bytes *Bytes) (
 	}
 	return
 }
+
+//             substrings      [4] SubstringFilter,
+func (f FilterSubstrings) write(bytes *Bytes) int {
+	return SubstringFilter(f).writeTagged(bytes, classContextSpecific, TagFilterSubstrings)
+}
+func (s SubstringFilter) writeTagged(bytes *Bytes, class int, tag int) (size int) {
+	for i := len(s.substrings) - 1; i >= 0; i-- {
+		substring := s.substrings[i]
+		switch substring.(type) {
+		case SubstringInitial:
+			size += AssertionValue(substring.(SubstringInitial)).writeTagged(bytes, classContextSpecific, TagSubstringInitial)
+		case SubstringAny:
+			size += AssertionValue(substring.(SubstringAny)).writeTagged(bytes, classContextSpecific, TagSubstringAny)
+		case SubstringFinal:
+			size += AssertionValue(substring.(SubstringFinal)).writeTagged(bytes, classContextSpecific, TagSubstringFinal)
+		default:
+			panic("Unknown type for SubstringFilter substring")
+		}
+	}
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	size += s.type_.write(bytes)
+	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
+	return
+}
+
+//
+//        SubstringFilter ::= SEQUENCE {
+//             type           AttributeDescription,
+//             substrings     SEQUENCE SIZE (1..MAX) OF substring CHOICE {
+//                  initial [0] AssertionValue,  -- can occur at most once
+//                  any     [1] AssertionValue,
+//                  final   [2] AssertionValue } -- can occur at most once
+//             }
+func (s SubstringFilter) write(bytes *Bytes) (size int) {
+	return s.writeTagged(bytes, classUniversal, tagSequence)
+}
+func (filter FilterSubstrings) getFilterTag() int {
+	return TagFilterSubstrings
+}

@@ -36,3 +36,9 @@ func readTaggedAttributeValueAssertion(bytes *Bytes, class int, tag int) (ret At
 	}
 	return
 }
+
+//
+//        AttributeValue ::= OCTET STRING
+func (a AttributeValue) write(bytes *Bytes) int {
+	return OCTETSTRING(a).write(bytes)
+}

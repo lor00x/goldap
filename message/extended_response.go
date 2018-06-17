@@ -53,3 +53,20 @@ func (res *ExtendedResponse) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
+//             COMPONENTS OF LDAPResult,
+//             responseName     [10] LDAPOID OPTIONAL,
+//             responseValue    [11] OCTET STRING OPTIONAL }
+func (e ExtendedResponse) write(bytes *Bytes) (size int) {
+	if e.responseValue != nil {
+		size += e.responseValue.writeTagged(bytes, classContextSpecific, TagExtendedResponseValue)
+	}
+	if e.responseName != nil {
+		size += e.responseName.writeTagged(bytes, classContextSpecific, TagExtendedResponseName)
+	}
+	size += e.LDAPResult.writeComponents(bytes)
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagExtendedResponse, size)
+	return
+}

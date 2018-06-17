@@ -28,3 +28,13 @@ func (referral *Referral) readComponents(bytes *Bytes) (err error) {
 	return
 }
 func (referral Referral) Pointer() *Referral { return &referral }
+
+//
+//        Referral ::= SEQUENCE SIZE (1..MAX) OF uri URI
+func (r Referral) writeTagged(bytes *Bytes, class int, tag int) (size int) {
+	for i := len(r) - 1; i >= 0; i-- {
+		size += r[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
+	return
+}

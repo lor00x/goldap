@@ -36,3 +36,9 @@ func readTaggedPositiveINTEGER(bytes *Bytes, class int, tag int) (ret INTEGER, e
 func readPositiveINTEGER(bytes *Bytes) (ret INTEGER, err error) {
 	return readTaggedPositiveINTEGER(bytes, classUniversal, tagInteger)
 }
+func (i INTEGER) write(bytes *Bytes) int {
+	return bytes.WritePrimitiveSubBytes(classUniversal, tagInteger, i)
+}
+func (i INTEGER) writeTagged(bytes *Bytes, class int, tag int) int {
+	return bytes.WritePrimitiveSubBytes(class, tag, i)
+}

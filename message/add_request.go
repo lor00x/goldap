@@ -38,3 +38,25 @@ func (req *AddRequest) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//
+//
+//
+//
+//
+//Sermersheim                 Standards Track                    [Page 58]
+//
+//
+//RFC 4511                         LDAPv3                        June 2006
+//
+//
+//        AddRequest ::= [APPLICATION 8] SEQUENCE {
+//             entry           LDAPDN,
+//             attributes      AttributeList }
+func (a AddRequest) write(bytes *Bytes) (size int) {
+	size += a.attributes.write(bytes)
+	size += a.entry.write(bytes)
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagAddRequest, size)
+	return
+}

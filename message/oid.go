@@ -30,3 +30,22 @@ func readLDAPOID(bytes *Bytes) (ret LDAPOID, err error) {
 	return readTaggedLDAPOID(bytes, classUniversal, tagOctetString)
 }
 func (l LDAPOID) Pointer() *LDAPOID { return &l }
+
+//
+//
+//
+//
+//Sermersheim                 Standards Track                    [Page 54]
+//
+//
+//RFC 4511                         LDAPv3                        June 2006
+//
+//
+//        LDAPOID ::= OCTET STRING -- Constrained to <numericoid>
+//                                 -- [RFC4512]
+func (l LDAPOID) write(bytes *Bytes) int {
+	return OCTETSTRING(l).write(bytes)
+}
+func (l LDAPOID) writeTagged(bytes *Bytes, class int, tag int) int {
+	return OCTETSTRING(l).writeTagged(bytes, class, tag)
+}

@@ -13,3 +13,11 @@ func readFilterPresent(bytes *Bytes) (ret FilterPresent, err error) {
 	ret = FilterPresent(attributedescription)
 	return
 }
+
+//             present         [7] AttributeDescription,
+func (f FilterPresent) write(bytes *Bytes) int {
+	return AttributeDescription(f).writeTagged(bytes, classContextSpecific, TagFilterPresent)
+}
+func (filterAnd FilterPresent) getFilterTag() int {
+	return TagFilterPresent
+}

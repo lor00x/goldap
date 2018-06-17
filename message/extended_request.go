@@ -39,3 +39,16 @@ func (req *ExtendedRequest) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
+//             requestName      [0] LDAPOID,
+//             requestValue     [1] OCTET STRING OPTIONAL }
+func (e ExtendedRequest) write(bytes *Bytes) (size int) {
+	if e.requestValue != nil {
+		size += e.requestValue.writeTagged(bytes, classContextSpecific, TagExtendedRequestValue)
+	}
+	size += e.requestName.writeTagged(bytes, classContextSpecific, TagExtendedRequestName)
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagExtendedRequest, size)
+	return
+}

@@ -57,3 +57,18 @@ func (res *IntermediateResponse) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        IntermediateResponse ::= [APPLICATION 25] SEQUENCE {
+//             responseName     [0] LDAPOID OPTIONAL,
+//             responseValue    [1] OCTET STRING OPTIONAL }
+func (i IntermediateResponse) write(bytes *Bytes) (size int) {
+	if i.responseValue != nil {
+		size += i.responseValue.writeTagged(bytes, classContextSpecific, TagIntermediateResponseValue)
+	}
+	if i.responseName != nil {
+		size += i.responseName.writeTagged(bytes, classContextSpecific, TagIntermediateResponseName)
+	}
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagIntermediateResponse, size)
+	return
+}

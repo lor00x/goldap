@@ -24,3 +24,13 @@ func (list *AttributeList) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        AttributeList ::= SEQUENCE OF attribute Attribute
+func (a AttributeList) write(bytes *Bytes) (size int) {
+	for i := len(a) - 1; i >= 0; i-- {
+		size += a[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	return
+}

@@ -42,3 +42,13 @@ func readRelativeLDAPDN(bytes *Bytes) (ret RelativeLDAPDN, err error) {
 	ret = RelativeLDAPDN(ldapstring)
 	return
 }
+
+//
+//        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
+//                              -- [RFC4514]
+func (l LDAPDN) write(bytes *Bytes) int {
+	return LDAPString(l).write(bytes)
+}
+func (l LDAPDN) writeTagged(bytes *Bytes, class int, tag int) int {
+	return LDAPString(l).writeTagged(bytes, class, tag)
+}

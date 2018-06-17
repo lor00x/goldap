@@ -16,3 +16,9 @@ func readENUMERATED(bytes *Bytes, allowedValues map[ENUMERATED]string) (ret ENUM
 	}
 	return
 }
+func (e ENUMERATED) write(bytes *Bytes) int {
+	return bytes.WritePrimitiveSubBytes(classUniversal, tagEnum, e)
+}
+func (e ENUMERATED) writeTagged(bytes *Bytes, class int, tag int) int {
+	return bytes.WritePrimitiveSubBytes(class, tag, e)
+}

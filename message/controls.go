@@ -25,3 +25,13 @@ func (controls *Controls) readComponents(bytes *Bytes) (err error) {
 	return
 }
 func (controls Controls) Pointer() *Controls { return &controls }
+
+//
+//        Controls ::= SEQUENCE OF control Control
+func (c Controls) writeTagged(bytes *Bytes, class int, tag int) (size int) {
+	for i := len(c) - 1; i >= 0; i-- {
+		size += c[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
+	return
+}

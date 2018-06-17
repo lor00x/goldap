@@ -40,3 +40,17 @@ func (partialattribute *PartialAttribute) readValsComponents(bytes *Bytes) (err 
 	}
 	return
 }
+
+//
+//        PartialAttribute ::= SEQUENCE {
+//             type       AttributeDescription,
+//             vals       SET OF value AttributeValue }
+func (p PartialAttribute) write(bytes *Bytes) (size int) {
+	for i := len(p.vals) - 1; i >= 0; i-- {
+		size += p.vals[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSet, size)
+	size += p.type_.write(bytes)
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	return
+}

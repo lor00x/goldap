@@ -23,3 +23,9 @@ func (m *ModifyRequestChange) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+func (m ModifyRequestChange) write(bytes *Bytes) (size int) {
+	size += m.modification.write(bytes)
+	size += m.operation.write(bytes)
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	return
+}

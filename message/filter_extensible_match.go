@@ -13,3 +13,11 @@ func readFilterExtensibleMatch(bytes *Bytes) (filterextensiblematch FilterExtens
 	filterextensiblematch = FilterExtensibleMatch(matchingruleassertion)
 	return
 }
+
+//             extensibleMatch [9] MatchingRuleAssertion,
+func (f FilterExtensibleMatch) write(bytes *Bytes) int {
+	return MatchingRuleAssertion(f).writeTagged(bytes, classContextSpecific, TagFilterExtensibleMatch)
+}
+func (filterAnd FilterExtensibleMatch) getFilterTag() int {
+	return TagFilterExtensibleMatch
+}

@@ -72,3 +72,30 @@ func (message *LDAPMessage) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+func (m *LDAPMessage) Write() (bytes *Bytes, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = LdapError{fmt.Sprintf("Error in LDAPMessage.Write: %s", e)}
+		}
+	}()
+	// Compute the needed size
+	totalSize := m.size()
+	// Initialize the structure
+	bytes = &Bytes{
+		bytes:  make([]byte, totalSize),
+		offset: totalSize,
+	}
+	// Go !
+	size := 0
+	if m.controls != nil {
+		size += m.controls.writeTagged(bytes, classContextSpecific, TagLDAPMessageControls)
+	}
+	size += m.protocolOp.write(bytes)
+	size += m.messageID.write(bytes)
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	// Check
+	if size != totalSize || bytes.offset != 0 {
+		err = LdapError{fmt.Sprintf("Something went wrong while writing the message ! Size is %d instead of %d, final offset is %d instead of 0", size, totalSize, bytes.offset)}
+	}
+	return
+}

@@ -54,3 +54,20 @@ func (control *Control) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        Control ::= SEQUENCE {
+//             controlType             LDAPOID,
+//             criticality             BOOLEAN DEFAULT FALSE,
+//             controlValue            OCTET STRING OPTIONAL }
+func (c Control) write(bytes *Bytes) (size int) {
+	if c.controlValue != nil {
+		size += c.controlValue.write(bytes)
+	}
+	if c.criticality != BOOLEAN(false) {
+		size += c.criticality.write(bytes)
+	}
+	size += c.controlType.write(bytes)
+	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
+	return
+}

@@ -13,3 +13,11 @@ func readFilterLessOrEqual(bytes *Bytes) (ret FilterLessOrEqual, err error) {
 	ret = FilterLessOrEqual(attributevalueassertion)
 	return
 }
+
+//             lessOrEqual     [6] AttributeValueAssertion,
+func (f FilterLessOrEqual) write(bytes *Bytes) int {
+	return AttributeValueAssertion(f).writeTagged(bytes, classContextSpecific, TagFilterLessOrEqual)
+}
+func (filterAnd FilterLessOrEqual) getFilterTag() int {
+	return TagFilterLessOrEqual
+}

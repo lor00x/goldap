@@ -29,3 +29,14 @@ func (s *SearchResultReference) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        SearchResultReference ::= [APPLICATION 19] SEQUENCE
+//                                  SIZE (1..MAX) OF uri URI
+func (s SearchResultReference) write(bytes *Bytes) (size int) {
+	for i := len(s) - 1; i >= 0; i-- {
+		size += s[i].write(bytes)
+	}
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagSearchResultReference, size)
+	return
+}

@@ -71,3 +71,34 @@ func (searchrequest *SearchRequest) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
+//
+//        SearchRequest ::= [APPLICATION 3] SEQUENCE {
+//             baseObject      LDAPDN,
+//             scope           ENUMERATED {
+//                  baseObject              (0),
+//                  singleLevel             (1),
+//                  wholeSubtree            (2),
+//                  ...  },
+//             derefAliases    ENUMERATED {
+//                  neverDerefAliases       (0),
+//                  derefInSearching        (1),
+//                  derefFindingBaseObj     (2),
+//                  derefAlways             (3) },
+//             sizeLimit       INTEGER (0 ..  maxInt),
+//             timeLimit       INTEGER (0 ..  maxInt),
+//             typesOnly       BOOLEAN,
+//             filter          Filter,
+//             attributes      AttributeSelection }
+func (s SearchRequest) write(bytes *Bytes) (size int) {
+	size += s.attributes.write(bytes)
+	size += s.filter.write(bytes)
+	size += s.typesOnly.write(bytes)
+	size += s.timeLimit.write(bytes)
+	size += s.sizeLimit.write(bytes)
+	size += s.derefAliases.write(bytes)
+	size += s.scope.write(bytes)
+	size += s.baseObject.write(bytes)
+	size += bytes.WriteTagAndLength(classApplication, isCompound, TagSearchRequest, size)
+	return
+}

@@ -14,3 +14,9 @@ func readModifyDNResponse(bytes *Bytes) (ret ModifyDNResponse, err error) {
 	ret = ModifyDNResponse(res)
 	return
 }
+
+//
+//        ModifyDNResponse ::= [APPLICATION 13] LDAPResult
+func (m ModifyDNResponse) write(bytes *Bytes) int {
+	return LDAPResult(m).writeTagged(bytes, classApplication, TagModifyDNResponse)
+}
