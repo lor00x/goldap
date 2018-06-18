@@ -179,3 +179,9 @@ func (s SubstringFilter) sizeTagged(tag int) (size int) {
 	size += sizeTagAndLength(tag, size)
 	return
 }
+func (s *FilterSubstrings) Type_() AttributeDescription {
+	return s.type_
+}
+func (s *FilterSubstrings) Substrings() []Substring {
+	return s.substrings
+}

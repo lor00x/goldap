@@ -7,6 +7,11 @@ import "fmt"
 //             COMPONENTS OF LDAPResult,
 //             responseName     [10] LDAPOID OPTIONAL,
 //             responseValue    [11] OCTET STRING OPTIONAL }
+
+func (extended *ExtendedResponse) SetResponseName(name LDAPOID) {
+	extended.responseName = &name
+}
+
 func readExtendedResponse(bytes *Bytes) (ret ExtendedResponse, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagExtendedResponse, ret.readComponents)
 	if err != nil {
@@ -15,8 +20,9 @@ func readExtendedResponse(bytes *Bytes) (ret ExtendedResponse, err error) {
 	}
 	return
 }
-func (res *ExtendedResponse) readComponents(bytes *Bytes) (err error) {
-	res.LDAPResult.readComponents(bytes)
+
+func (extended *ExtendedResponse) readComponents(bytes *Bytes) (err error) {
+	extended.LDAPResult.readComponents(bytes)
 	if bytes.HasMoreData() {
 		var tag TagAndLength
 		tag, err = bytes.PreviewTagAndLength()
@@ -31,7 +37,7 @@ func (res *ExtendedResponse) readComponents(bytes *Bytes) (err error) {
 				err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 				return
 			}
-			res.responseName = oid.Pointer()
+			extended.responseName = oid.Pointer()
 		}
 	}
 	if bytes.HasMoreData() {
@@ -48,41 +54,31 @@ func (res *ExtendedResponse) readComponents(bytes *Bytes) (err error) {
 				err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 				return
 			}
-			res.responseValue = responseValue.Pointer()
+			extended.responseValue = responseValue.Pointer()
 		}
 	}
 	return
 }
 
-//
-//        ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
-//             COMPONENTS OF LDAPResult,
-//             responseName     [10] LDAPOID OPTIONAL,
-//             responseValue    [11] OCTET STRING OPTIONAL }
-func (e ExtendedResponse) write(bytes *Bytes) (size int) {
-	if e.responseValue != nil {
-		size += e.responseValue.writeTagged(bytes, classContextSpecific, TagExtendedResponseValue)
+func (extended ExtendedResponse) write(bytes *Bytes) (size int) {
+	if extended.responseValue != nil {
+		size += extended.responseValue.writeTagged(bytes, classContextSpecific, TagExtendedResponseValue)
 	}
-	if e.responseName != nil {
-		size += e.responseName.writeTagged(bytes, classContextSpecific, TagExtendedResponseName)
+	if extended.responseName != nil {
+		size += extended.responseName.writeTagged(bytes, classContextSpecific, TagExtendedResponseName)
 	}
-	size += e.LDAPResult.writeComponents(bytes)
+	size += extended.LDAPResult.writeComponents(bytes)
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagExtendedResponse, size)
 	return
 }
 
-//
-//        ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
-//             COMPONENTS OF LDAPResult,
-//             responseName     [10] LDAPOID OPTIONAL,
-//             responseValue    [11] OCTET STRING OPTIONAL }
-func (e ExtendedResponse) size() (size int) {
-	size += e.LDAPResult.sizeComponents()
-	if e.responseName != nil {
-		size += e.responseName.sizeTagged(TagExtendedResponseName)
+func (extended ExtendedResponse) size() (size int) {
+	size += extended.LDAPResult.sizeComponents()
+	if extended.responseName != nil {
+		size += extended.responseName.sizeTagged(TagExtendedResponseName)
 	}
-	if e.responseValue != nil {
-		size += e.responseValue.sizeTagged(TagExtendedResponseValue)
+	if extended.responseValue != nil {
+		size += extended.responseValue.sizeTagged(TagExtendedResponseValue)
 	}
 	size += sizeTagAndLength(TagExtendedResponse, size)
 	return

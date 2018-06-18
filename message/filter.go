@@ -24,6 +24,7 @@ import "fmt"
 //             approxMatch     [8] AttributeValueAssertion,
 //             extensibleMatch [9] MatchingRuleAssertion,
 //             ...  }
+
 func readFilter(bytes *Bytes) (filter Filter, err error) {
 	var tagAndLength TagAndLength
 	tagAndLength, err = bytes.PreviewTagAndLength()

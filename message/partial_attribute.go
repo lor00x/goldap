@@ -68,3 +68,9 @@ func (p PartialAttribute) size() (size int) {
 	size += sizeTagAndLength(tagSequence, size)
 	return
 }
+func (p *PartialAttribute) Type_() AttributeDescription {
+	return p.type_
+}
+func (p *PartialAttribute) Vals() []AttributeValue {
+	return p.vals
+}

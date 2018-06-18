@@ -63,7 +63,7 @@ func (matchingruleassertion *MatchingRuleAssertion) readType(bytes *Bytes) (err 
 		if err != nil {
 			return LdapError{fmt.Sprintf("readType: %s", err.Error())}
 		}
-		matchingruleassertion.type_ = attributedescription.Pointer()
+		matchingruleassertion.type_ = &attributedescription
 	}
 	return
 }

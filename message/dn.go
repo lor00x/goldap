@@ -5,6 +5,7 @@ import "fmt"
 //
 //        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
 //                              -- [RFC4514]
+
 func readLDAPDN(bytes *Bytes) (ret LDAPDN, err error) {
 	var str LDAPString
 	str, err = readLDAPString(bytes)
@@ -15,6 +16,7 @@ func readLDAPDN(bytes *Bytes) (ret LDAPDN, err error) {
 	ret = LDAPDN(str)
 	return
 }
+
 func readTaggedLDAPDN(bytes *Bytes, class int, tag int) (ret LDAPDN, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readTaggedLDAPString(bytes, class, tag)
@@ -26,11 +28,9 @@ func readTaggedLDAPDN(bytes *Bytes, class int, tag int) (ret LDAPDN, err error) 
 	ret = LDAPDN(ldapstring)
 	return
 }
+
 func (l LDAPDN) Pointer() *LDAPDN { return &l }
 
-//
-//        RelativeLDAPDN ::= LDAPString -- Constrained to <name-component>
-//                                      -- [RFC4514]
 func readRelativeLDAPDN(bytes *Bytes) (ret RelativeLDAPDN, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readLDAPString(bytes)
@@ -43,22 +43,18 @@ func readRelativeLDAPDN(bytes *Bytes) (ret RelativeLDAPDN, err error) {
 	return
 }
 
-//
-//        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
-//                              -- [RFC4514]
 func (l LDAPDN) write(bytes *Bytes) int {
 	return LDAPString(l).write(bytes)
 }
+
 func (l LDAPDN) writeTagged(bytes *Bytes, class int, tag int) int {
 	return LDAPString(l).writeTagged(bytes, class, tag)
 }
 
-//
-//        LDAPDN ::= LDAPString -- Constrained to <distinguishedName>
-//                              -- [RFC4514]
 func (l LDAPDN) size() int {
 	return LDAPString(l).size()
 }
+
 func (l LDAPDN) sizeTagged(tag int) int {
 	return LDAPString(l).sizeTagged(tag)
 }

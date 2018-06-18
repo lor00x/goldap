@@ -4,6 +4,7 @@ import "fmt"
 
 //
 //        Controls ::= SEQUENCE OF control Control
+
 func readTaggedControls(bytes *Bytes, class int, tag int) (controls Controls, err error) {
 	err = bytes.ReadSubBytes(class, tag, controls.readComponents)
 	if err != nil {
@@ -26,20 +27,16 @@ func (controls *Controls) readComponents(bytes *Bytes) (err error) {
 }
 func (controls Controls) Pointer() *Controls { return &controls }
 
-//
-//        Controls ::= SEQUENCE OF control Control
-func (c Controls) writeTagged(bytes *Bytes, class int, tag int) (size int) {
-	for i := len(c) - 1; i >= 0; i-- {
-		size += c[i].write(bytes)
+func (controls Controls) writeTagged(bytes *Bytes, class int, tag int) (size int) {
+	for i := len(controls) - 1; i >= 0; i-- {
+		size += controls[i].write(bytes)
 	}
 	size += bytes.WriteTagAndLength(class, isCompound, tag, size)
 	return
 }
 
-//
-//        Controls ::= SEQUENCE OF control Control
-func (c Controls) sizeTagged(tag int) (size int) {
-	for _, control := range c {
+func (controls Controls) sizeTagged(tag int) (size int) {
+	for _, control := range controls {
 		size += control.size()
 	}
 	size += sizeTagAndLength(tag, size)

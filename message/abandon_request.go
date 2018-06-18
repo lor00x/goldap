@@ -4,12 +4,7 @@ import "fmt"
 
 //
 //        AbandonRequest ::= [APPLICATION 16] MessageID
-func (a AbandonRequest) size() int {
-	return MessageID(a).sizeTagged(TagAbandonRequest)
-}
 
-//
-//        AbandonRequest ::= [APPLICATION 16] MessageID
 func readAbandonRequest(bytes *Bytes) (ret AbandonRequest, err error) {
 	var mes MessageID
 	mes, err = readTaggedMessageID(bytes, classApplication, TagAbandonRequest)
@@ -21,8 +16,10 @@ func readAbandonRequest(bytes *Bytes) (ret AbandonRequest, err error) {
 	return
 }
 
-//
-//        AbandonRequest ::= [APPLICATION 16] MessageID
-func (a AbandonRequest) write(bytes *Bytes) int {
-	return MessageID(a).writeTagged(bytes, classApplication, TagAbandonRequest)
+func (abandon AbandonRequest) size() int {
+	return MessageID(abandon).sizeTagged(TagAbandonRequest)
+}
+
+func (abandon AbandonRequest) write(bytes *Bytes) int {
+	return MessageID(abandon).writeTagged(bytes, classApplication, TagAbandonRequest)
 }

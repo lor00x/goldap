@@ -49,3 +49,10 @@ func (s SearchResultEntry) size() (size int) {
 	size += sizeTagAndLength(tagSequence, size)
 	return
 }
+func (s *SearchResultEntry) SetObjectName(on string) {
+	s.objectName = LDAPDN(on)
+}
+func (s *SearchResultEntry) AddAttribute(name AttributeDescription, values ...AttributeValue) {
+	var ea = PartialAttribute{type_: name, vals: values}
+	s.attributes.add(ea)
+}

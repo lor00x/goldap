@@ -1,6 +1,9 @@
 package message
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 //   This appendix is normative.
 //
@@ -41,7 +44,9 @@ import "fmt"
 //                  intermediateResponse  IntermediateResponse },
 //             controls       [0] Controls OPTIONAL }
 //
+
 func NewLDAPMessage() *LDAPMessage { return &LDAPMessage{} }
+
 func (message *LDAPMessage) readComponents(bytes *Bytes) (err error) {
 	message.messageID, err = readMessageID(bytes)
 	if err != nil {
@@ -72,6 +77,7 @@ func (message *LDAPMessage) readComponents(bytes *Bytes) (err error) {
 	}
 	return
 }
+
 func (m *LDAPMessage) Write() (bytes *Bytes, err error) {
 	defer func() {
 		if e := recover(); e != nil {
@@ -85,6 +91,7 @@ func (m *LDAPMessage) Write() (bytes *Bytes, err error) {
 		bytes:  make([]byte, totalSize),
 		offset: totalSize,
 	}
+
 	// Go !
 	size := 0
 	if m.controls != nil {
@@ -107,4 +114,26 @@ func (m *LDAPMessage) size() (size int) {
 	}
 	size += sizeTagAndLength(tagSequence, size)
 	return
+}
+func (l *LDAPMessage) MessageID() MessageID {
+	return l.messageID
+}
+func (l *LDAPMessage) SetMessageID(ID int) {
+	l.messageID = MessageID(ID)
+}
+func (l *LDAPMessage) Controls() *Controls {
+	return l.controls
+}
+func (l *LDAPMessage) ProtocolOp() ProtocolOp {
+	return l.protocolOp
+}
+func (l *LDAPMessage) ProtocolOpName() string {
+	return reflect.TypeOf(l.ProtocolOp()).Name()
+}
+func (l *LDAPMessage) ProtocolOpType() int {
+	switch l.protocolOp.(type) {
+	case BindRequest:
+		return TagBindRequest
+	}
+	return 0
 }

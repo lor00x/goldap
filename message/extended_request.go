@@ -6,6 +6,15 @@ import "fmt"
 //        ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
 //             requestName      [0] LDAPOID,
 //             requestValue     [1] OCTET STRING OPTIONAL }
+
+func (extended *ExtendedRequest) RequestName() LDAPOID {
+	return extended.requestName
+}
+
+func (extended *ExtendedRequest) RequestValue() *OCTETSTRING {
+	return extended.requestValue
+}
+
 func readExtendedRequest(bytes *Bytes) (ret ExtendedRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagExtendedRequest, ret.readComponents)
 	if err != nil {
@@ -14,8 +23,9 @@ func readExtendedRequest(bytes *Bytes) (ret ExtendedRequest, err error) {
 	}
 	return
 }
-func (req *ExtendedRequest) readComponents(bytes *Bytes) (err error) {
-	req.requestName, err = readTaggedLDAPOID(bytes, classContextSpecific, TagExtendedRequestName)
+
+func (extended *ExtendedRequest) readComponents(bytes *Bytes) (err error) {
+	extended.requestName, err = readTaggedLDAPOID(bytes, classContextSpecific, TagExtendedRequestName)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 		return
@@ -34,33 +44,25 @@ func (req *ExtendedRequest) readComponents(bytes *Bytes) (err error) {
 				err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 				return
 			}
-			req.requestValue = requestValue.Pointer()
+			extended.requestValue = requestValue.Pointer()
 		}
 	}
 	return
 }
 
-//
-//        ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
-//             requestName      [0] LDAPOID,
-//             requestValue     [1] OCTET STRING OPTIONAL }
-func (e ExtendedRequest) write(bytes *Bytes) (size int) {
-	if e.requestValue != nil {
-		size += e.requestValue.writeTagged(bytes, classContextSpecific, TagExtendedRequestValue)
+func (extended ExtendedRequest) write(bytes *Bytes) (size int) {
+	if extended.requestValue != nil {
+		size += extended.requestValue.writeTagged(bytes, classContextSpecific, TagExtendedRequestValue)
 	}
-	size += e.requestName.writeTagged(bytes, classContextSpecific, TagExtendedRequestName)
+	size += extended.requestName.writeTagged(bytes, classContextSpecific, TagExtendedRequestName)
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagExtendedRequest, size)
 	return
 }
 
-//
-//        ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
-//             requestName      [0] LDAPOID,
-//             requestValue     [1] OCTET STRING OPTIONAL }
-func (e ExtendedRequest) size() (size int) {
-	size += e.requestName.sizeTagged(TagExtendedRequestName)
-	if e.requestValue != nil {
-		size += e.requestValue.sizeTagged(TagExtendedRequestValue)
+func (extended ExtendedRequest) size() (size int) {
+	size += extended.requestName.sizeTagged(TagExtendedRequestName)
+	if extended.requestValue != nil {
+		size += extended.requestValue.sizeTagged(TagExtendedRequestValue)
 	}
 	size += sizeTagAndLength(TagExtendedRequest, size)
 	return

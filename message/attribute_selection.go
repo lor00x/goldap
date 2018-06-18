@@ -6,6 +6,7 @@ import "fmt"
 //        AttributeSelection ::= SEQUENCE OF selector LDAPString
 //                       -- The LDAPString is constrained to
 //                       -- <attributeSelector> in Section 4.5.1.8
+
 func readAttributeSelection(bytes *Bytes) (attributeSelection AttributeSelection, err error) {
 	err = bytes.ReadSubBytes(classUniversal, tagSequence, attributeSelection.readComponents)
 	if err != nil {
@@ -14,7 +15,7 @@ func readAttributeSelection(bytes *Bytes) (attributeSelection AttributeSelection
 	}
 	return
 }
-func (attributeSelection *AttributeSelection) readComponents(bytes *Bytes) (err error) {
+func (selection *AttributeSelection) readComponents(bytes *Bytes) (err error) {
 	for bytes.HasMoreData() {
 		var ldapstring LDAPString
 		ldapstring, err = readLDAPString(bytes)
@@ -23,29 +24,21 @@ func (attributeSelection *AttributeSelection) readComponents(bytes *Bytes) (err 
 			err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 			return
 		}
-		*attributeSelection = append(*attributeSelection, ldapstring)
+		*selection = append(*selection, ldapstring)
 	}
 	return
 }
 
-//
-//        AttributeSelection ::= SEQUENCE OF selector LDAPString
-//                       -- The LDAPString is constrained to
-//                       -- <attributeSelector> in Section 4.5.1.8
-func (a AttributeSelection) write(bytes *Bytes) (size int) {
-	for i := len(a) - 1; i >= 0; i-- {
-		size += a[i].write(bytes)
+func (selection AttributeSelection) write(bytes *Bytes) (size int) {
+	for i := len(selection) - 1; i >= 0; i-- {
+		size += selection[i].write(bytes)
 	}
 	size += bytes.WriteTagAndLength(classUniversal, isCompound, tagSequence, size)
 	return
 }
 
-//
-//        AttributeSelection ::= SEQUENCE OF selector LDAPString
-//                       -- The LDAPString is constrained to
-//                       -- <attributeSelector> in Section 4.5.1.8
-func (a AttributeSelection) size() (size int) {
-	for _, selector := range a {
+func (selection AttributeSelection) size() (size int) {
+	for _, selector := range selection {
 		size += selector.size()
 	}
 	size += sizeTagAndLength(tagSequence, size)

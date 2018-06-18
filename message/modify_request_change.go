@@ -35,3 +35,9 @@ func (m ModifyRequestChange) size() (size int) {
 	size += sizeTagAndLength(tagSequence, size)
 	return
 }
+func (m *ModifyRequestChange) Operation() ENUMERATED {
+	return m.operation
+}
+func (m *ModifyRequestChange) Modification() *PartialAttribute {
+	return &m.modification
+}

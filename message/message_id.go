@@ -41,3 +41,6 @@ func (m MessageID) size() int {
 func (m MessageID) sizeTagged(tag int) int {
 	return INTEGER(m).sizeTagged(tag)
 }
+func (l MessageID) Int() int {
+	return int(l)
+}

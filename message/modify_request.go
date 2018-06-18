@@ -81,3 +81,9 @@ func (m ModifyRequest) size() (size int) {
 	size += sizeTagAndLength(TagModifyRequest, size)
 	return
 }
+func (m *ModifyRequest) Object() LDAPDN {
+	return m.object
+}
+func (m *ModifyRequest) Changes() []ModifyRequestChange {
+	return m.changes
+}

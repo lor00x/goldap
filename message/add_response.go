@@ -4,6 +4,11 @@ import "fmt"
 
 //
 //        AddResponse ::= [APPLICATION 9] LDAPResult
+
+func (l *AddResponse) SetResultCode(code int) {
+	l.resultCode = ENUMERATED(code)
+}
+
 func readAddResponse(bytes *Bytes) (ret AddResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagAddResponse)
@@ -15,14 +20,9 @@ func readAddResponse(bytes *Bytes) (ret AddResponse, err error) {
 	return
 }
 
-//
-//        AddResponse ::= [APPLICATION 9] LDAPResult
-func (a AddResponse) write(bytes *Bytes) int {
-	return LDAPResult(a).writeTagged(bytes, classApplication, TagAddResponse)
-}
-
-//
-//        AddResponse ::= [APPLICATION 9] LDAPResult
 func (a AddResponse) size() int {
 	return LDAPResult(a).sizeTagged(TagAddResponse)
+}
+func (a AddResponse) write(bytes *Bytes) int {
+	return LDAPResult(a).writeTagged(bytes, classApplication, TagAddResponse)
 }

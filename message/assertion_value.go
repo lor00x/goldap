@@ -4,6 +4,7 @@ import "fmt"
 
 //
 //        AssertionValue ::= OCTET STRING
+
 func readAssertionValue(bytes *Bytes) (assertionvalue AssertionValue, err error) {
 	var octetstring OCTETSTRING
 	octetstring, err = readOCTETSTRING(bytes)
@@ -14,6 +15,7 @@ func readAssertionValue(bytes *Bytes) (assertionvalue AssertionValue, err error)
 	assertionvalue = AssertionValue(octetstring)
 	return
 }
+
 func readTaggedAssertionValue(bytes *Bytes, class int, tag int) (assertionvalue AssertionValue, err error) {
 	var octetstring OCTETSTRING
 	octetstring, err = readTaggedOCTETSTRING(bytes, class, tag)
@@ -25,26 +27,18 @@ func readTaggedAssertionValue(bytes *Bytes, class int, tag int) (assertionvalue 
 	return
 }
 
-//
-//        AssertionValue ::= OCTET STRING
-func (a AssertionValue) write(bytes *Bytes) int {
-	return OCTETSTRING(a).write(bytes)
-}
-func (a AssertionValue) writeTagged(bytes *Bytes, class int, tag int) int {
-	return OCTETSTRING(a).writeTagged(bytes, class, tag)
+func (assertion AssertionValue) size() int {
+	return OCTETSTRING(assertion).size()
 }
 
-//
-//        AttributeValue ::= OCTET STRING
-func (a AttributeValue) size() int {
-	return OCTETSTRING(a).size()
+func (assertion AssertionValue) sizeTagged(tag int) int {
+	return OCTETSTRING(assertion).sizeTagged(tag)
 }
 
-//
-//        AssertionValue ::= OCTET STRING
-func (a AssertionValue) size() int {
-	return OCTETSTRING(a).size()
+func (assertion AssertionValue) write(bytes *Bytes) int {
+	return OCTETSTRING(assertion).write(bytes)
 }
-func (a AssertionValue) sizeTagged(tag int) int {
-	return OCTETSTRING(a).sizeTagged(tag)
+
+func (assertion AssertionValue) writeTagged(bytes *Bytes, class int, tag int) int {
+	return OCTETSTRING(assertion).writeTagged(bytes, class, tag)
 }

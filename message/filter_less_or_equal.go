@@ -26,3 +26,9 @@ func (filterAnd FilterLessOrEqual) getFilterTag() int {
 func (f FilterLessOrEqual) size() int {
 	return AttributeValueAssertion(f).sizeTagged(TagFilterLessOrEqual)
 }
+func (a *FilterLessOrEqual) AttributeDesc() AttributeDescription {
+	return a.attributeDesc
+}
+func (a *FilterLessOrEqual) AssertionValue() AssertionValue {
+	return a.assertionValue
+}

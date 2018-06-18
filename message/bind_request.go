@@ -2,20 +2,33 @@ package message
 
 import "fmt"
 
-//
-//
-//
-//
-//Sermersheim                 Standards Track                    [Page 56]
-//
-//
-//RFC 4511                         LDAPv3                        June 2006
-//
-//
 //        BindRequest ::= [APPLICATION 0] SEQUENCE {
 //             version                 INTEGER (1 ..  127),
 //             name                    LDAPDN,
 //             authentication          AuthenticationChoice }
+
+func (request *BindRequest) Name() LDAPDN {
+	return request.name
+}
+
+func (request *BindRequest) Authentication() AuthenticationChoice {
+	return request.authentication
+}
+
+func (request *BindRequest) AuthenticationSimple() OCTETSTRING {
+	return request.Authentication().(OCTETSTRING)
+}
+
+func (request *BindRequest) AuthenticationChoice() string {
+	switch request.Authentication().(type) {
+	case OCTETSTRING:
+		return "simple"
+	case SaslCredentials:
+		return "sasl"
+	}
+	return ""
+}
+
 func readBindRequest(bytes *Bytes) (bindrequest BindRequest, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagBindRequest, bindrequest.readComponents)
 	if err != nil {
@@ -24,22 +37,23 @@ func readBindRequest(bytes *Bytes) (bindrequest BindRequest, err error) {
 	}
 	return
 }
-func (bindrequest *BindRequest) readComponents(bytes *Bytes) (err error) {
-	bindrequest.version, err = readINTEGER(bytes)
+
+func (request *BindRequest) readComponents(bytes *Bytes) (err error) {
+	request.version, err = readINTEGER(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 		return
 	}
-	if !(bindrequest.version >= BindRequestVersionMin && bindrequest.version <= BindRequestVersionMax) {
-		err = LdapError{fmt.Sprintf("readComponents: invalid version %d, must be between %d and %d", bindrequest.version, BindRequestVersionMin, BindRequestVersionMax)}
+	if !(request.version >= BindRequestVersionMin && request.version <= BindRequestVersionMax) {
+		err = LdapError{fmt.Sprintf("readComponents: invalid version %d, must be between %d and %d", request.version, BindRequestVersionMin, BindRequestVersionMax)}
 		return
 	}
-	bindrequest.name, err = readLDAPDN(bytes)
+	request.name, err = readLDAPDN(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 		return
 	}
-	bindrequest.authentication, err = readAuthenticationChoice(bytes)
+	request.authentication, err = readAuthenticationChoice(bytes)
 	if err != nil {
 		err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 		return
@@ -47,59 +61,31 @@ func (bindrequest *BindRequest) readComponents(bytes *Bytes) (err error) {
 	return
 }
 
-//
-//
-//
-//
-//Sermersheim                 Standards Track                    [Page 56]
-//
-//
-//RFC 4511                         LDAPv3                        June 2006
-//
-//
-//        BindRequest ::= [APPLICATION 0] SEQUENCE {
-//             version                 INTEGER (1 ..  127),
-//             name                    LDAPDN,
-//             authentication          AuthenticationChoice }
-func (b BindRequest) write(bytes *Bytes) (size int) {
-	switch b.authentication.(type) {
+func (request BindRequest) write(bytes *Bytes) (size int) {
+	switch request.authentication.(type) {
 	case OCTETSTRING:
-		size += b.authentication.(OCTETSTRING).writeTagged(bytes, classContextSpecific, TagAuthenticationChoiceSimple)
+		size += request.authentication.(OCTETSTRING).writeTagged(bytes, classContextSpecific, TagAuthenticationChoiceSimple)
 	case SaslCredentials:
-		size += b.authentication.(SaslCredentials).writeTagged(bytes, classContextSpecific, TagAuthenticationChoiceSaslCredentials)
+		size += request.authentication.(SaslCredentials).writeTagged(bytes, classContextSpecific, TagAuthenticationChoiceSaslCredentials)
 	default:
-		panic(fmt.Sprintf("Unknown authentication choice: %#v", b.authentication))
+		panic(fmt.Sprintf("Unknown authentication choice: %#v", request.authentication))
 	}
-	size += b.name.write(bytes)
-	size += b.version.write(bytes)
+	size += request.name.write(bytes)
+	size += request.version.write(bytes)
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagBindRequest, size)
 	return
 }
 
-//
-//
-//
-//
-//Sermersheim                 Standards Track                    [Page 56]
-//
-//
-//RFC 4511                         LDAPv3                        June 2006
-//
-//
-//        BindRequest ::= [APPLICATION 0] SEQUENCE {
-//             version                 INTEGER (1 ..  127),
-//             name                    LDAPDN,
-//             authentication          AuthenticationChoice }
-func (b BindRequest) size() (size int) {
-	size += b.version.size()
-	size += b.name.size()
-	switch b.authentication.(type) {
+func (request BindRequest) size() (size int) {
+	size += request.version.size()
+	size += request.name.size()
+	switch request.authentication.(type) {
 	case OCTETSTRING:
-		size += b.authentication.(OCTETSTRING).sizeTagged(TagAuthenticationChoiceSimple)
+		size += request.authentication.(OCTETSTRING).sizeTagged(TagAuthenticationChoiceSimple)
 	case SaslCredentials:
-		size += b.authentication.(SaslCredentials).sizeTagged(TagAuthenticationChoiceSaslCredentials)
+		size += request.authentication.(SaslCredentials).sizeTagged(TagAuthenticationChoiceSaslCredentials)
 	default:
-		panic(fmt.Sprintf("Unknown authentication choice: %#v", b.authentication))
+		panic(fmt.Sprintf("Unknown authentication choice: %#v", request.authentication))
 	}
 
 	size += sizeTagAndLength(TagBindRequest, size)

@@ -5,6 +5,7 @@ import "fmt"
 //        BindResponse ::= [APPLICATION 1] SEQUENCE {
 //             COMPONENTS OF LDAPResult,
 //             serverSaslCreds    [7] OCTET STRING OPTIONAL }
+
 func readBindResponse(bytes *Bytes) (bindresponse BindResponse, err error) {
 	err = bytes.ReadSubBytes(classApplication, TagBindResponse, bindresponse.readComponents)
 	if err != nil {
@@ -13,8 +14,9 @@ func readBindResponse(bytes *Bytes) (bindresponse BindResponse, err error) {
 	}
 	return
 }
-func (bindresponse *BindResponse) readComponents(bytes *Bytes) (err error) {
-	bindresponse.LDAPResult.readComponents(bytes)
+
+func (response *BindResponse) readComponents(bytes *Bytes) (err error) {
+	response.LDAPResult.readComponents(bytes)
 	if bytes.HasMoreData() {
 		var tag TagAndLength
 		tag, err = bytes.PreviewTagAndLength()
@@ -29,32 +31,26 @@ func (bindresponse *BindResponse) readComponents(bytes *Bytes) (err error) {
 				err = LdapError{fmt.Sprintf("readComponents:\n%s", err.Error())}
 				return
 			}
-			bindresponse.serverSaslCreds = serverSaslCreds.Pointer()
+			response.serverSaslCreds = serverSaslCreds.Pointer()
 		}
 	}
 	return
 }
 
-//        BindResponse ::= [APPLICATION 1] SEQUENCE {
-//             COMPONENTS OF LDAPResult,
-//             serverSaslCreds    [7] OCTET STRING OPTIONAL }
-func (b BindResponse) write(bytes *Bytes) (size int) {
-	if b.serverSaslCreds != nil {
-		size += b.serverSaslCreds.writeTagged(bytes, classContextSpecific, TagBindResponseServerSaslCreds)
+func (response BindResponse) write(bytes *Bytes) (size int) {
+	if response.serverSaslCreds != nil {
+		size += response.serverSaslCreds.writeTagged(bytes, classContextSpecific, TagBindResponseServerSaslCreds)
 	}
-	size += b.LDAPResult.writeComponents(bytes)
+	size += response.LDAPResult.writeComponents(bytes)
 	size += bytes.WriteTagAndLength(classApplication, isCompound, TagBindResponse, size)
 	return
 }
 
-//        BindResponse ::= [APPLICATION 1] SEQUENCE {
-//             COMPONENTS OF LDAPResult,
-//             serverSaslCreds    [7] OCTET STRING OPTIONAL }
-func (b BindResponse) size() (size int) {
-	if b.serverSaslCreds != nil {
-		size += b.serverSaslCreds.sizeTagged(TagBindResponseServerSaslCreds)
+func (response BindResponse) size() (size int) {
+	if response.serverSaslCreds != nil {
+		size += response.serverSaslCreds.sizeTagged(TagBindResponseServerSaslCreds)
 	}
-	size += b.LDAPResult.sizeComponents()
+	size += response.LDAPResult.sizeComponents()
 	size += sizeTagAndLength(TagBindResponse, size)
 	return
 }

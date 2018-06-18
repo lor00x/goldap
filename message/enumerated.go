@@ -2,6 +2,10 @@ package message
 
 import "fmt"
 
+func (enum ENUMERATED) Int() int {
+	return int(enum)
+}
+
 func readENUMERATED(bytes *Bytes, allowedValues map[ENUMERATED]string) (ret ENUMERATED, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(classUniversal, tagEnum, tagEnum)
@@ -16,12 +20,15 @@ func readENUMERATED(bytes *Bytes, allowedValues map[ENUMERATED]string) (ret ENUM
 	}
 	return
 }
-func (e ENUMERATED) write(bytes *Bytes) int {
-	return bytes.WritePrimitiveSubBytes(classUniversal, tagEnum, e)
+
+func (enum ENUMERATED) write(bytes *Bytes) int {
+	return bytes.WritePrimitiveSubBytes(classUniversal, tagEnum, enum)
 }
-func (e ENUMERATED) writeTagged(bytes *Bytes, class int, tag int) int {
-	return bytes.WritePrimitiveSubBytes(class, tag, e)
+
+func (enum ENUMERATED) writeTagged(bytes *Bytes, class int, tag int) int {
+	return bytes.WritePrimitiveSubBytes(class, tag, enum)
 }
-func (e ENUMERATED) size() int {
-	return SizePrimitiveSubBytes(tagEnum, e)
+
+func (enum ENUMERATED) size() int {
+	return SizePrimitiveSubBytes(tagEnum, enum)
 }

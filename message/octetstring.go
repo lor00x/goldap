@@ -36,3 +36,9 @@ func (o OCTETSTRING) size() int {
 func (o OCTETSTRING) sizeTagged(tag int) int {
 	return SizePrimitiveSubBytes(tag, o)
 }
+func (l OCTETSTRING) String() string {
+	return string(l)
+}
+func (l OCTETSTRING) Bytes() []byte {
+	return []byte(l)
+}

@@ -2,11 +2,12 @@ package message
 
 import "fmt"
 
+//             and             [0] SET SIZE (1..MAX) OF filter Filter,
+
 func (filterAnd FilterAnd) getFilterTag() int {
 	return TagFilterAnd
 }
 
-//             and             [0] SET SIZE (1..MAX) OF filter Filter,
 func (filterAnd FilterAnd) size() (size int) {
 	for _, filter := range filterAnd {
 		size += filter.size()
@@ -34,7 +35,6 @@ func (filterAnd *FilterAnd) readComponents(bytes *Bytes) (err error) {
 	return
 }
 
-//             and             [0] SET SIZE (1..MAX) OF filter Filter,
 func (filterAnd FilterAnd) write(bytes *Bytes) (size int) {
 
 	for i := len(filterAnd) - 1; i >= 0; i-- {
@@ -44,7 +44,6 @@ func (filterAnd FilterAnd) write(bytes *Bytes) (size int) {
 	return
 }
 
-//             and             [0] SET SIZE (1..MAX) OF filter Filter,
 func readFilterAnd(bytes *Bytes) (filterand FilterAnd, err error) {
 	err = bytes.ReadSubBytes(classContextSpecific, TagFilterAnd, filterand.readComponents)
 	if err != nil {

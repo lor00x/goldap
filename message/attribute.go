@@ -6,6 +6,15 @@ import "fmt"
 //        Attribute ::= PartialAttribute(WITH COMPONENTS {
 //             ...,
 //             vals (SIZE(1..MAX))})
+
+func (attribute *Attribute) Type_() AttributeDescription {
+	return attribute.type_
+}
+
+func (attribute *Attribute) Vals() []AttributeValue {
+	return attribute.vals
+}
+
 func readAttribute(bytes *Bytes) (ret Attribute, err error) {
 	var par PartialAttribute
 	par, err = readPartialAttribute(bytes)
@@ -22,18 +31,10 @@ func readAttribute(bytes *Bytes) (ret Attribute, err error) {
 
 }
 
-//
-//        Attribute ::= PartialAttribute(WITH COMPONENTS {
-//             ...,
-//             vals (SIZE(1..MAX))})
-func (a Attribute) write(bytes *Bytes) (size int) {
-	return PartialAttribute(a).write(bytes)
+func (attribute Attribute) size() (size int) {
+	return PartialAttribute(attribute).size()
 }
 
-//
-//        Attribute ::= PartialAttribute(WITH COMPONENTS {
-//             ...,
-//             vals (SIZE(1..MAX))})
-func (a Attribute) size() (size int) {
-	return PartialAttribute(a).size()
+func (attribute Attribute) write(bytes *Bytes) (size int) {
+	return PartialAttribute(attribute).write(bytes)
 }

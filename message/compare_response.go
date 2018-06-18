@@ -4,6 +4,11 @@ import "fmt"
 
 //
 //        CompareResponse ::= [APPLICATION 15] LDAPResult
+
+func (response *CompareResponse) SetResultCode(code int) {
+	response.resultCode = ENUMERATED(code)
+}
+
 func readCompareResponse(bytes *Bytes) (ret CompareResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagCompareResponse)
@@ -15,14 +20,10 @@ func readCompareResponse(bytes *Bytes) (ret CompareResponse, err error) {
 	return
 }
 
-//
-//        CompareResponse ::= [APPLICATION 15] LDAPResult
-func (c CompareResponse) write(bytes *Bytes) int {
-	return LDAPResult(c).writeTagged(bytes, classApplication, TagCompareResponse)
+func (response CompareResponse) write(bytes *Bytes) int {
+	return LDAPResult(response).writeTagged(bytes, classApplication, TagCompareResponse)
 }
 
-//
-//        CompareResponse ::= [APPLICATION 15] LDAPResult
-func (c CompareResponse) size() int {
-	return LDAPResult(c).sizeTagged(TagCompareResponse)
+func (response CompareResponse) size() int {
+	return LDAPResult(response).sizeTagged(TagCompareResponse)
 }

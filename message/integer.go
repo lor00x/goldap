@@ -48,3 +48,6 @@ func (i INTEGER) size() int {
 func (i INTEGER) sizeTagged(tag int) int {
 	return SizePrimitiveSubBytes(tag, i)
 }
+func (l INTEGER) Int() int {
+	return int(l)
+}

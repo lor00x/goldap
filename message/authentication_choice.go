@@ -8,6 +8,7 @@ import "fmt"
 //                                     -- 1 and 2 reserved
 //             sasl                    [3] SaslCredentials,
 //             ...  }
+
 func readAuthenticationChoice(bytes *Bytes) (ret AuthenticationChoice, err error) {
 	tagAndLength, err := bytes.PreviewTagAndLength()
 	if err != nil {

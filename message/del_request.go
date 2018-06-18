@@ -15,14 +15,10 @@ func readDelRequest(bytes *Bytes) (ret DelRequest, err error) {
 	return
 }
 
-//
-//        DelRequest ::= [APPLICATION 10] LDAPDN
-func (d DelRequest) write(bytes *Bytes) int {
-	return LDAPDN(d).writeTagged(bytes, classApplication, TagDelRequest)
+func (del DelRequest) write(bytes *Bytes) int {
+	return LDAPDN(del).writeTagged(bytes, classApplication, TagDelRequest)
 }
 
-//
-//        DelRequest ::= [APPLICATION 10] LDAPDN
-func (d DelRequest) size() int {
-	return LDAPDN(d).sizeTagged(TagDelRequest)
+func (del DelRequest) size() int {
+	return LDAPDN(del).sizeTagged(TagDelRequest)
 }

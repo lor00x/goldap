@@ -193,3 +193,7 @@ func (bytes *Bytes) ReadPrimitiveSubBytes(class int, tag int, typeTag int) (valu
 	bytes.offset = end
 	return
 }
+
+func (bytes *Bytes) Bytes() []byte {
+	return bytes.bytes
+}

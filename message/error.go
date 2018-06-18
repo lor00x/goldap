@@ -4,6 +4,6 @@ type LdapError struct {
 	Msg string
 }
 
-func (e LdapError) Error() string {
-	return e.Msg
+func (err LdapError) Error() string {
+	return err.Msg
 }

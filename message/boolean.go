@@ -12,12 +12,15 @@ func readBOOLEAN(bytes *Bytes) (ret BOOLEAN, err error) {
 	ret = BOOLEAN(value.(bool))
 	return
 }
-func (b BOOLEAN) write(bytes *Bytes) int {
-	return bytes.WritePrimitiveSubBytes(classUniversal, tagBoolean, b)
+
+func (boolean BOOLEAN) write(bytes *Bytes) int {
+	return bytes.WritePrimitiveSubBytes(classUniversal, tagBoolean, boolean)
 }
-func (b BOOLEAN) writeTagged(bytes *Bytes, class int, tag int) int {
-	return bytes.WritePrimitiveSubBytes(class, tag, b)
+
+func (boolean BOOLEAN) writeTagged(bytes *Bytes, class int, tag int) int {
+	return bytes.WritePrimitiveSubBytes(class, tag, boolean)
 }
+
 func readTaggedBOOLEAN(bytes *Bytes, class int, tag int) (ret BOOLEAN, err error) {
 	var value interface{}
 	value, err = bytes.ReadPrimitiveSubBytes(class, tag, tagBoolean)
@@ -28,6 +31,7 @@ func readTaggedBOOLEAN(bytes *Bytes, class int, tag int) (ret BOOLEAN, err error
 	ret = BOOLEAN(value.(bool))
 	return
 }
+
 func SizePrimitiveSubBytes(tag int, value interface{}) (size int) {
 	switch value.(type) {
 	case BOOLEAN:
@@ -44,9 +48,15 @@ func SizePrimitiveSubBytes(tag int, value interface{}) (size int) {
 	size += sizeTagAndLength(tag, size)
 	return
 }
-func (b BOOLEAN) size() int {
-	return SizePrimitiveSubBytes(tagBoolean, b)
+
+func (boolean BOOLEAN) size() int {
+	return SizePrimitiveSubBytes(tagBoolean, boolean)
 }
-func (b BOOLEAN) sizeTagged(tag int) int {
-	return SizePrimitiveSubBytes(tag, b)
+
+func (boolean BOOLEAN) sizeTagged(tag int) int {
+	return SizePrimitiveSubBytes(tag, boolean)
+}
+
+func (boolean BOOLEAN) Bool() bool {
+	return bool(boolean)
 }

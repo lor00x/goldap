@@ -4,6 +4,11 @@ import "fmt"
 
 //
 //        DelResponse ::= [APPLICATION 11] LDAPResult
+
+func (del *DelResponse) SetResultCode(code int) {
+	del.resultCode = ENUMERATED(code)
+}
+
 func readDelResponse(bytes *Bytes) (ret DelResponse, err error) {
 	var res LDAPResult
 	res, err = readTaggedLDAPResult(bytes, classApplication, TagDelResponse)
@@ -15,14 +20,10 @@ func readDelResponse(bytes *Bytes) (ret DelResponse, err error) {
 	return
 }
 
-//
-//        DelResponse ::= [APPLICATION 11] LDAPResult
-func (d DelResponse) write(bytes *Bytes) int {
-	return LDAPResult(d).writeTagged(bytes, classApplication, TagDelResponse)
+func (del DelResponse) write(bytes *Bytes) int {
+	return LDAPResult(del).writeTagged(bytes, classApplication, TagDelResponse)
 }
 
-//
-//        DelResponse ::= [APPLICATION 11] LDAPResult
-func (d DelResponse) size() int {
-	return LDAPResult(d).sizeTagged(TagDelResponse)
+func (del DelResponse) size() int {
+	return LDAPResult(del).sizeTagged(TagDelResponse)
 }

@@ -48,3 +48,6 @@ func (p PartialAttributeList) size() (size int) {
 	size += sizeTagAndLength(tagSequence, size)
 	return
 }
+func (p *PartialAttributeList) add(a PartialAttribute) {
+	*p = append(*p, a)
+}

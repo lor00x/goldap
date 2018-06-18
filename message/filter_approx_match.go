@@ -26,3 +26,9 @@ func (filterAnd FilterApproxMatch) getFilterTag() int {
 func (f FilterApproxMatch) size() int {
 	return AttributeValueAssertion(f).sizeTagged(TagFilterApproxMatch)
 }
+func (a *FilterApproxMatch) AttributeDesc() AttributeDescription {
+	return a.attributeDesc
+}
+func (a *FilterApproxMatch) AssertionValue() AssertionValue {
+	return a.assertionValue
+}

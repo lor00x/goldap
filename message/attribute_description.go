@@ -6,6 +6,9 @@ import "fmt"
 //        AttributeDescription ::= LDAPString
 //                                -- Constrained to <attributedescription>
 //                                -- [RFC4512]
+
+func (description AttributeDescription) Pointer() *AttributeDescription { return &description }
+
 func readAttributeDescription(bytes *Bytes) (ret AttributeDescription, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readLDAPString(bytes)
@@ -17,6 +20,7 @@ func readAttributeDescription(bytes *Bytes) (ret AttributeDescription, err error
 	ret = AttributeDescription(ldapstring)
 	return
 }
+
 func readTaggedAttributeDescription(bytes *Bytes, class int, tag int) (ret AttributeDescription, err error) {
 	var ldapstring LDAPString
 	ldapstring, err = readTaggedLDAPString(bytes, class, tag)
@@ -28,26 +32,19 @@ func readTaggedAttributeDescription(bytes *Bytes, class int, tag int) (ret Attri
 	ret = AttributeDescription(ldapstring)
 	return
 }
-func (a AttributeDescription) Pointer() *AttributeDescription { return &a }
 
-//
-//        AttributeDescription ::= LDAPString
-//                                -- Constrained to <attributedescription>
-//                                -- [RFC4512]
-func (a AttributeDescription) write(bytes *Bytes) int {
-	return LDAPString(a).write(bytes)
-}
-func (a AttributeDescription) writeTagged(bytes *Bytes, class int, tag int) int {
-	return LDAPString(a).writeTagged(bytes, class, tag)
+func (description AttributeDescription) size() int {
+	return LDAPString(description).size()
 }
 
-//
-//        AttributeDescription ::= LDAPString
-//                                -- Constrained to <attributedescription>
-//                                -- [RFC4512]
-func (a AttributeDescription) size() int {
-	return LDAPString(a).size()
+func (description AttributeDescription) sizeTagged(tag int) int {
+	return LDAPString(description).sizeTagged(tag)
 }
-func (a AttributeDescription) sizeTagged(tag int) int {
-	return LDAPString(a).sizeTagged(tag)
+
+func (description AttributeDescription) write(bytes *Bytes) int {
+	return LDAPString(description).write(bytes)
+}
+
+func (description AttributeDescription) writeTagged(bytes *Bytes, class int, tag int) int {
+	return LDAPString(description).writeTagged(bytes, class, tag)
 }

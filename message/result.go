@@ -268,3 +268,15 @@ func (l LDAPResult) sizeComponents() (size int) {
 	size += l.resultCode.size()
 	return
 }
+func (l *LDAPResult) SetResultCode(code int) {
+	l.resultCode = ENUMERATED(code)
+}
+func (l *LDAPResult) SeMatchedDN(code string) {
+	l.matchedDN = LDAPDN(code)
+}
+func (l *LDAPResult) SetDiagnosticMessage(code string) {
+	l.diagnosticMessage = LDAPString(code)
+}
+func (l *LDAPResult) SetReferral(r *Referral) {
+	l.referral = r
+}
