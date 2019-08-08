@@ -40,8 +40,8 @@ var tagNames = map[int]string{
 	tagInteger:     "INTEGER",
 	tagOctetString: "OCTET STRING",
 	tagEnum:        "ENUM",
-	tagSequence: "SEQUENCE",
-	tagSet:      "SET",
+	tagSequence:    "SEQUENCE",
+	tagSet:         "SET",
 }
 
 const (
