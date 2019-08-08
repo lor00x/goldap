@@ -29,6 +29,9 @@ func (matchingruleassertion *MatchingRuleAssertion) readComponents(bytes *Bytes)
 	if err != nil {
 		return LdapError{fmt.Sprintf("readComponents: %s", err.Error())}
 	}
+	if len(bytes.bytes) == bytes.offset {
+		return
+	}
 	matchingruleassertion.dnAttributes, err = readTaggedBOOLEAN(bytes, classContextSpecific, TagMatchingRuleAssertionDnAttributes)
 	if err != nil {
 		return LdapError{fmt.Sprintf("readComponents: %s", err.Error())}
