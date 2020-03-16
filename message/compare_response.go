@@ -8,6 +8,9 @@ import "fmt"
 func (response *CompareResponse) SetResultCode(code int) {
 	response.resultCode = ENUMERATED(code)
 }
+func (response *CompareResponse) SetDiagnosticMessage(code string) {
+	response.diagnosticMessage = LDAPString(code)
+}
 
 func readCompareResponse(bytes *Bytes) (ret CompareResponse, err error) {
 	var res LDAPResult
