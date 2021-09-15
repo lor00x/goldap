@@ -224,18 +224,32 @@ func parseInt64(bytes []byte) (ret int64, err error) {
 }
 
 func sizeInt64(i int64) (size int) {
-	for ; i != 0 || size == 0; i >>= 8 {
-		size++
+	n := 1
+
+	for i > 127 {
+		n++
+		i >>= 8
 	}
-	return
+
+	for i < -128 {
+		n++
+		i >>= 8
+	}
+
+	return n
 }
 
 func writeInt64(bytes *Bytes, i int64) (size int) {
-	for ; i != 0 || size == 0; i >>= 8 { // Write at least one byte even if the value is 0
-		bytes.writeBytes([]byte{byte(i)})
-		size++
+	n := sizeInt64(i)
+	buf := [8]byte{}
+
+	for j := 0; j < n; j++ {
+		b := i >> uint((n-1-j)*8)
+		buf[j] = byte(b)
 	}
-	return
+	bytes.writeBytes(buf[:n])
+
+	return n
 }
 
 // parseInt treats the given bytes as a big-endian, signed integer and returns
